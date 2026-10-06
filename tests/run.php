@@ -1,6 +1,6 @@
 <?php
 /**
- * Test delle funzioni del tema che non hanno bisogno di WordPress (codice fiscale, foglio dei soci,
+ * Test delle funzioni del tema che non hanno bisogno di WordPress (codice fiscale, fogli dei soci e dei corsi,
  * date, meta_query, lettere decorative). Si lanciano con: php tests/run.php
  *
  * Le poche funzioni di WordPress che servono sono imitate qui sotto, nel modo più semplice.
@@ -17,8 +17,19 @@ function add_action() {}
 function add_filter() {}
 function add_shortcode() {}
 function register_post_meta() {}
+$vv_filtri  = array();
+$vv_opzioni = array();
 function apply_filters( $hook, $value ) {
-	return $value;
+	global $vv_filtri;
+	return isset( $vv_filtri[ $hook ] ) ? call_user_func( $vv_filtri[ $hook ], $value ) : $value;
+}
+function get_option( $name, $default = false ) {
+	global $vv_opzioni;
+	return array_key_exists( $name, $vv_opzioni ) ? $vv_opzioni[ $name ] : $default;
+}
+function update_option( $name, $value ) {
+	global $vv_opzioni;
+	$vv_opzioni[ $name ] = $value;
 }
 function wp_strip_all_tags( $text ) {
 	return trim( strip_tags( (string) $text ) );
@@ -95,6 +106,96 @@ uguale( 'Riga: tab', 'DomandeAmmissione 2026-2027', $riga['_tab'] );
 uguale( 'Riga: nome', 'Maria', $riga['Nome'] );
 uguale( 'Riga: colonna senza valore', '', $riga['Cognome'] );
 uguale( 'Riga: tutte le colonne', count( vv_sheets_colonne() ) + 3, count( $riga ) );
+
+// Foglio dei corsi: tab di un corso
+uguale( 'Chiave di un nome', 'gioco-del-teatro-3-6-anni', vv_corsi_chiave( 'Gioco del Teatro (3-6 anni)' ) );
+uguale( 'Chiave con accenti', 'attivita-e-perche', vv_corsi_chiave( 'Attività e perché' ) );
+uguale( 'Corso uguale al tab', 'tecnica-attoriale-2026', vv_corsi_tab( 'tecnica-attoriale-2026' ) );
+uguale( 'Corso senza anno', 'lettura-ad-alta-voce-2026', vv_corsi_tab( 'Lettura ad alta voce' ) );
+uguale( 'Corso con dettagli', 'gioco-del-teatro-2026', vv_corsi_tab( 'Gioco del teatro (3-6 anni)' ) );
+uguale( 'Corso con lo stesso anno', 'messa-in-scena-2027', vv_corsi_tab( 'Messa in scena 2027' ) );
+uguale( 'Corso con un altro anno', 'Da smistare', vv_corsi_tab( 'Messa in scena 2028' ) );
+uguale( 'Corso sconosciuto', 'Da smistare', vv_corsi_tab( 'Dizione' ) );
+uguale( 'Corso vuoto', 'Da smistare', vv_corsi_tab( '' ) );
+
+// Foglio dei corsi: righe di un'iscrizione
+$vv_corsi_entry = static function ( $corso ) {
+	return (object) array(
+		'form_id'          => 1617,
+		'entry_id'         => 40,
+		'date_created_sql' => '2026-10-05 10:08:00',
+		'meta_data'        => array(
+			'text-1'     => array( 'value' => 'rssmra85t10a562s' ),
+			'checkbox-1' => array( 'value' => $corso ),
+		),
+	);
+};
+$vv_filtri['vv_corsi_campo'] = static fn() => 'checkbox-1';
+$righe = vv_corsi_righe( $vv_corsi_entry( 'Tecnica attoriale' ) );
+uguale( 'Corso singolo: una riga', 1, count( $righe ) );
+uguale( 'Corso singolo: tab', 'tecnica-attoriale-2026', $righe[0]['_tab'] );
+uguale( 'Corso singolo: Rif.', 'F1617-40', $righe[0]['Rif.'] );
+uguale( 'Corso singolo: codice fiscale', 'RSSMRA85T10A562S', $righe[0]['Codice Fiscale'] );
+uguale( 'Corso singolo: campo vuoto, colonna vuota', '', $righe[0]['Nome'] );
+uguale( 'Corso singolo: chiavi', array_merge( array( '_tab', 'Rif.' ), array_keys( vv_corsi_colonne() ), array( 'Corso' ) ), array_keys( $righe[0] ) );
+$righe = vv_corsi_righe( $vv_corsi_entry( array( 'Lettura ad alta voce', 'Messa in scena' ) ) );
+uguale( 'Due corsi: due righe', array( 'lettura-ad-alta-voce-2026', 'messa-in-scena-2027' ), array_column( $righe, '_tab' ) );
+uguale( 'Due corsi: stesso Rif.', array( 'F1617-40', 'F1617-40' ), array_column( $righe, 'Rif.' ) );
+$righe = vv_corsi_righe( $vv_corsi_entry( array( 'Dizione', 'Canto', 'Dizione' ) ) );
+uguale( 'Corsi sconosciuti: Da smistare, uno per corso', array( 'Da smistare', 'Da smistare' ), array_column( $righe, '_tab' ) );
+uguale( 'Corsi sconosciuti: colonna Corso', array( 'Dizione', 'Canto' ), array_column( $righe, 'Corso' ) );
+$vv_filtri['vv_corsi_tabs'] = static fn() => array( 'Canto' => 'tecnica-attoriale-2026' );
+uguale( 'Tabella dei tab prima del confronto', 'tecnica-attoriale-2026', vv_corsi_tab( 'Canto' ) );
+uguale( 'Tabella dei tab, valore scritto in altro modo', 'tecnica-attoriale-2026', vv_corsi_tab( 'CANTO' ) );
+unset( $vv_filtri['vv_corsi_tabs'] );
+uguale( 'Campo del corso indicato: requisito soddisfatto', '', vv_corsi_requisito() );
+unset( $vv_filtri['vv_corsi_campo'] );
+
+// Foglio dei corsi: le opzioni reali del modulo 1617
+$vv_opzioni_1617 = array_keys( vv_corsi_tabs() );
+uguale( 'Modulo 1617: campo del corso', 'checkbox-1', vv_corsi_campo() );
+uguale( 'Modulo 1617: ogni opzione nel suo tab', vv_corsi_tab_nomi(), array_map( 'vv_corsi_tab', $vv_opzioni_1617 ) );
+$righe = vv_corsi_righe( $vv_corsi_entry( array( $vv_opzioni_1617[0], $vv_opzioni_1617[3] ) ) );
+uguale( 'Modulo 1617: due caselle, due tab', array( 'lettura-ad-alta-voce-2026', 'gioco-del-teatro-2026' ), array_column( $righe, '_tab' ) );
+$righe = vv_corsi_righe( $vv_corsi_entry( $vv_opzioni_1617[2] . ', ' . $vv_opzioni_1617[1] ) );
+uguale( 'Modulo 1617: caselle unite in un testo', array( 'messa-in-scena-2027', 'tecnica-attoriale-2026' ), array_column( $righe, '_tab' ) );
+uguale( 'Modulo 1617: opzione riscritta', 'Da smistare', vv_corsi_tab( 'Adulti: Laboratorio di dizione, 2027' ) );
+uguale(
+	'Modulo 1617: colonne',
+	array( 'name-1', 'name-2', 'text-1', 'email-1', 'phone-2', 'upload-1', 'consent-1', 'consent-2', 'consent-3', 'textarea-1' ),
+	array_values( vv_corsi_colonne() )
+);
+
+$vv_filtri['vv_corsi_campo'] = static fn() => '';
+uguale( 'Senza campo del corso: fermo', 'manca il campo del corso (filtro vv_corsi_campo)', vv_corsi_requisito() );
+uguale( 'Senza campo del corso: riga in Da smistare', 'Da smistare', vv_corsi_righe( $vv_corsi_entry( 'Tecnica attoriale' ) )[0]['_tab'] );
+unset( $vv_filtri['vv_corsi_campo'] );
+
+// Collegamenti: i soci restano come prima
+$c = vv_sheets_config( 'soci' );
+uguale( 'Soci: opzioni invariate', array( 'vv_sheets_ultimo', 'vv_sheets_stato', '' ), array( $c['ultimo'], $c['stato'], $c['inizio'] ) );
+uguale( 'Soci: modulo e data', array( 274, '2026-09-01' ), array( $c['form'], $c['dal'] ) );
+uguale( 'Soci: una riga per iscrizione', array( vv_sheets_riga( $entry ) ), vv_sheets_righe_soci( $entry ) );
+$c = vv_sheets_config( 'corsi' );
+uguale( 'Corsi: modulo, opzioni, partenza dalle nuove', array( 1617, 'vv_sheets_corsi_ultimo', 'vv_sheets_corsi_stato', 'vv_sheets_corsi_inizio', '' ), array( $c['form'], $c['ultimo'], $c['stato'], $c['inizio'], $c['dal'] ) );
+
+// Partenza dalle nuove: la prima volta si fissa l'iscrizione più recente
+class Forminator_API {
+	public static $entries = array();
+	public static function get_entries( $form ) {
+		return self::$entries;
+	}
+}
+$vv_opzioni = array();
+Forminator_API::$entries = array( (object) array( 'entry_id' => 7 ), (object) array( 'entry_id' => 31, 'is_spam' => 1 ), (object) array( 'entry_id' => 12 ) );
+uguale( 'Partenza dalle nuove: iscrizione più recente', 31, vv_sheets_ultimo( 'corsi' ) );
+uguale( 'Partenza dalle nuove: salvata', 31, $vv_opzioni['vv_sheets_corsi_inizio'] );
+Forminator_API::$entries[] = (object) array( 'entry_id' => 32, 'date_created_sql' => '2026-10-06 09:00:00' );
+uguale( 'Partenza dalle nuove: resta fissa', 31, vv_sheets_ultimo( 'corsi' ) );
+uguale( 'Partenza dalle nuove: parte solo la nuova', array( 32 ), array_map( static fn( $e ) => $e->entry_id, vv_sheets_da_inviare( 'corsi' ) ) );
+$vv_opzioni['vv_sheets_corsi_ultimo'] = 32;
+uguale( 'Dopo un invio conta l\'ultima confermata', 32, vv_sheets_ultimo( 'corsi' ) );
+uguale( 'Soci: si parte da zero', 0, vv_sheets_ultimo( 'soci' ) );
 
 // Date degli eventi e slug
 uguale( 'Data valida', '2026-10-06', vv_sanitize_date( ' 2026-10-06 ' ) );
