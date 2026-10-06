@@ -8,12 +8,12 @@
  * - La colonna "Rif." (numero dell'iscrizione sul sito) evita i doppioni: una riga già scritta non
  *   viene ripetuta, anche se il sito la rimanda.
  *
- * Installazione (una volta):
+ * Installazione (una volta), istruzioni complete nel sito: Strumenti → Esporta iscrizioni.
  * 1. Nel foglio: Estensioni → Apps Script, incolla questo file al posto del codice che c'è, salva.
  * 2. Scegli la funzione "creaToken" in alto e premi Esegui (la prima volta chiede le autorizzazioni):
- *    nel registro compare il codice segreto da mettere in wp-config.php come VV_SHEETS_TOKEN.
+ *    nel registro compare il codice segreto da mettere nel sito come VV_SOCI_TOKEN.
  * 3. Esegui il deployment → Nuovo deployment → tipo "App web"; Esegui come: me; Chi ha accesso:
- *    chiunque. L'URL dell'app web (finisce con /exec) va in wp-config.php come VV_SHEETS_URL.
+ *    chiunque. L'URL dell'app web (finisce con /exec) va nel sito come VV_SOCI_URL.
  * In alternativa lo script può stare nel proprio Drive (script.google.com → Nuovo progetto), con
  * l'ID del foglio in ID_FOGLIO: basta essere editor del foglio, non serve esserne proprietari.
  * Se modifichi questo codice: Esegui il deployment → Gestisci deployment → modifica → Nuova versione
@@ -146,5 +146,5 @@ function risposta_(oggetto) {
 function creaToken() {
   var token = Utilities.getUuid().replace(/-/g, '') + Utilities.getUuid().replace(/-/g, '');
   PropertiesService.getScriptProperties().setProperty('TOKEN', token);
-  Logger.log('VV_SHEETS_TOKEN: ' + token);
+  Logger.log('VV_SOCI_TOKEN: ' + token);
 }

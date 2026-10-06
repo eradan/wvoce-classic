@@ -2,6 +2,40 @@
 
 Tema child di **Sydney 2.71** per wvoce.it, aspetto "classico" vicino al sito originale. Le note di versione vengono prima; da *Messa in produzione* in poi la guida d'uso.
 
+## Versione 0.9.0: Strumenti → Esporta iscrizioni
+
+- **Configurazione dal pannello, senza `wp-config.php`.** Strumenti → Fogli Google diventa **Strumenti → Esporta iscrizioni** (`tools.php?page=vv-iscrizioni`; il vecchio indirizzo `page=vv-sheets` porta lì), con quattro tab: *Configurazione*, *Iscrizioni soci*, *Iscrizioni corsi*, *Script Apps Script*. Indirizzo, codice, modulo e data di partenza di ogni foglio si scrivono nel tab Configurazione (`VV_SOCI_URL`, `VV_SOCI_TOKEN`, `VV_SOCI_FORM`, `VV_SOCI_DAL`, `VV_CORSI_URL`, `VV_CORSI_TOKEN`, `VV_CORSI_FORM`, `VV_CORSI_DAL`) e restano nel database (opzioni `vv_soci_impostazioni`, `vv_corsi_impostazioni`). Il tab contiene la guida alla compilazione e il pulsante **Salva e verifica il collegamento**, che manda al foglio una richiesta vuota e conferma indirizzo e codice senza scrivere nulla. Il codice salvato resta nascosto: un campo vuoto lo conserva.
+- **Costanti di `wp-config.php` ignorate.** `VV_SHEETS_*` e `VV_CORSI_*` non contano più; la pagina segnala quelle ancora definite, che si possono togliere. Dopo l'aggiornamento i collegamenti restano spenti finché URL e codice entrano nel pannello.
+- **Nomi coerenti: `VV_SHEETS` diventa `VV_SOCI`.** Il prefisso `vv_sheets_` resta al motore comune (invio, stato, cron); ciò che riguarda i soci passa a `vv_soci_` (`vv_soci_colonne()` e filtro omonimo, `vv_soci_tab()`, `vv_soci_riga()`, `vv_soci_righe()`), come i corsi a `vv_corsi_`. Opzioni di stato: `vv_soci_ultimo`, `vv_soci_stato`, `vv_corsi_ultimo`, `vv_corsi_stato`, `vv_corsi_inizio`. I valori della 0.8 (`vv_sheets_ultimo`…) passano ai nomi nuovi una volta sola (`vv_sheets_migra_opzioni()`): il punto raggiunto resta quello, nessun reinvio.
+- **Iscrizioni soci e Iscrizioni corsi** in due tab separati: stato, prova a secco, colonne, "Invia adesso", "Ricomincia".
+- **Script Apps Script da copiare.** Gli script stanno ora in `inc/apps-script/` (`albo-soci.gs`, `iscrizione-corsi.gs`; prima in `docs/`, che resta fuori dallo zip del tema): il tab *Script Apps Script* ne mostra il testo con il pulsante **Copia lo script**.
+- **Corsi: la mappa corso → tab passa al foglio.** Il sito manda una riga per ogni corso scelto, con il testo dell'opzione nella colonna "Corso"; lo script sceglie il tab leggendo il tab **`configurazioni`** del foglio. Spariscono `vv_corsi_tabs()`, `vv_corsi_tab_nomi()`, il confronto approssimato dei nomi e `TAB_MODELLO`. **Lo script dei corsi va incollato di nuovo e pubblicato** (Gestisci deployment → Nuova versione).
+
+### Tab "configurazioni" del foglio dei corsi
+
+Per convenzione il foglio "Iscrizione Corsi" contiene un tab chiamato `configurazioni`:
+
+| | A | B |
+|---|---|---|
+| 1 | Tab | Corso |
+| 2 | `lettura-ad-alta-voce-2026` | Adulti: Laboratorio di lettura ad alta voce corale, ottobre-dicembre 2026 (martedì 18.30-20.30) |
+| 3 | `tecnica-attoriale-2026` | Adulti: Laboratorio di tecniche attoriali, ottobre-dicembre 2026 (giovedì 18.30-20.30) |
+| 4 | `messa-in-scena-2027` | Adulti: Laboratorio di messa in scena, gennaio-giugno 2027 (giovedì 18.30-20.30) |
+| 5 | `gioco-del-teatro-2026` | Bambini (elementari): Il gioco del teatro, ottobre-dicembre 2026 |
+
+- Colonna A: nome del tab; colonna B: nome esteso del corso, cioè il testo dell'opzione del modulo. Maiuscole, accenti e spazi doppi contano poco (`normalizza_()` nello script, `vv_corsi_normalizza()` nel sito); il resto deve coincidere. Più opzioni possono puntare allo stesso tab.
+- Il primo tab elencato con la riga 1 compilata fa da modello: le sue intestazioni passano ai tab nuovi ancora vuoti e a "Da smistare".
+- Corso assente da `configurazioni`, o tab inesistente: la riga va in "Da smistare", con il testo nella colonna "Corso". Se `configurazioni` manca, lo script lo crea vuoto al primo invio e tutto va in "Da smistare": nessuna iscrizione persa.
+- **Nuovo corso o opzione riscritta:** un tab nel foglio e una riga in `configurazioni`, senza toccare il sito. Il tab *Iscrizioni corsi* elenca le opzioni del modulo con il tab in cui finiscono e segnala in grassetto quelle dirette a "Da smistare"; lo script espone la mappa con l'azione di sola lettura `mappa`, che il sito tiene in copia per 5 minuti (pulsante "Rileggi il tab configurazioni").
+
+### Aggiornamento dalla 0.8
+
+1. Prima di caricare il tema: annotare `VV_SHEETS_URL`, `VV_SHEETS_TOKEN`, `VV_CORSI_URL`, `VV_CORSI_TOKEN` (ed eventuali `_FORM`, `_DAL`) da `wp-config.php`.
+2. Nel foglio dei corsi: creare il tab `configurazioni` come nella tabella sopra.
+3. Nel progetto Apps Script dei corsi: incollare il testo dal tab *Script Apps Script*, conservando l'`ID_FOGLIO`, salvare, poi Gestisci deployment → matita → Nuova versione. URL e codice restano gli stessi. Lo script dei soci cambia solo nei commenti e nel testo del registro: ripubblicarlo è facoltativo.
+4. Caricare il tema; Strumenti → Esporta iscrizioni → Configurazione: inserire i valori annotati (i vecchi `VV_SHEETS_*` vanno nei campi `VV_SOCI_*`) e premere "Salva e verifica il collegamento" per ciascun foglio.
+5. Tab *Iscrizioni corsi*: controllare che ogni opzione abbia il suo tab e che la prova a secco torni; poi togliere le costanti da `wp-config.php`.
+
 ## Versione 0.8.0: iscrizioni ai corsi nel foglio Google
 
 - **Iscrizioni ai corsi nel foglio "VivaVoce / Iscrizione Corsi"** (`inc/sheets.php`, `docs/apps-script-iscrizione-corsi.gs`): ogni iscrizione del modulo "Iscrizione ai corsi 2026-2027" (n. 1617) arriva nel tab del corso scelto, una riga per corso. Vedi *Foglio dei corsi*.
@@ -10,6 +44,8 @@ Tema child di **Sydney 2.71** per wvoce.it, aspetto "classico" vicino al sito or
 - **Informativa privacy** estesa ai corsi: `docs/informativa-fogli-google.md` (prima `informativa-albo-soci.md`).
 
 ### Foglio dei corsi
+
+> Dalla 0.9.0 configurazione, script e tab dei corsi funzionano come descritto in *Versione 0.9.0*; quanto segue vale per la 0.8.
 
 Le iscrizioni del modulo n. 1617 arrivano nel foglio "VivaVoce / Iscrizione Corsi", un tab per corso (`lettura-ad-alta-voce-2026`, `tecnica-attoriale-2026`, `messa-in-scena-2027`, `gioco-del-teatro-2026`). Lo script scrive Nome, Cognome, Codice Fiscale, Email, Cellulare, Ricevuta, Regolamento, Socio, Privacy e Note (A–J); dovuto, quota associativa e pagamento (K–N) restano alla segreteria e lo script li lascia intatti. In O compare "Rif." (`F1617-` + numero dell'iscrizione), che evita i doppioni e si può nascondere.
 
@@ -61,6 +97,8 @@ Le iscrizioni del modulo n. 1617 arrivano nel foglio "VivaVoce / Iscrizione Cors
 - **Domande dei soci nel foglio Google** (`inc/sheets.php`, `docs/apps-script-albo-soci.gs`): vedi *Foglio dei soci*.
 
 ### Foglio dei soci
+
+> Dalla 0.9.0 indirizzo e codice si scrivono in Strumenti → Esporta iscrizioni (`VV_SOCI_URL`, `VV_SOCI_TOKEN`), non più in `wp-config.php`; lo script è in `inc/apps-script/albo-soci.gs`. Vedi *Versione 0.9.0*.
 
 Le iscrizioni del modulo "Iscrizione Socio" (n. 274) dal 1° settembre 2026 arrivano da sole nel foglio "VivaVoce / Albo Soci", nel tab dell'anno sociale (da settembre ad agosto: "DomandeAmmissione 2026-2027"). Se il tab non c'è, lo script lo crea con le intestazioni del tab DomandeAmmissione più recente. Ogni valore va nella colonna con la stessa intestazione: le colonne si possono spostare o aggiungere. La colonna "Assicurazione" resta vuota: il "sì" lo mette chi decide. In fondo c'è la colonna "Rif." (`F274-` + numero dell'iscrizione) che evita i doppioni.
 
