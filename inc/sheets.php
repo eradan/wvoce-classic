@@ -11,7 +11,7 @@
  *
  * Ogni 15 minuti le iscrizioni nuove partono verso l'app web, che le scrive colonna per colonna
  * secondo le intestazioni. Si avanza solo sulle righe che il foglio conferma; il campo "Rif." evita
- * i doppioni. Indirizzo, codice, modulo e data di partenza si impostano in Strumenti → Esporta
+ * i doppioni. Foglio, indirizzo, codice, modulo e data di partenza si impostano in Strumenti → Esporta
  * iscrizioni → Configurazione (pagina in inc/sheets-admin.php): senza indirizzo e codice un
  * collegamento resta spento.
  *
@@ -100,8 +100,10 @@ function vv_sheets_config( $id = 'soci' ) {
 	$c['id']    = $id;
 	$c['url']   = (string) ( $s['url'] ?? '' );
 	$c['token'] = (string) ( $s['token'] ?? '' );
-	$c['form']  = empty( $s['form'] ) ? (int) $c['form'] : (int) $s['form'];
-	$c['dal']   = array_key_exists( 'dal', $s ) ? (string) $s['dal'] : (string) $c['dal'];
+	// ID del foglio Google ("foglio" è il nome leggibile, per i messaggi).
+	$c['foglio_id'] = (string) ( $s['foglio'] ?? '' );
+	$c['form']      = empty( $s['form'] ) ? (int) $c['form'] : (int) $s['form'];
+	$c['dal']       = array_key_exists( 'dal', $s ) ? (string) $s['dal'] : (string) $c['dal'];
 	return $c;
 }
 
@@ -130,6 +132,13 @@ function vv_sheets_salva_impostazioni( $id, $dati ) {
 
 	$form = absint( $dati['form'] ?? 0 );
 
+	$foglio_inserito = trim( (string) ( $dati['foglio'] ?? '' ) );
+	$foglio          = vv_sheets_id_foglio( $foglio_inserito );
+	if ( '' !== $foglio_inserito && '' === $foglio ) {
+		$foglio   = (string) ( $prima['foglio'] ?? '' );
+		$avvisi[] = "{$c['prefisso']}_FOGLIO non riconosciuto (serve l'ID o l'indirizzo del foglio): resta quello di prima.";
+	}
+
 	$dal_inserito = trim( (string) ( $dati['dal'] ?? '' ) );
 	$dal          = vv_sanitize_date( $dal_inserito );
 	if ( '' !== $dal_inserito && '' === $dal ) {
@@ -138,10 +147,11 @@ function vv_sheets_salva_impostazioni( $id, $dati ) {
 	}
 
 	$nuove = array(
-		'url'   => $url,
-		'token' => $token,
-		'form'  => $form ? $form : (int) $c['form'],
-		'dal'   => $dal,
+		'url'    => $url,
+		'token'  => $token,
+		'form'   => $form ? $form : (int) $c['form'],
+		'dal'    => $dal,
+		'foglio' => $foglio,
 	);
 	if ( $nuove['form'] !== (int) $c['form'] ) {
 		delete_option( $c['ultimo'] );
@@ -152,6 +162,20 @@ function vv_sheets_salva_impostazioni( $id, $dati ) {
 	}
 	update_option( $c['impostazioni'], $nuove, false );
 	return $avvisi;
+}
+
+/**
+ * ID di un foglio Google da quanto incollato nel pannello: l'ID stesso o l'indirizzo intero
+ * (https://docs.google.com/spreadsheets/d/ID/edit…). '' se non riconosciuto.
+ *
+ * @param string $testo ID o indirizzo.
+ */
+function vv_sheets_id_foglio( $testo ) {
+	$testo = trim( (string) $testo );
+	if ( preg_match( '#/spreadsheets/d/([A-Za-z0-9_-]{20,})#', $testo, $m ) ) {
+		return $m[1];
+	}
+	return preg_match( '/^[A-Za-z0-9_-]{20,}$/', $testo ) ? $testo : '';
 }
 
 /**
@@ -678,7 +702,7 @@ function vv_sheets_chiama( $id, $dati ) {
 		'timeout'     => 30,
 		'redirection' => 0,
 		'headers'     => array( 'Content-Type' => 'application/json' ),
-		'body'        => wp_json_encode( array( 'token' => $c['token'] ) + $dati ),
+		'body'        => wp_json_encode( array( 'token' => $c['token'] ) + ( '' !== $c['foglio_id'] ? array( 'foglio' => $c['foglio_id'] ) : array() ) + $dati ),
 	);
 	$res  = wp_remote_post( $c['url'], $args );
 	$code = is_wp_error( $res ) ? 0 : (int) wp_remote_retrieve_response_code( $res );
@@ -716,14 +740,15 @@ function vv_sheets_post( $righe, $id = 'soci' ) {
 }
 
 /**
- * Verifica di indirizzo e codice: un invio senza righe, che il foglio conferma senza scrivere nulla.
+ * Verifica di indirizzo, codice e foglio: un invio senza righe, che il foglio conferma senza
+ * scrivere nulla.
  *
  * @param string $id Collegamento.
- * @return true|WP_Error
+ * @return string|WP_Error Nome del foglio raggiunto ('' se lo script è di una versione precedente).
  */
 function vv_sheets_verifica( $id ) {
 	$json = vv_sheets_chiama( $id, array( 'righe' => array() ) );
-	return is_wp_error( $json ) ? $json : true;
+	return is_wp_error( $json ) ? $json : (string) ( $json['foglio'] ?? '' );
 }
 
 /**

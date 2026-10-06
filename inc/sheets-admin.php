@@ -102,7 +102,11 @@ function vv_sheets_azioni() {
 			$esito = vv_sheets_verifica( $id );
 			vv_sheets_avviso(
 				is_wp_error( $esito ) ? 'error' : 'success',
-				is_wp_error( $esito ) ? "{$c['titolo']}, verifica non riuscita: " . $esito->get_error_message() : "{$c['titolo']}: il foglio risponde, indirizzo e codice sono giusti."
+				is_wp_error( $esito )
+					? "{$c['titolo']}, verifica non riuscita: " . $esito->get_error_message()
+					: ( '' !== $esito
+						? "{$c['titolo']}: risponde il foglio «{$esito}», indirizzo, codice e foglio sono giusti."
+						: "{$c['titolo']}: il foglio risponde, indirizzo e codice sono giusti. Lo script pubblicato è di una versione precedente: per usare {$c['prefisso']}_FOGLIO va incollata e pubblicata la versione nuova." )
 			);
 		}
 	} elseif ( 'invia' === $azione && vv_sheets_ready( $id ) ) {
@@ -201,7 +205,7 @@ function vv_sheets_moduli() {
 function vv_sheets_tab_configurazione() {
 	$moduli = vv_sheets_moduli();
 	?>
-	<p>Le iscrizioni dei moduli Forminator arrivano da sole nei fogli Google, ogni 15 minuti, attraverso un'app web di Apps Script pubblicata dal foglio. Per ogni foglio servono l'indirizzo dell'app web e il suo codice segreto; modulo e data di partenza hanno già un valore predefinito. La guida è in fondo alla pagina.</p>
+	<p>Le iscrizioni dei moduli Forminator arrivano da sole nei fogli Google, ogni 15 minuti, attraverso un'app web di Apps Script pubblicata dal foglio. Per ogni foglio servono l'ID del foglio, l'indirizzo dell'app web e il suo codice segreto; modulo e data di partenza hanno già un valore predefinito. La guida è in fondo alla pagina.</p>
 	<?php
 	foreach ( array_keys( vv_sheets_collegamenti() ) as $id ) :
 		$c      = vv_sheets_config( $id );
@@ -216,6 +220,18 @@ function vv_sheets_tab_configurazione() {
 				<td>
 					<input type="url" class="large-text code" id="vv-<?php echo esc_attr( $id ); ?>-url" name="vv[url]" value="<?php echo esc_attr( $c['url'] ); ?>" placeholder="https://script.google.com/macros/s/…/exec">
 					<p class="description">URL dell'app web, dal deployment dello script. Vuoto: collegamento spento.</p>
+				</td>
+			</tr>
+			<tr>
+				<th scope="row"><label for="vv-<?php echo esc_attr( $id ); ?>-foglio"><code><?php echo esc_html( $p ); ?>_FOGLIO</code></label></th>
+				<td>
+					<input type="text" class="large-text code" id="vv-<?php echo esc_attr( $id ); ?>-foglio" name="vv[foglio]" value="<?php echo esc_attr( $c['foglio_id'] ); ?>" placeholder="https://docs.google.com/spreadsheets/d/…/edit">
+					<p class="description">
+						ID del foglio Google (la parte dell'indirizzo fra <code>/d/</code> e <code>/edit</code>) o l'indirizzo intero. Per passare da una copia di prova al foglio vero basta cambiare questo valore.
+						<?php if ( '' !== $c['foglio_id'] ) : ?>
+							<a href="<?php echo esc_url( 'https://docs.google.com/spreadsheets/d/' . rawurlencode( $c['foglio_id'] ) . '/edit' ); ?>" target="_blank" rel="noopener">Apri il foglio</a>
+						<?php endif; ?>
+					</p>
 				</td>
 			</tr>
 			<tr>
@@ -265,12 +281,12 @@ function vv_sheets_tab_configurazione() {
 	<h2>Guida alla compilazione</h2>
 	<ol style="max-width:820px">
 		<li><strong>Script nel Drive.</strong> In Google Drive, nella cartella dell'associazione: Nuovo → Altro → Google Apps Script (progetto autonomo, consigliato per i fogli in un Drive condiviso). In alternativa, dal foglio: Estensioni → Apps Script. Incollare al posto del codice esistente il testo del tab <a href="<?php echo esc_url( vv_sheets_url( 'script' ) ); ?>">Script Apps Script</a>.</li>
-		<li><strong>ID del foglio.</strong> Per un progetto autonomo, alla riga <code>var ID_FOGLIO = '';</code> va l'ID del foglio: la parte dell'indirizzo fra <code>/d/</code> e <code>/edit</code>. Per uno script aperto dal foglio, la riga resta vuota.</li>
+		<li><strong>Foglio (<code>…_FOGLIO</code>).</strong> L'indirizzo del foglio, copiato dalla barra del browser, o il solo ID (la parte fra <code>/d/</code> e <code>/edit</code>). Il sito lo manda allo script a ogni chiamata: lo script si incolla così com'è, con <code>ID_FOGLIO</code> vuoto. Lo stesso progetto serve per la copia di prova e per il foglio vero; basta che l'account che pubblica lo script possa modificarli.</li>
 		<li><strong>Codice segreto (<code>…_TOKEN</code>).</strong> Nell'editor, scegliere la funzione <code>creaToken</code> e premere Esegui. La prima volta Google chiede le autorizzazioni (Avanzate → Vai a … → Consenti). Nel registro di esecuzione compare il codice di 64 caratteri da incollare qui.</li>
 		<li><strong>Indirizzo (<code>…_URL</code>).</strong> Esegui il deployment → Nuovo deployment → tipo App web; Esegui come: Me; Chi ha accesso: Chiunque. L'URL dell'app web termina con <code>/exec</code>.</li>
 		<li><strong>Modulo (<code>…_FORM</code>) e data (<code>…_DAL</code>).</strong> Valori predefiniti: soci, modulo n. 274 dal 1° settembre 2026; corsi, modulo n. 1617 dalle iscrizioni nuove.</li>
-		<li><strong>Verifica.</strong> "Salva e verifica il collegamento" manda al foglio una richiesta vuota: la risposta conferma indirizzo e codice senza scrivere nulla. Poi, nei tab dei soci e dei corsi, la prova a secco mostra cosa partirebbe.</li>
-		<li><strong>Script modificato.</strong> Dopo aver incollato una versione nuova: Esegui il deployment → Gestisci deployment → matita → Versione: Nuova versione. URL e codice restano gli stessi.</li>
+		<li><strong>Verifica.</strong> "Salva e verifica il collegamento" manda al foglio una richiesta vuota: la risposta riporta il nome del foglio raggiunto e conferma indirizzo e codice senza scrivere nulla. Poi, nei tab dei soci e dei corsi, la prova a secco mostra cosa partirebbe.</li>
+		<li><strong>Script modificato.</strong> Dopo aver incollato una versione nuova: Esegui il deployment → Gestisci deployment → matita → Versione: Nuova versione. URL, codice e foglio restano gli stessi.</li>
 	</ol>
 	<h3>Foglio dei corsi: il tab "configurazioni"</h3>
 	<p style="max-width:820px">Il foglio dei corsi deve contenere un tab chiamato <code>configurazioni</code>. Riga 1: intestazioni (<code>Tab</code>, <code>Corso</code>). Dalla riga 2, una riga per corso: in colonna A il nome del tab del foglio, in colonna B il nome esteso del corso, cioè il testo dell'opzione del modulo (elenco nel tab <a href="<?php echo esc_url( vv_sheets_url( 'corsi' ) ); ?>">Iscrizioni corsi</a>). Maiuscole, accenti e spazi doppi contano poco; il resto deve coincidere. Un corso assente, o con un tab inesistente, finisce in "Da smistare". Il primo tab elencato fa da modello: le sue intestazioni passano ai tab nuovi ancora vuoti. Per un corso nuovo basta un tab e una riga in <code>configurazioni</code>, senza toccare il sito.</p>

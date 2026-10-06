@@ -1,6 +1,6 @@
 # Attivazione del foglio dei corsi: configurazione e collaudo
 
-Guida passo per passo per mettere in funzione la 0.9.0: le iscrizioni del modulo "Iscrizione ai corsi 2026-2027" (Forminator n. 1617, pagina `/iscrizione-corso/`) arrivano da sole nel foglio Google "VivaVoce / Iscrizione Corsi", un tab per corso, secondo il tab `configurazioni` del foglio.
+Guida passo per passo per mettere in funzione la 0.9.1: le iscrizioni del modulo "Iscrizione ai corsi 2026-2027" (Forminator n. 1617, pagina `/iscrizione-corso/`) arrivano da sole nel foglio Google "VivaVoce / Iscrizione Corsi", un tab per corso, secondo il tab `configurazioni` del foglio.
 
 Il percorso ha tre tempi: collaudo su una copia del foglio, passaggio al foglio vero, controlli finali. Servono circa 45 minuti, con l'accesso da amministratore a WordPress e l'account Google che gestirà lo script (meglio quello dell'associazione). L'accesso FTP a `wp-config.php` serve solo per togliere le costanti delle versioni precedenti.
 
@@ -40,11 +40,11 @@ Il percorso ha tre tempi: collaudo su una copia del foglio, passaggio al foglio 
 
 ### 2.1 Copia e script
 
-Lo script è un **progetto autonomo nel Drive condiviso "VivaVoce - Archivio Digitale"**, come quello dei soci ("wvoce.it - iscrizione soci"), e raggiunge il foglio tramite `ID_FOGLIO`. Uno script collegato al foglio (Estensioni → Apps Script) si può eseguire, ma il deployment come app web risponde "Non disponi dell'autorizzazione necessaria": per i file di un Drive condiviso il proprietario è il Drive, e la pubblicazione di uno script collegato resta bloccata anche per chi lo gestisce. Lo stesso progetto serve prima per la copia e poi per il foglio vero: cambia solo `ID_FOGLIO`, mentre URL e token restano gli stessi.
+Lo script è un **progetto autonomo nel Drive condiviso "VivaVoce - Archivio Digitale"**, come quello dei soci ("wvoce.it - iscrizione soci"), e raggiunge il foglio indicato dal sito (`VV_CORSI_FOGLIO`). Uno script collegato al foglio (Estensioni → Apps Script) si può eseguire, ma il deployment come app web risponde "Non disponi dell'autorizzazione necessaria": per i file di un Drive condiviso il proprietario è il Drive, e la pubblicazione di uno script collegato resta bloccata anche per chi lo gestisce. Lo stesso progetto serve prima per la copia e poi per il foglio vero: cambia solo `VV_CORSI_FOGLIO` nel pannello, mentre script, URL e token restano gli stessi.
 
 1. Nel foglio vero (con il tab `configurazioni` del punto 0.4): File → Crea una copia. Nome, per esempio, "PROVA Iscrizione Corsi". Dall'indirizzo della copia annotare l'ID, cioè la parte fra `/d/` e `/edit`.
 2. In Google Drive → Drive condivisi → **VivaVoce - Archivio Digitale** (nella stessa cartella del progetto dei soci): Nuovo → Altro → **Google Apps Script**. Rinominare il progetto "wvoce.it - iscrizione corsi". In *Dettagli progetto* compare il proprietario "VivaVoce - Archivio Digitale" e nessun "Contenitore". Chi ha già il progetto dalla 0.8 lo riapre e passa al punto 3.
-3. Sul sito, Strumenti → Esporta iscrizioni → **Script Apps Script** → Foglio corsi → **Copia lo script**. Nell'editor, file `Codice.gs`: cancellare tutto e incollare. Alla riga `var ID_FOGLIO = '';` mettere l'ID della copia fra gli apici. Salvare (icona del dischetto).
+3. Sul sito, Strumenti → Esporta iscrizioni → **Script Apps Script** → Foglio corsi → **Copia lo script**. Nell'editor, file `Codice.gs`: cancellare tutto e incollare così com'è (la riga `var ID_FOGLIO = '';` resta vuota). Salvare (icona del dischetto).
 4. Solo per un progetto nuovo: in alto, nel menu a tendina delle funzioni, scegliere **creaToken** e premere **Esegui**.
    - La prima volta Google chiede le autorizzazioni: Rivedi autorizzazioni → scegliere l'account → se compare "Google non ha verificato questa app": Avanzate → Vai a … (non sicuro) → Consenti. È lo script appena incollato, che chiede di modificare i fogli.
    - Nel registro di esecuzione, in basso, compare `VV_CORSI_TOKEN: …`: copiare il codice (64 caratteri).
@@ -59,9 +59,9 @@ Lo script è un **progetto autonomo nel Drive condiviso "VivaVoce - Archivio Dig
 ### 2.2 Valori nel pannello
 
 1. Strumenti → Esporta iscrizioni → **Configurazione** → riquadro *Foglio corsi*.
-2. `VV_CORSI_URL`: l'URL dell'app web. `VV_CORSI_TOKEN`: il codice di 64 caratteri. `VV_CORSI_FORM`: "n. 1617 — Iscrizione ai corsi 2026-2027". `VV_CORSI_DAL`: vuoto (i corsi partono comunque dalle iscrizioni nuove).
-3. Premere **Salva e verifica il collegamento**. Messaggio atteso: "il foglio risponde, indirizzo e codice sono giusti". Un errore indica la causa (codice sbagliato, HTTP 401/403 per "Chi ha accesso", HTTP 404 per un URL errato).
-4. Stesso procedimento nel riquadro *Foglio soci* con i valori di prima (`VV_SOCI_URL`, `VV_SOCI_TOKEN`), se il sito arriva dalla 0.8.
+2. `VV_CORSI_FOGLIO`: l'indirizzo della copia, copiato dalla barra del browser (basta anche il solo ID). `VV_CORSI_URL`: l'URL dell'app web. `VV_CORSI_TOKEN`: il codice di 64 caratteri. `VV_CORSI_FORM`: "n. 1617 — Iscrizione ai corsi 2026-2027". `VV_CORSI_DAL`: vuoto (i corsi partono comunque dalle iscrizioni nuove).
+3. Premere **Salva e verifica il collegamento**. Messaggio atteso: "risponde il foglio «PROVA Iscrizione Corsi», indirizzo, codice e foglio sono giusti": il nome conferma che il sito punta alla copia. Un errore indica la causa (foglio non raggiungibile, codice sbagliato, HTTP 401/403 per "Chi ha accesso", HTTP 404 per un URL errato).
+4. Stesso procedimento nel riquadro *Foglio soci* con l'indirizzo del foglio "Albo Soci" in `VV_SOCI_FOGLIO` e i valori di prima (`VV_SOCI_URL`, `VV_SOCI_TOKEN`). Se lo script dei soci era un progetto autonomo con `ID_FOGLIO` compilato, va incollata la versione nuova e pubblicata una Nuova versione del deployment.
 
 ### 2.3 Primo controllo nel tab Iscrizioni corsi
 
@@ -97,8 +97,8 @@ Dopo le quattro prove:
 ## 3. Passaggio al foglio vero
 
 1. **Pulizia delle prove.** WordPress → Forminator → Iscrizioni (Submissions) → modulo "Iscrizione ai corsi 2026-2027": selezionare le iscrizioni di prova ed eliminarle. Così il punto 3.4 le lascia fuori dal foglio vero.
-2. **Script sul foglio vero.** Nel progetto "wvoce.it - iscrizione corsi": `ID_FOGLIO` con l'ID del foglio vero (`1TvSREeUfoeAcA1uI3Hx9qpytOVUOMQQc5664DqwxUOw`), salvare, poi Esegui il deployment → Gestisci deployment → icona della matita → Versione: **Nuova versione** → Esegui il deployment.
-3. **Pannello.** URL e codice restano gli stessi: il tab Configurazione resta com'è. Nel tab Iscrizioni corsi premere **Rileggi il tab "configurazioni"**: ora la mappa viene dal foglio vero.
+2. **Foglio vero nel pannello.** Tab Configurazione → *Foglio corsi*: in `VV_CORSI_FOGLIO` l'indirizzo del foglio vero (ID `1TvSREeUfoeAcA1uI3Hx9qpytOVUOMQQc5664DqwxUOw`), poi **Salva e verifica il collegamento**: il messaggio riporta il nome del foglio vero. Script, URL e codice restano gli stessi, nessuna nuova pubblicazione.
+3. **Mappa dei corsi.** Nel tab Iscrizioni corsi controllare la tabella *Corsi e tab del foglio*: dopo il salvataggio la mappa viene già dal foglio vero.
 4. **Iscrizioni arrivate durante il collaudo.** Eventuali iscrizioni vere compilate mentre il sito puntava alla copia sono finite lì. Per recuperarle: tab Iscrizioni corsi → **Ricomincia dal punto di partenza**, poi **Invia adesso**. Riparte tutto dal punto fissato al primo avvio; le prove, già eliminate, restano fuori.
 5. **Controllo.** Una sola iscrizione di prova sul sito, verifica della riga nel tab giusto del foglio vero, poi cancellazione della riga nel foglio e dell'iscrizione in Forminator.
 6. **Copia di prova.** Lo script ormai scrive nel foglio vero: la copia si può eliminare.
@@ -116,7 +116,7 @@ Dopo le quattro prove:
 
 - **Nuovo corso:** tab nuovo nel foglio, vuoto o con le intestazioni; in `configurazioni` una riga con il nome del tab in A e il testo esatto dell'opzione del modulo in B. Il sito resta com'è. Il tab vuoto riceve le intestazioni del modello alla prima riga.
 - **Opzione del modulo riscritta** (un orario, una data): aggiornare il testo in colonna B di `configurazioni`. Il tab Iscrizioni corsi mostra le opzioni dirette a "Da smistare"; le righe già finite lì si spostano a mano.
-- **Script modificato** (nuova versione del tema): copiarlo dal tab Script Apps Script, incollarlo conservando `ID_FOGLIO`, poi Esegui il deployment → Gestisci deployment → matita → Versione: **Nuova versione** → Esegui il deployment. URL e codice restano gli stessi.
+- **Script modificato** (nuova versione del tema): copiarlo dal tab Script Apps Script, incollarlo così com'è, poi Esegui il deployment → Gestisci deployment → matita → Versione: **Nuova versione** → Esegui il deployment. URL, codice e foglio restano gli stessi.
 - **Sospendere il collegamento:** svuotare `VV_CORSI_URL` nel tab Configurazione. Alla ripresa, le iscrizioni arrivate nel frattempo partono al primo controllo.
 - **Cambiare modulo:** scegliere il nuovo modulo in `VV_CORSI_FORM`; l'invio riparte da capo per quel modulo.
 
@@ -124,8 +124,8 @@ Dopo le quattro prove:
 
 | Controllo | Esito |
 |---|---|
-| Tema | Versione 0.9.0, aspetto invariato |
-| Verifica collegamento | "Il foglio risponde" per soci e corsi |
+| Tema | Versione 0.9.1, aspetto invariato |
+| Verifica collegamento | Nome del foglio giusto per soci e corsi |
 | Soci | Stessi numeri di prima nel tab Iscrizioni soci |
 | Corsi, primo avvio | Partenza dopo l'iscrizione più recente, 0 da inviare |
 | Quattro opzioni | Ognuna nel suo tab, nessuna in grassetto |

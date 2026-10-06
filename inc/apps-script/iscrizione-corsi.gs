@@ -17,22 +17,25 @@
  *   una riga in ciascun tab, con lo stesso Rif.
  *
  * Installazione (una volta), istruzioni complete nel sito: Strumenti → Esporta iscrizioni.
- * 1. In Google Drive: Nuovo → Altro → Google Apps Script (progetto autonomo, con l'ID del foglio in
- *    ID_FOGLIO), oppure dal foglio: Estensioni → Apps Script. Incolla questo file al posto del codice
- *    che c'è, salva.
+ * 1. In Google Drive: Nuovo → Altro → Google Apps Script (progetto autonomo), oppure dal foglio:
+ *    Estensioni → Apps Script. Incolla questo file così com'è al posto del codice che c'è, salva.
  * 2. Scegli la funzione "creaToken" in alto e premi Esegui (la prima volta chiede le autorizzazioni):
  *    nel registro compare il codice segreto da mettere nel sito come VV_CORSI_TOKEN.
  * 3. Esegui il deployment → Nuovo deployment → tipo "App web"; Esegui come: me; Chi ha accesso:
  *    chiunque. L'URL dell'app web (finisce con /exec) va nel sito come VV_CORSI_URL.
- * 4. Lo script scrive con l'account di chi lo pubblica: il foglio può restare condiviso solo con
+ * 4. L'ID del foglio va nel sito come VV_CORSI_FOGLIO: lo script lo riceve a ogni chiamata, e per
+ *    passare da una copia di prova al foglio vero basta cambiarlo lì.
+ * 5. Lo script scrive con l'account di chi lo pubblica: il foglio può restare condiviso solo con
  *    account nominativi, senza "Chiunque abbia il link".
  * Se modifichi questo codice: Esegui il deployment → Gestisci deployment → modifica → Nuova versione
- * (l'URL resta lo stesso).
+ * (URL e codice restano gli stessi).
  */
 
-// Script dentro il foglio (Estensioni → Apps Script): lasciare vuoto. Script a parte, creato da
-// script.google.com nel proprio Drive: l'ID del foglio, cioè il pezzo dell'indirizzo fra /d/ e /edit.
+// Lasciare vuoto: l'ID del foglio lo manda il sito a ogni chiamata (VV_CORSI_FOGLIO in Strumenti →
+// Esporta iscrizioni → Configurazione). Serve solo se il sito non lo indica; per uno script aperto
+// dal foglio (Estensioni → Apps Script) vale comunque il foglio stesso.
 var ID_FOGLIO = '';
+var PROPRIETA = 'VV_CORSI';
 
 var CONFIGURAZIONI = 'configurazioni';
 var DA_SMISTARE = 'Da smistare';
@@ -55,11 +58,11 @@ function doPost(e) {
     return risposta_({ ok: false, errore: 'foglio occupato, riprovo dopo' });
   }
   try {
-    var ss = ID_FOGLIO ? SpreadsheetApp.openById(ID_FOGLIO) : SpreadsheetApp.getActiveSpreadsheet();
+    var ss = foglio_(dati);
     var righe = dati.righe || [];
     var conf = leggiConfigurazioni_(ss, righe.length > 0);
     if (dati.azione === 'mappa') {
-      return risposta_({ ok: true, mappa: conf.originale, tab: nomiTab_(ss) });
+      return risposta_({ ok: true, foglio: ss.getName(), mappa: conf.originale, tab: nomiTab_(ss) });
     }
     var fatti = [];
     righe.forEach(function (riga) {
@@ -72,7 +75,7 @@ function doPost(e) {
       }
     });
     SpreadsheetApp.flush();
-    return risposta_({ ok: true, rif: fatti });
+    return risposta_({ ok: true, foglio: ss.getName(), rif: fatti });
   } catch (err) {
     return risposta_({ ok: false, errore: String(err && err.message || err) });
   } finally {
@@ -266,6 +269,28 @@ function normalizza_(testo) {
     .toLowerCase().replace(/\s+/g, ' ').trim();
 }
 
+/**
+ * Il foglio su cui scrivere: l'ID mandato dal sito, altrimenti ID_FOGLIO, altrimenti il foglio a cui
+ * lo script è collegato. Il codice segreto resta l'unica chiave: chi lo conosce può indicare un
+ * qualsiasi foglio modificabile dall'account che ha pubblicato lo script, quindi va custodito.
+ */
+function foglio_(dati) {
+  var id = String(dati.foglio || ID_FOGLIO || '').trim();
+  if (!id) {
+    var attivo = SpreadsheetApp.getActiveSpreadsheet();
+    if (attivo) {
+      return attivo;
+    }
+    throw new Error('manca l\'ID del foglio: ' + PROPRIETA + '_FOGLIO in Strumenti → Esporta iscrizioni → Configurazione');
+  }
+  try {
+    return SpreadsheetApp.openById(id);
+  } catch (err) {
+    throw new Error('foglio non raggiungibile (' + id + '): controlla ' + PROPRIETA
+      + '_FOGLIO e che l\'account che ha pubblicato lo script possa modificarlo');
+  }
+}
+
 function risposta_(oggetto) {
   return ContentService.createTextOutput(JSON.stringify(oggetto)).setMimeType(ContentService.MimeType.JSON);
 }
@@ -274,5 +299,5 @@ function risposta_(oggetto) {
 function creaToken() {
   var token = Utilities.getUuid().replace(/-/g, '') + Utilities.getUuid().replace(/-/g, '');
   PropertiesService.getScriptProperties().setProperty('TOKEN', token);
-  Logger.log('VV_CORSI_TOKEN: ' + token);
+  Logger.log(PROPRIETA + '_TOKEN: ' + token);
 }

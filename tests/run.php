@@ -47,6 +47,34 @@ function sanitize_text_field( $text ) {
 function absint( $n ) {
 	return abs( (int) $n );
 }
+class WP_Error {
+	public $messaggio;
+	public function __construct( $codice, $messaggio ) {
+		$this->messaggio = $messaggio;
+	}
+	public function get_error_message() {
+		return $this->messaggio;
+	}
+}
+function is_wp_error( $x ) {
+	return $x instanceof WP_Error;
+}
+function wp_json_encode( $x ) {
+	return json_encode( $x );
+}
+$vv_richieste = array();
+$vv_risposta  = array( 'ok' => true );
+function wp_remote_post( $url, $args ) {
+	global $vv_richieste, $vv_risposta;
+	$vv_richieste[] = json_decode( $args['body'], true );
+	return array( 'code' => 200, 'body' => json_encode( $vv_risposta ) );
+}
+function wp_remote_retrieve_response_code( $res ) {
+	return $res['code'];
+}
+function wp_remote_retrieve_body( $res ) {
+	return $res['body'];
+}
 function sanitize_title( $title ) {
 	return trim( preg_replace( '/[^a-z0-9]+/', '-', strtolower( (string) $title ) ), '-' );
 }
@@ -261,8 +289,30 @@ $vv_opzioni['vv_corsi_ultimo'] = 32;
 uguale( 'Dopo un invio conta l\'ultima confermata', 32, vv_sheets_ultimo( 'corsi' ) );
 uguale( 'Soci: si parte da zero', 0, vv_sheets_ultimo( 'soci' ) );
 
+// ID del foglio dal pannello, mandato allo script a ogni chiamata
+$vv_id = '1TvSREeUfoeAcA1uI3Hx9qpytOVUOMQQc5664DqwxUOw';
+uguale( 'ID dall\'indirizzo del foglio', $vv_id, vv_sheets_id_foglio( "https://docs.google.com/spreadsheets/d/{$vv_id}/edit#gid=0" ) );
+uguale( 'ID nudo', $vv_id, vv_sheets_id_foglio( " {$vv_id} " ) );
+uguale( 'ID non valido', '', vv_sheets_id_foglio( 'Albo Soci' ) );
+$vv_opzioni = array();
+uguale( 'Foglio: nessun avviso', array(), vv_sheets_salva_impostazioni( 'corsi', array( 'url' => 'https://script.google.com/macros/s/abc/exec', 'token' => 't', 'foglio' => "https://docs.google.com/spreadsheets/d/{$vv_id}/edit" ) ) );
+uguale( 'Foglio: salvato come ID', $vv_id, vv_sheets_config( 'corsi' )['foglio_id'] );
+uguale( 'Foglio: nome leggibile invariato', 'Iscrizione Corsi', vv_sheets_config( 'corsi' )['foglio'] );
+uguale( 'Foglio non valido: un avviso', 1, count( vv_sheets_salva_impostazioni( 'corsi', array( 'url' => 'https://script.google.com/macros/s/abc/exec', 'foglio' => 'boh' ) ) ) );
+uguale( 'Foglio non valido: resta il precedente', $vv_id, vv_sheets_config( 'corsi' )['foglio_id'] );
+$vv_risposta = array( 'ok' => true, 'foglio' => 'PROVA Iscrizione Corsi', 'rif' => array() );
+uguale( 'Verifica: nome del foglio raggiunto', 'PROVA Iscrizione Corsi', vv_sheets_verifica( 'corsi' ) );
+uguale( 'Richiesta: codice, foglio, righe', array( 'token' => 't', 'foglio' => $vv_id, 'righe' => array() ), end( $vv_richieste ) );
+vv_sheets_salva_impostazioni( 'corsi', array( 'url' => 'https://script.google.com/macros/s/abc/exec', 'foglio' => '' ) );
+vv_sheets_verifica( 'corsi' );
+uguale( 'Senza foglio: la richiesta lo omette', false, array_key_exists( 'foglio', end( $vv_richieste ) ) );
+$vv_risposta = array( 'ok' => true, 'rif' => array() );
+uguale( 'Verifica con uno script precedente: nome vuoto', '', vv_sheets_verifica( 'corsi' ) );
+$vv_risposta = array( 'ok' => false, 'errore' => 'foglio non raggiungibile' );
+uguale( 'Verifica: errore dello script', 'Il foglio ha risposto: foglio non raggiungibile', vv_sheets_verifica( 'corsi' )->get_error_message() );
+
 // Script da copiare nel pannello
-uguale( 'Script dei soci disponibile', true, false !== strpos( vv_sheets_script( 'soci' ), 'VV_SOCI_TOKEN' ) );
+uguale( 'Script dei soci disponibile', true, false !== strpos( vv_sheets_script( 'soci' ), "var PROPRIETA = 'VV_SOCI';" ) );
 uguale( 'Script dei corsi con il tab configurazioni', true, false !== strpos( vv_sheets_script( 'corsi' ), "var CONFIGURAZIONI = 'configurazioni';" ) );
 
 // Date degli eventi e slug

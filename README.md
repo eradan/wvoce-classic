@@ -2,6 +2,14 @@
 
 Tema child di **Sydney 2.71** per wvoce.it, aspetto "classico" vicino al sito originale. Le note di versione vengono prima; da *Messa in produzione* in poi la guida d'uso.
 
+## Versione 0.9.1: ID del foglio nel pannello
+
+- **`VV_SOCI_FOGLIO` e `VV_CORSI_FOGLIO`.** L'ID del foglio Google passa dallo script al tab Configurazione di Strumenti → Esporta iscrizioni; si incolla l'indirizzo del foglio dalla barra del browser o il solo ID (`vv_sheets_id_foglio()`). Il sito lo manda all'app web a ogni chiamata, accanto al codice segreto: gli script si incollano così com'è, con `ID_FOGLIO` vuoto, e per passare da una copia di prova al foglio vero basta cambiare il campo, senza ripubblicare nulla.
+- **Ordine di scelta nello script** (`foglio_()`): ID mandato dal sito, poi `ID_FOGLIO` se compilato, poi il foglio a cui lo script è collegato. Messaggi chiari se l'ID manca o il foglio è irraggiungibile per l'account che ha pubblicato lo script.
+- **Verifica con il nome del foglio.** "Salva e verifica il collegamento" riporta il foglio raggiunto ("risponde il foglio «PROVA Iscrizione Corsi»"); con uno script della 0.9.0 la pagina invita a pubblicare la versione nuova.
+- **Sicurezza.** Il codice segreto resta l'unica chiave: chi lo conosce può indicare un qualsiasi foglio modificabile dall'account che pubblica lo script. Va custodito come una password.
+- **Aggiornamento dalla 0.9.0.** Incollare i due script dal tab *Script Apps Script* (con `ID_FOGLIO` vuoto) e pubblicare per ciascuno Gestisci deployment → matita → Nuova versione; poi scrivere l'indirizzo dei fogli in `VV_SOCI_FOGLIO` e `VV_CORSI_FOGLIO` e premere "Salva e verifica". Finché lo script pubblicato resta quello vecchio, vale il suo `ID_FOGLIO`.
+
 ## Versione 0.9.0: Strumenti → Esporta iscrizioni
 
 - **Configurazione dal pannello, senza `wp-config.php`.** Strumenti → Fogli Google diventa **Strumenti → Esporta iscrizioni** (`tools.php?page=vv-iscrizioni`; il vecchio indirizzo `page=vv-sheets` porta lì), con quattro tab: *Configurazione*, *Iscrizioni soci*, *Iscrizioni corsi*, *Script Apps Script*. Indirizzo, codice, modulo e data di partenza di ogni foglio si scrivono nel tab Configurazione (`VV_SOCI_URL`, `VV_SOCI_TOKEN`, `VV_SOCI_FORM`, `VV_SOCI_DAL`, `VV_CORSI_URL`, `VV_CORSI_TOKEN`, `VV_CORSI_FORM`, `VV_CORSI_DAL`) e restano nel database (opzioni `vv_soci_impostazioni`, `vv_corsi_impostazioni`). Il tab contiene la guida alla compilazione e il pulsante **Salva e verifica il collegamento**, che manda al foglio una richiesta vuota e conferma indirizzo e codice senza scrivere nulla. Il codice salvato resta nascosto: un campo vuoto lo conserva.
