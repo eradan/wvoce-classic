@@ -2,10 +2,40 @@
 
 Tema child di **Sydney 2.71** per wvoce.it, aspetto "classico" vicino al sito originale. Le note di versione vengono prima; da *Messa in produzione* in poi la guida d'uso.
 
+## Versione 0.8.0: iscrizioni ai corsi nel foglio Google
+
+- **Iscrizioni ai corsi nel foglio "VivaVoce / Iscrizione Corsi"** (`inc/sheets.php`, `docs/apps-script-iscrizione-corsi.gs`): ogni iscrizione del modulo "Iscrizione ai corsi 2026-2027" (n. 1617) arriva nel tab del corso scelto, una riga per corso. Vedi *Foglio dei corsi*.
+- **Un solo meccanismo per più fogli.** Le funzioni di `inc/sheets.php` ricevono l'id del collegamento (`soci`, `corsi`; elenco in `vv_sheets_collegamenti()`, filtrabile). Il foglio dei soci funziona come prima: stesse costanti, stesse opzioni (`vv_sheets_ultimo`, `vv_sheets_stato`), nessun reinvio.
+- **Strumenti → Fogli Google** (prima *Foglio soci*): una sezione per collegamento, con stato, prova a secco, "Invia adesso" e "Ricomincia". Per i corsi mostra anche i campi del modulo e il tab in cui finisce ogni opzione.
+- **Informativa privacy** estesa ai corsi: `docs/informativa-fogli-google.md` (prima `informativa-albo-soci.md`).
+
+### Foglio dei corsi
+
+Le iscrizioni del modulo n. 1617 arrivano nel foglio "VivaVoce / Iscrizione Corsi", un tab per corso (`lettura-ad-alta-voce-2026`, `tecnica-attoriale-2026`, `messa-in-scena-2027`, `gioco-del-teatro-2206`). Lo script scrive Nome, Cognome, Codice Fiscale, Email, Cellulare, Ricevuta, Regolamento, Socio, Privacy e Note (A–J); dovuto, quota associativa e pagamento (K–N) restano alla segreteria e lo script li lascia intatti. In O compare "Rif." (`F1617-` + numero dell'iscrizione), che evita i doppioni e si può nascondere.
+
+- **Più corsi in un'iscrizione:** una riga in ciascun tab, con lo stesso Rif.
+- **Tab del corso.** Il valore scelto nel modulo trova il suo tab anche scritto in altro modo: "Lettura ad alta voce" → `lettura-ad-alta-voce-2026` (minuscole, senza accenti, trattini al posto degli spazi, anno finale facoltativo; un anno diverso da quello del tab non combacia). I casi che il confronto non risolve vanno in `vv_corsi_tabs()` (valore del modulo => nome del tab). Un tab esistente ma vuoto riceve le intestazioni del tab modello (`TAB_MODELLO` nello script).
+- **Corso senza tab:** la riga va in "Da smistare", creato dallo script la prima volta con le intestazioni del modello e una colonna "Corso". L'invio prosegue; lo script non crea altri tab.
+- **Si parte dalle iscrizioni nuove.** Alla prima apertura di Strumenti → Fogli Google (o al primo giro di wp-cron) con le costanti in `wp-config.php`, il sito fissa come punto di partenza l'iscrizione più recente già presente (opzione `vv_sheets_corsi_inizio`). "Ricomincia" torna a quel punto. Opzioni: `vv_sheets_corsi_ultimo`, `vv_sheets_corsi_stato`.
+- **Corrispondenza colonne → campi:** `vv_corsi_colonne()`; campo del corso: `vv_corsi_campo()`; nomi dei tab: `vv_corsi_tab_nomi()`. Tutti filtrabili. Oggi è noto solo il codice fiscale (`text-1`): gli altri id si leggono in Strumenti → Fogli Google → *Campi del modulo n. 1617*. Finché `vv_corsi_campo()` è vuoto il collegamento resta fermo; le iscrizioni arrivate nel frattempo partono appena è pronto.
+- **Installazione.**
+  1. Nel foglio dei corsi: Estensioni → Apps Script, incollare `docs/apps-script-iscrizione-corsi.gs`, eseguire `creaToken`, poi Esegui il deployment → Nuovo deployment → App web, "Esegui come: me", "Chi ha accesso: chiunque".
+  2. In `wp-config.php`:
+
+     ```php
+     define( 'VV_CORSI_URL', 'https://script.google.com/macros/s/…/exec' );
+     define( 'VV_CORSI_TOKEN', '…' );
+     // facoltativi: define( 'VV_CORSI_FORM', 1617 ); define( 'VV_CORSI_DAL', '2026-09-01' );
+     ```
+
+  3. Strumenti → Fogli Google: leggere i campi del modulo, completare la corrispondenza (un piccolo commit con gli id), controllare la prova a secco. Conviene provare prima su una copia del foglio.
+  4. Togliere al foglio il permesso "Chiunque abbia il link": lo script scrive con l'account di chi lo pubblica.
+- **Nuovo corso:** un tab nuovo nel foglio, il suo nome in `vv_corsi_tab_nomi()` e, se il valore del modulo è molto diverso, una voce in `vv_corsi_tabs()`.
+
 ## Versione 0.7.4: manutenzione, test e privacy
 
 - **Foglio dei soci al riparo dalle formule.** Un valore del modulo che comincia con `=` arriva nel foglio preceduto da un apostrofo (che il foglio non mostra) e resta testo: prima un "nome" come `=IMPORTXML(…)` poteva diventare una formula. È nello script Apps Script (`docs/apps-script-albo-soci.gs`, funzione `testo_`): **va incollato di nuovo nell'editor e pubblicato** con Esegui il deployment → Gestisci deployment → modifica → Nuova versione (l'URL resta lo stesso).
-- **Informativa privacy** per il trasferimento delle domande nel foglio Google: bozza e controlli in `docs/informativa-albo-soci.md`, da far verificare e poi riportare nel modulo "Iscrizione Socio" e nella pagina privacy.
+- **Informativa privacy** per il trasferimento delle domande nel foglio Google: bozza e controlli in `docs/informativa-albo-soci.md` (dalla 0.8.0 `docs/informativa-fogli-google.md`), da far verificare e poi riportare nel modulo "Iscrizione Socio" e nella pagina privacy.
 - **Nessun tetto agli elenchi.** Le *Pagine elenco* mostrano tutti gli articoli della categoria (prima i primi 200) e i collegamenti pagina ↔ categoria valgono per tutte le pagine (prima le prime 50).
 - **Filtri che si sommano.** In `[vv_cards]` "In evidenza" e le date dell'evento ora restano entrambi nella query al database (`vv_add_meta_query()` in `inc/cards.php`); prima uno dei due si perdeva e il conto si rifaceva in PHP su più articoli.
 - **Robustezza.** Una data dell'evento salvata in un formato diverso da AAAA-MM-GG conta come assente, invece di fermare la pagina con un errore. I dati strutturati dei breadcrumb hanno `<` `>` `&` codificati, così un titolo resta dentro il suo `<script>`.
@@ -35,7 +65,7 @@ Tema child di **Sydney 2.71** per wvoce.it, aspetto "classico" vicino al sito or
 Le iscrizioni del modulo "Iscrizione Socio" (n. 274) dal 1° settembre 2026 arrivano da sole nel foglio "VivaVoce / Albo Soci", nel tab dell'anno sociale (da settembre ad agosto: "DomandeAmmissione 2026-2027"). Se il tab non c'è, lo script lo crea con le intestazioni del tab DomandeAmmissione più recente. Ogni valore va nella colonna con la stessa intestazione: le colonne si possono spostare o aggiungere. La colonna "Assicurazione" resta vuota: il "sì" lo mette chi decide. In fondo c'è la colonna "Rif." (`F274-` + numero dell'iscrizione) che evita i doppioni.
 
 - **Come funziona.** Ogni 15 minuti (wp-cron, `vv_sheets_sync`) il sito prende con `Forminator_API::get_entries()` le iscrizioni non ancora confermate dal foglio, niente spam né bozze, e le manda a blocchi di 20 all'app web dello script. Avanza (opzione `vv_sheets_ultimo`) solo sulle righe che il foglio conferma; se Google non risponde riprova al giro dopo, e dopo 24 ore di errori manda un'email all'amministratore. Corrispondenza colonne → campi: `vv_sheets_colonne()`.
-- **Strumenti → Foglio soci**: stato, prova a secco (quante iscrizioni partirebbero, verso quali tab, quante hanno ogni colonna piena, senza mostrare i dati), "Invia adesso", "Ricomincia dalla data iniziale" (non crea doppioni).
+- **Strumenti → Fogli Google** (fino alla 0.7.4 *Foglio soci*): stato, prova a secco (quante iscrizioni partirebbero, verso quali tab, quante hanno ogni colonna piena, senza mostrare i dati), "Invia adesso", "Ricomincia dalla data iniziale" (non crea doppioni).
 - **Installazione.** Nel foglio: Estensioni → Apps Script, incollare `docs/apps-script-albo-soci.gs`, eseguire `creaToken` (il codice segreto compare nel registro), poi Esegui il deployment → Nuovo deployment → App web, "Esegui come: me", "Chi ha accesso: chiunque". In `wp-config.php`:
 
   ```php
@@ -44,7 +74,7 @@ Le iscrizioni del modulo "Iscrizione Socio" (n. 274) dal 1° settembre 2026 arri
   // facoltativi: define( 'VV_SHEETS_FORM', 274 ); define( 'VV_SHEETS_DAL', '2026-09-01' );
   ```
 
-  Senza le due costanti il collegamento è spento. Conviene provarlo prima su una copia del foglio. Il trasferimento va dichiarato nell'informativa: vedi `docs/informativa-albo-soci.md`.
+  Senza le due costanti il collegamento è spento. Conviene provarlo prima su una copia del foglio. Il trasferimento va dichiarato nell'informativa: vedi `docs/informativa-fogli-google.md`.
 - **Frequenza reale.** wp-cron parte solo quando qualcuno visita il sito: con poche visite i 15 minuti si allungano. Per un ritmo regolare si può far chiamare `wp-cron.php` da un cron dell'hosting e mettere `define( 'DISABLE_WP_CRON', true );` in `wp-config.php`.
 - **Se il deployment dà "Non disponi dell'autorizzazione necessaria"**: di solito il browser ha più account Google aperti e l'editor di Apps Script usa quello sbagliato (si risolve in una finestra anonima con un solo account), oppure il permesso sul foglio è appena cambiato (chiudere l'editor e riaprirlo dal foglio). In alternativa lo script si crea nel proprio Drive (script.google.com → Nuovo progetto) mettendo l'ID del foglio in `ID_FOGLIO`.
 - **Tab "Assicurazione".** Deve leggere il tab dell'anno in corso, per esempio `=FILTER(CHOOSECOLS('DomandeAmmissione 2026-2027'!D2:O; 1;2;3;4;6;7;8;9;10;11;12); 'DomandeAmmissione 2026-2027'!A2:A="sì")` (Nome…Data di nascita, senza Telefono).
@@ -237,7 +267,7 @@ inc/single.php            articolo con colonna laterale, navigazione, altri soci
 inc/page.php              pagine con la colonna "In questa sezione"
 inc/redirects.php         301 degli indirizzi spariti
 inc/forminator.php        controllo del codice fiscale nei moduli Forminator
-inc/sheets.php            domande dei soci nel foglio Google "Albo Soci"
+inc/sheets.php            iscrizioni dei soci e dei corsi nei fogli Google
 template-parts/           card.php, home-hero.php
 page-templates/           page-hub.php, page-elenco.php
 post-templates/           post_full.php ("Page builder ready" dei soci fondatori)
@@ -246,7 +276,7 @@ assets/js/vv.js           testata, switcher del tema, caroselli, menu mobile, pu
 assets/fonts/             Poppins (self-hosted, licenza OFL)
 assets/img/               livelli dell'hero, faccine e scritta del footer, mano del "torna su"
 assets/svg/               pennellata dell'hero, blob delle card senza foto
-docs/                     script Apps Script del foglio soci, bozza di informativa privacy
+docs/                     script Apps Script dei fogli soci e corsi, bozza di informativa privacy, piani di lavoro
 tests/                    test senza WordPress
 bin/build-zip.sh          zip del tema
 ```
