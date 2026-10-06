@@ -52,11 +52,25 @@ body.vv-cookie-open {
 	color: var(--vv-testo-meta) !important;
 	opacity: 1;
 }
-/* Scelte, caselle e consensi */
-.forminator-ui.forminator-custom-form :is(.forminator-radio, .forminator-checkbox, .forminator-consent, .forminator-radio-label, .forminator-checkbox-label, .forminator-checkbox__label) {
+/* Scelte, caselle e consensi. Il testo dei consensi sta in un <p> che il plugin colora a parte (#000) */
+.forminator-ui.forminator-custom-form :is(.forminator-radio, .forminator-checkbox, .forminator-consent, .forminator-radio-label, .forminator-checkbox-label, .forminator-checkbox__label, .forminator-consent__label) {
 	font-size: var(--vv-fs-piccolo) !important;
 	line-height: 1.5 !important;
 	color: var(--vv-testo) !important;
+}
+.forminator-ui.forminator-custom-form :is(.forminator-checkbox__label, .forminator-consent__label) p {
+	color: inherit !important;
+}
+/* Altri testi neri o grigio scuro fissi nel plugin: prefissi e suffissi dei campi, prefisso
+ * telefonico, scelta delle tendine, campi bloccati, nome e peso dei file caricati */
+.forminator-ui.forminator-custom-form :is(.forminator-input input, .forminator-prefix, .forminator-suffix, .iti__selected-dial-code, .select2-selection__rendered, .forminator-uploaded-file--title) {
+	color: var(--vv-testo) !important;
+}
+.forminator-ui.forminator-custom-form :is(.forminator-input, .forminator-calculation):disabled {
+	-webkit-text-fill-color: var(--vv-testo) !important;
+}
+.forminator-ui.forminator-custom-form .forminator-uploaded-file--size {
+	color: var(--vv-testo-2) !important;
 }
 .forminator-ui.forminator-custom-form :is(.forminator-radio-bullet, .forminator-checkbox-box) {
 	background-color: var(--vv-fondo-card) !important;

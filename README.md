@@ -2,6 +2,11 @@
 
 Tema child di **Sydney 2.71** per wvoce.it, aspetto "classico" vicino al sito originale. Le note di versione vengono prima; da *Messa in produzione* in poi la guida d'uso.
 
+## Versione 0.9.2: consensi di Forminator leggibili nel tema scuro
+
+- **Testo dei consensi.** Nei moduli Forminator il testo accanto alle caselle (Regolamento, Iscrizione a socio, Privacy) sta in un `<p>` che lo stile del plugin colora di nero con un selettore proprio: sul blu del tema scuro risultava illeggibile. Ora segue il colore del testo del tema, come le etichette.
+- **Altri neri fissi.** Stessa correzione per prefissi e suffissi dei campi, prefisso telefonico, voce scelta nelle tendine, campi bloccati, nome e peso dei file caricati (`assets/css/plugins.css`).
+
 ## Versione 0.9.1: ID del foglio nel pannello
 
 - **`VV_SOCI_FOGLIO` e `VV_CORSI_FOGLIO`.** L'ID del foglio Google passa dallo script al tab Configurazione di Strumenti → Esporta iscrizioni; si incolla l'indirizzo del foglio dalla barra del browser o il solo ID (`vv_sheets_id_foglio()`). Il sito lo manda all'app web a ogni chiamata, accanto al codice segreto: gli script si incollano così com'è, con `ID_FOGLIO` vuoto, e per passare da una copia di prova al foglio vero basta cambiare il campo, senza ripubblicare nulla.
