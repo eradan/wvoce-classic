@@ -1,0 +1,314 @@
+/* VivaVoce: Contact Form 7, Forminator, Cookie Law Info, reCAPTCHA, plugin di slider (transitori). */
+
+/* --- Campi dei moduli (CF7 + Forminator) --- */
+.wpcf7 :is(input[type="text"], input[type="email"], input[type="tel"], input[type="url"], input[type="number"], input[type="date"], select, textarea),
+.forminator-ui.forminator-custom-form :is(.forminator-input, .forminator-textarea, select, .forminator-select2 + .select2 .select2-selection),
+.search-form .search-field {
+	width: 100%;
+	min-height: 48px;
+	padding: 10px 14px !important;
+	background: var(--vv-bianco) !important;
+	color: var(--vv-inchiostro) !important;
+	border: var(--vv-bordo-sottile) !important;
+	border-radius: var(--vv-raggio-s) !important;
+	box-shadow: none !important;
+	font-family: var(--vv-font-testo) !important;
+	font-size: var(--vv-fs-s) !important;
+	line-height: 1.4 !important;
+	transition: box-shadow var(--vv-transizione);
+}
+.wpcf7 textarea,
+.forminator-ui.forminator-custom-form .forminator-textarea {
+	min-height: 140px;
+}
+.wpcf7 :is(input, select, textarea):focus,
+.forminator-ui.forminator-custom-form :is(.forminator-input, .forminator-textarea, select):focus {
+	outline: none;
+	box-shadow: 0 0 0 3px var(--vv-turchese) !important;
+}
+.wpcf7 label,
+.forminator-ui.forminator-custom-form .forminator-label,
+.forminator-ui.forminator-custom-form .forminator-description,
+.forminator-ui.forminator-custom-form .forminator-checkbox-label,
+.forminator-ui.forminator-custom-form .forminator-radio-label {
+	color: var(--vv-inchiostro) !important;
+	font-family: var(--vv-font-testo) !important;
+	font-size: var(--vv-fs-s) !important;
+	font-weight: 700 !important;
+	line-height: 1.45 !important;
+}
+.forminator-ui.forminator-custom-form .forminator-description,
+.forminator-ui.forminator-custom-form .forminator-checkbox-label {
+	font-weight: 400 !important;
+}
+.wpcf7 label {
+	display: block;
+}
+.wpcf7 form > p,
+.wpcf7 .wpcf7-form-control-wrap {
+	display: block;
+	max-width: var(--vv-lettura);
+}
+.wpcf7 input[type="submit"] {
+	margin-top: 0.4em;
+}
+
+/* Forminator: titoli di sezione del modulo nello stile del sito */
+.forminator-ui.forminator-custom-form .forminator-title,
+.forminator-ui.forminator-custom-form h2,
+.forminator-ui.forminator-custom-form .forminator-border {
+	font-family: var(--vv-font-titoli) !important;
+	font-size: var(--vv-fs-xl) !important;
+	font-weight: 800 !important;
+	color: var(--vv-inchiostro) !important;
+	border: 0 !important;
+}
+.forminator-ui.forminator-custom-form :is(.forminator-button-submit, .forminator-button-upload) {
+	background: var(--vv-giallo) !important;
+	color: var(--vv-inchiostro) !important;
+	border: var(--vv-bordo) !important;
+	border-radius: 999px !important;
+	box-shadow: var(--vv-ombra-s) !important;
+	font-family: var(--vv-font-titoli) !important;
+	font-weight: 800 !important;
+	text-transform: none !important;
+}
+.forminator-ui.forminator-custom-form .forminator-button-upload {
+	background: var(--vv-bianco) !important;
+	min-height: 40px;
+	font-size: var(--vv-fs-s) !important;
+}
+.forminator-ui.forminator-custom-form :is(.forminator-checkbox-box, .forminator-radio-bullet) {
+	border: var(--vv-bordo-sottile) !important;
+	background: var(--vv-bianco) !important;
+}
+.forminator-ui.forminator-custom-form input:checked + .forminator-checkbox-box,
+.forminator-ui.forminator-custom-form input:checked + .forminator-radio-bullet {
+	background: var(--vv-giallo) !important;
+}
+.forminator-ui.forminator-custom-form .forminator-error-message,
+.wpcf7 .wpcf7-not-valid-tip {
+	color: var(--vv-rosso-testo) !important;
+	background: transparent !important;
+	font-weight: 700;
+}
+.wpcf7 form .wpcf7-response-output {
+	margin: 1.2em 0 0;
+	padding: 12px 16px;
+	border: var(--vv-bordo) !important;
+	border-radius: var(--vv-raggio-s);
+	background: var(--vv-bianco);
+}
+
+/* --- reCAPTCHA: badge nascosto, dicitura obbligatoria sotto i moduli --- */
+.grecaptcha-badge {
+	/* visibility da sola non basta: l'iframe interno torna visibile (il quadratino blu) */
+	visibility: hidden !important;
+	opacity: 0 !important;
+	pointer-events: none !important;
+}
+.wpcf7 form::after,
+.forminator-ui.forminator-custom-form::after {
+	content: "Protetto da reCAPTCHA: si applicano le Norme sulla privacy e i Termini di servizio di Google.";
+	display: block;
+	margin-top: 1em;
+	font-size: var(--vv-fs-xs);
+	color: var(--vv-inchiostro-2);
+}
+
+/* --- Cookie Law Info ---
+ * Il bordo va solo sul contenitore esterno (#cookie-law-info-bar); quello interno
+ * (.cli-bar-container) è trasparente, altrimenti le righe si raddoppiano. */
+#cookie-law-info-bar {
+	padding: 16px var(--vv-gutter) !important;
+	background: var(--vv-bianco) !important;
+	color: var(--vv-inchiostro) !important;
+	border: 0 !important;
+	border-top: var(--vv-bordo) !important;
+	box-shadow: 0 -6px 0 var(--vv-giallo) !important;
+	font-family: var(--vv-font-testo) !important;
+	text-align: left !important;
+}
+#cookie-law-info-bar > span {
+	display: block;
+}
+#cookie-law-info-bar .cli-bar-container {
+	display: flex !important;
+	flex-wrap: wrap;
+	align-items: center;
+	justify-content: space-between;
+	gap: 12px 32px;
+	max-width: var(--vv-largo);
+	margin: 0 auto !important;
+	padding: 0 !important;
+	background: transparent !important;
+	border: 0 !important;
+	box-shadow: none !important;
+}
+#cookie-law-info-bar .cli-bar-message {
+	flex: 1 1 420px;
+	width: auto !important;
+	margin: 0 !important;
+	font-size: var(--vv-fs-xs) !important;
+	line-height: 1.5 !important;
+	color: var(--vv-inchiostro) !important;
+}
+#cookie-law-info-bar .cli-bar-btn_container {
+	display: flex !important;
+	flex: none;
+	flex-wrap: wrap;
+	gap: 10px;
+	margin: 0 !important;
+}
+#cookie-law-info-bar .cli-plugin-button,
+.cli-modal .cli-plugin-button {
+	margin: 0 !important;
+	padding: 8px 18px !important;
+	background: var(--vv-bianco) !important;
+	color: var(--vv-inchiostro) !important;
+	border: var(--vv-bordo-sottile) !important;
+	border-radius: 999px !important;
+	box-shadow: 3px 3px 0 var(--vv-inchiostro) !important;
+	font-family: var(--vv-font-titoli) !important;
+	font-size: var(--vv-fs-s) !important;
+	font-weight: 700 !important;
+	line-height: 1.2 !important;
+	text-transform: none !important;
+}
+#cookie-law-info-bar #wt-cli-accept-all-btn,
+#cookie-law-info-bar .cli_action_button[data-cli_action="accept_all"],
+#cookie-law-info-bar .cli_action_button[data-cli_action="accept"],
+.cli-modal #wt-cli-privacy-save-btn {
+	background: var(--vv-giallo) !important;
+}
+#cookie-law-info-bar .cli-plugin-button:hover,
+.cli-modal .cli-plugin-button:hover {
+	background: var(--vv-giallo) !important;
+}
+@media (max-width: 599px) {
+	#cookie-law-info-bar .cli-bar-btn_container {
+		width: 100%;
+	}
+	#cookie-law-info-bar .cli-plugin-button {
+		flex: 1;
+		text-align: center;
+	}
+}
+/* Linguetta "Gestisci consenso" dopo la scelta */
+#cookie-law-info-again {
+	padding: 6px 14px !important;
+	background: var(--vv-bianco) !important;
+	color: var(--vv-inchiostro) !important;
+	border: var(--vv-bordo-sottile) !important;
+	border-bottom: 0 !important;
+	border-radius: 10px 10px 0 0 !important;
+	box-shadow: none !important;
+	font-family: var(--vv-font-titoli) !important;
+	font-size: var(--vv-fs-xs) !important;
+	font-weight: 700;
+}
+.cli-modal .cli-modal-content {
+	border: var(--vv-bordo);
+	border-radius: var(--vv-raggio);
+}
+/* Mentre il banner è aperto (altezza misurata da vv.js) la pagina non ci finisce sotto */
+body.vv-cookie-open {
+	padding-bottom: var(--vv-cookie-h, 0px);
+}
+body.vv-cookie-open .go-top.show {
+	bottom: calc(var(--vv-cookie-h, 0px) + 16px) !important;
+}
+
+/* --- Plugin di elenchi e slider: solo finché non vengono sostituiti da [vv_cards] --- */
+/* I plugin forzano testo bianco e sfondi colorati con !important: servono selettori più specifici */
+body.vv-design .wppsac-post-categories .wppsac-post-categories-list li:nth-child(n) a,
+body.vv-design .wpfp-categories a:nth-child(n),
+body.vv-design .featured-categories a:nth-child(n) {
+	display: inline-block;
+	padding: 3px 10px !important;
+	background: var(--vv-bianco) !important;
+	color: var(--vv-inchiostro) !important;
+	border: var(--vv-bordo-sottile) !important;
+	border-radius: 999px;
+	box-shadow: none !important;
+	font-family: var(--vv-font-titoli);
+	font-size: var(--vv-fs-xs) !important;
+	font-weight: 700;
+	line-height: 1.3 !important;
+	text-transform: none !important;
+	text-decoration: none !important;
+}
+body.vv-design .wppsac-post-categories .wppsac-post-categories-list li:nth-child(n) a:hover,
+body.vv-design .wpfp-bottom-content .wpfp-categories a:nth-child(n):hover,
+body.vv-design .featured-grid .featured-categories a:nth-child(n):hover,
+body.vv-design .wpfp-categories a:nth-child(n):hover {
+	background: var(--vv-giallo) !important;
+	color: var(--vv-inchiostro) !important;
+}
+[class*="readmorebtn"],
+[class*="read-more-btn"] {
+	border: var(--vv-bordo-sottile) !important;
+	border-radius: 999px !important;
+	color: var(--vv-inchiostro) !important;
+	background: var(--vv-giallo) !important;
+	font-weight: 700;
+}
+
+/* --- The Events Calendar: font e colori del tema tramite le variabili del plugin --- */
+:root {
+	--tec-font-family-sans-serif: var(--vv-font-testo);
+	--tec-font-family-base: var(--vv-font-testo);
+	--tec-color-text-primary: var(--vv-inchiostro);
+	--tec-color-text-secondary: var(--vv-inchiostro-2);
+	--tec-color-link-primary: var(--vv-inchiostro);
+	--tec-color-link-accent: var(--vv-turchese-testo);
+	--tec-color-link-accent-hover: var(--vv-inchiostro);
+	--tec-color-accent-primary: var(--vv-turchese-testo);
+	--tec-color-accent-primary-hover: var(--vv-inchiostro);
+	--tec-color-button-primary: var(--vv-giallo);
+	--tec-color-background-events-bar-submit-button: var(--vv-giallo);
+	--tec-color-background-events-bar-submit-button-hover: var(--vv-giallo);
+	--tec-color-text-events-bar-submit-button: var(--vv-inchiostro);
+	--tec-color-background: var(--vv-carta);
+	--tec-color-background-secondary: var(--vv-carta-2);
+	--tec-color-border-default: var(--vv-inchiostro);
+}
+.tribe-common :is(.tribe-common-h1, .tribe-common-h2, .tribe-common-h3, .tribe-common-h4, .tribe-common-h5, .tribe-common-h6, .tribe-common-h7, .tribe-common-h8),
+.tribe-events-single-event-title,
+.tribe-events .tribe-events-calendar-list__event-title,
+.tribe-events-content h2,
+.tribe-events-content h3 {
+	font-family: var(--vv-font-titoli) !important;
+	font-weight: 800 !important;
+	color: var(--vv-inchiostro);
+}
+.tribe-events-single-event-title {
+	font-size: var(--vv-fs-4xl) !important;
+	line-height: 1.1 !important;
+}
+.tribe-events-content,
+.tribe-events-single .tribe-events-content p {
+	font-family: var(--vv-font-testo);
+	font-size: var(--vv-fs-m);
+	line-height: var(--vv-lh-testo);
+}
+.tribe-events .tribe-events-c-events-bar,
+.tribe-events-c-events-bar__search-container {
+	border: var(--vv-bordo-sottile) !important;
+	border-radius: var(--vv-raggio-s);
+	background: var(--vv-bianco);
+}
+.tribe-common .tribe-common-c-btn,
+.tribe-events .tribe-events-c-search__button,
+.tribe-events-c-subscribe-dropdown__button {
+	background: var(--vv-giallo) !important;
+	color: var(--vv-inchiostro) !important;
+	border: var(--vv-bordo-sottile) !important;
+	border-radius: 999px !important;
+	font-family: var(--vv-font-titoli) !important;
+	font-weight: 700 !important;
+}
+.tribe-events-single a,
+.tribe-events a.tribe-events-calendar-list__event-title-link {
+	color: var(--vv-turchese-testo);
+}

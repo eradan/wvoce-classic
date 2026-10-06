@@ -1,0 +1,200 @@
+/* VivaVoce: testata (0.6.5). Struttura di Sydney (layout 2, sempre in alto su desktop), colori del
+ * Customizer (giallo); il tema la rende più bassa e più ordinata:
+ * - 88px in cima alla pagina, 64px dopo aver fatto scorrere (classe vv-scrolled di vv.js);
+ * - voci in maiuscoletto, linea rossa sotto quella della sezione corrente (vv-current, inc/breadcrumbs.php);
+ * - sottomenu turchesi come nel Customizer, con più aria e il carattere normale;
+ * - testata mobile (fino a 1024px) alta 64px.
+ * "body" e "#masthead" servono a superare il CSS inline del Customizer. */
+
+/* Nel Customizer il colore dell'header "sticky" è vuoto: Sydney lo farebbe blu scuro. Resta giallo. */
+.main-header.sticky-active {
+	background-color: var(--vv-giallo) !important;
+}
+
+/* --- Altezza (desktop) --- */
+body #masthead .site-header-inner {
+	padding-top: 12px;
+	padding-bottom: 12px;
+	transition: padding 0.2s ease;
+}
+body #masthead .site-logo {
+	width: auto;
+	height: 64px;
+	transition: height 0.2s ease;
+}
+body #masthead {
+	transition: box-shadow 0.2s ease, margin-bottom 0.2s ease;
+}
+/* Dopo lo scorrimento: 64px. Il margine sotto compensa i 24px persi, così il contenuto non salta. */
+body.vv-scrolled #masthead {
+	margin-bottom: 24px;
+	box-shadow: 0 2px 10px rgb(var(--vv-ombra) / 0.12);
+}
+body.vv-scrolled #masthead .site-header-inner {
+	padding-top: 10px;
+	padding-bottom: 10px;
+}
+body.vv-scrolled #masthead .site-logo {
+	height: 44px;
+}
+
+/* --- Voci principali: maiuscoletto, linea rossa sotto (mouse, focus, sezione corrente) --- */
+body .main-header #mainnav .menu > li {
+	padding: 0 14px;
+}
+body .main-header #mainnav .menu > li > a {
+	font-size: 13px;
+	font-weight: 600;
+	line-height: 24px;
+	letter-spacing: 0.08em;
+	text-transform: uppercase;
+	color: var(--vv-header-testo);
+	text-decoration: underline 2px transparent;
+	text-underline-offset: 7px;
+	transition: text-decoration-color 0.2s ease;
+}
+body .main-header #mainnav .menu > li > a:hover,
+body .main-header #mainnav .menu > li > a:focus-visible,
+body .main-header #mainnav .menu > li:hover > a,
+body .main-header #mainnav .menu > li.vv-current > a {
+	color: var(--vv-header-testo);
+	text-decoration: underline 2px var(--vv-rosso) !important;
+	text-underline-offset: 7px;
+}
+/* Freccine: piccole e sempre del colore del testo (Sydney al passaggio del mouse le colorava
+ * con il colore 1 del Customizer, il giallo del fondo, e sparivano) */
+body .main-header #mainnav .menu > li > .dropdown-symbol {
+	margin-left: 6px;
+	top: -1px;
+	color: var(--vv-header-testo);
+}
+body .main-header #mainnav .dropdown-symbol svg,
+body .main-header #mainnav li:hover > .dropdown-symbol svg {
+	width: 10px;
+	height: 10px;
+	fill: currentColor !important;
+}
+body .main-header .header-search svg {
+	width: 16px;
+	height: 16px;
+	fill: var(--vv-header-testo) !important;
+}
+
+/* --- Sottomenu: il turchese del Customizer, con testo inchiostro (il bianco sul turchese è 2,6:1);
+ * al passaggio del mouse turchese scuro con testo bianco (5,1:1). Più aria, carattere normale
+ * (il maiuscoletto resta al primo livello) e un'ombra leggera; drop-shadow segue solo le voci,
+ * non i 10px trasparenti sopra l'elenco (il "ponte" per il mouse). --- */
+body .main-header #mainnav ul ul {
+	width: max-content;
+	min-width: 220px;
+	max-width: 320px;
+	filter: drop-shadow(0 6px 14px rgb(var(--vv-ombra) / 0.16));
+}
+body .main-header #mainnav ul ul li {
+	float: none;
+	padding-left: 0;
+	padding-right: 0;
+}
+body .main-header #mainnav ul ul > li:first-child {
+	padding-top: 6px;
+}
+body .main-header #mainnav ul ul > li:last-child {
+	padding-bottom: 6px;
+}
+body .main-header #mainnav ul ul li a,
+body .main-header #mainnav li:hover > .sub-menu > li > a {
+	float: none;
+	width: auto;
+	padding: 10px 22px !important;
+	background: transparent;
+	border-top: 0;
+	font-size: 14px;
+	font-weight: 500;
+	line-height: 1.3;
+	letter-spacing: 0;
+	text-transform: none;
+	color: var(--vv-header-testo);
+}
+body .main-header #mainnav ul ul li:hover,
+body .main-header #mainnav ul ul li:focus-within,
+body .main-header #mainnav ul ul li.vv-current {
+	background-color: var(--vv-fondo-attivo);
+}
+/* !important: la regola che apre il sottomenu (li:hover > .sub-menu > li > a) è più specifica */
+body .main-header #mainnav ul ul li:hover > a,
+body .main-header #mainnav ul ul li:focus-within > a,
+body .main-header #mainnav ul ul li.vv-current > a {
+	color: var(--vv-testo-attivo) !important;
+}
+
+/* --- Switcher del tema (creato da vv.js accanto alla lente, in entrambe le testate):
+ * icona del tema in uso, un clic passa al successivo (chiaro → scuro → auto). "body" e
+ * ".main-header" superano lo stile dei pulsanti di Sydney (giallo, maiuscolo, 12px 34px). --- */
+body .main-header .vv-tema {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	flex: none;
+	width: 36px;
+	height: 36px;
+	margin: 0 8px 0 0;
+	padding: 0;
+	background: transparent;
+	border: 0;
+	border-radius: 50%;
+	color: var(--vv-header-testo);
+	line-height: 1;
+	cursor: pointer;
+	transition: background-color 0.2s ease;
+}
+body .main-header .vv-tema:hover,
+body .main-header .vv-tema:focus-visible {
+	background-color: rgb(var(--vv-ombra) / 0.1);
+	color: var(--vv-header-testo);
+}
+body .main-header .vv-tema:focus-visible {
+	outline: 2px solid var(--vv-header-testo);
+	outline-offset: 1px;
+}
+body .main-header .vv-tema svg {
+	width: 18px;
+	height: 18px;
+	fill: none;
+	stroke: currentColor;
+	stroke-width: 2;
+	stroke-linecap: round;
+	stroke-linejoin: round;
+}
+
+/* --- Testata mobile (fino a 1024px): 64px, scorre via con la pagina --- */
+body #masthead-mobile {
+	padding-top: 8px;
+	padding-bottom: 8px;
+}
+body #masthead-mobile .site-logo {
+	width: auto;
+	height: 48px;
+}
+
+/* Pannello del menu mobile: le voci principali in maiuscoletto come su desktop, i sottomenu no */
+body .sydney-offcanvas-menu #mainnav > div > ul > li > a {
+	font-size: 15px;
+	font-weight: 600;
+	letter-spacing: 0.06em;
+	text-transform: uppercase;
+}
+body .sydney-offcanvas-menu #mainnav ul ul li a {
+	font-size: 16px;
+	font-weight: 500;
+	letter-spacing: 0;
+	text-transform: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+	body #masthead,
+	body #masthead .site-header-inner,
+	body #masthead .site-logo,
+	body .main-header #mainnav .menu > li > a {
+		transition: none;
+	}
+}

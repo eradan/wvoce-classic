@@ -1,0 +1,247 @@
+/* VivaVoce 0.4 "classico": plugin con il loro aspetto originale, tranne Forminator e l'avviso sui
+ * cookie, che prendono i colori e i pulsanti del tema (in fondo al file).
+ * Correzione di leggibilità mantenuta: testo scuro sui pulsanti gialli di invio (moduli, commenti,
+ * ricerca); nell'originale era bianco su giallo, quasi illeggibile. */
+
+input[type="submit"],
+button[type="submit"],
+.wpcf7 input[type="submit"] {
+	color: var(--vv-testo-su-giallo) !important;
+	font-weight: 700;
+}
+
+/* Mentre il banner dei cookie è aperto (altezza misurata da vv.js) la fine della pagina resta visibile */
+body.vv-cookie-open {
+	padding-bottom: var(--vv-cookie-h, 0px);
+}
+
+/* --- Forminator (moduli di iscrizione): colori, caratteri e pulsanti del tema, nel tema chiaro e
+ * in quello scuro. Forminator scrive i colori del suo stile "default" modulo per modulo
+ * (wp-content/uploads/forminator/…/style-N.css) con selettori che contengono un id: qui serve
+ * !important. Prima: etichette 12px grigie (4,5:1), testo nero anche sul blu del tema scuro,
+ * pulsante di invio #333 su blu (2,7:1). --- */
+/* Titoli dei blocchi "Sezione" (es. "Dati di Residenza" in Diventa socio): #333 fisso nel plugin */
+.forminator-ui.forminator-custom-form :is(.forminator-title, .forminator-subtitle) {
+	color: var(--vv-testo) !important;
+}
+.forminator-ui.forminator-custom-form .forminator-label {
+	font-size: var(--vv-fs-meta) !important;
+	font-weight: 600 !important;
+	line-height: 1.4 !important;
+	color: var(--vv-testo) !important;
+}
+.forminator-ui.forminator-custom-form :is(.forminator-description, .forminator-file-upload > span) {
+	font-size: var(--vv-fs-meta) !important;
+	line-height: 1.45 !important;
+	color: var(--vv-testo-2) !important;
+}
+/* Campi: il fondo delle card, bordo grigio (4,2:1), testo d'esempio più scuro (5,5:1; prima 3:1) */
+.forminator-ui.forminator-custom-form :is(.forminator-input, .forminator-textarea, .select2-selection) {
+	background-color: var(--vv-fondo-card) !important;
+	border-color: var(--vv-testo-2) !important;
+	color: var(--vv-testo) !important;
+}
+.forminator-ui.forminator-custom-form :is(.forminator-is_hover, .forminator-is_active) :is(.forminator-input, .forminator-textarea) {
+	background-color: var(--vv-fondo-card) !important;
+	border-color: var(--vv-link) !important;
+}
+.forminator-ui.forminator-custom-form .forminator-has_error :is(.forminator-input, .forminator-textarea, .forminator-checkbox-box, .forminator-radio-bullet) {
+	border-color: var(--vv-rosso) !important;
+}
+.forminator-ui.forminator-custom-form :is(.forminator-input, .forminator-textarea)::placeholder {
+	color: var(--vv-testo-meta) !important;
+	opacity: 1;
+}
+/* Scelte, caselle e consensi */
+.forminator-ui.forminator-custom-form :is(.forminator-radio, .forminator-checkbox, .forminator-consent, .forminator-radio-label, .forminator-checkbox-label, .forminator-checkbox__label) {
+	font-size: var(--vv-fs-piccolo) !important;
+	line-height: 1.5 !important;
+	color: var(--vv-testo) !important;
+}
+.forminator-ui.forminator-custom-form :is(.forminator-radio-bullet, .forminator-checkbox-box) {
+	background-color: var(--vv-fondo-card) !important;
+	border-color: var(--vv-testo-2) !important;
+	color: var(--vv-link) !important;
+}
+.forminator-ui.forminator-custom-form input:checked + :is(.forminator-radio-bullet, .forminator-checkbox-box) {
+	border-color: var(--vv-link) !important;
+}
+.forminator-ui.forminator-custom-form .forminator-radio-bullet::before {
+	background-color: var(--vv-link) !important;
+}
+.forminator-ui.forminator-custom-form :is(.forminator-description, .forminator-checkbox__label, .forminator-consent) a {
+	color: var(--vv-link) !important;
+	text-decoration: underline;
+}
+/* Invio: il pulsante giallo del sito (.vv-button); "Scegli il file": come i pulsanti "Copia" */
+.forminator-ui.forminator-custom-form .forminator-button-submit {
+	padding: 12px 30px !important;
+	background-color: var(--vv-giallo) !important;
+	border: 0 !important;
+	border-radius: 0 !important;
+	box-shadow: none !important;
+	color: var(--vv-testo-su-giallo) !important;
+	font-size: var(--vv-fs-meta) !important;
+	font-weight: 700 !important;
+	letter-spacing: 1px;
+	text-transform: uppercase;
+	transition: background-color var(--vv-transizione), color var(--vv-transizione);
+}
+.forminator-ui.forminator-custom-form .forminator-button-upload {
+	background-color: var(--vv-pulsante) !important;
+	border-radius: 0 !important;
+	color: var(--vv-testo-pulsante) !important;
+	font-size: 12px !important;
+	font-weight: 600 !important;
+	text-transform: uppercase;
+}
+.forminator-ui.forminator-custom-form :is(.forminator-button-submit, .forminator-button-upload):is(:hover, :focus-visible) {
+	background-color: var(--vv-fondo-attivo) !important;
+	box-shadow: inset 0 0 0 2px var(--vv-giallo) !important;
+	color: var(--vv-testo-attivo) !important;
+}
+
+/* --- Avviso sui cookie (GDPR Cookie Consent): fascia in fondo con i pulsanti del sito. I testi si
+ * scrivono nelle impostazioni del plugin; il plugin mette i suoi colori in linea, quindi !important.
+ * "Rifiuta" è grande quanto "Accetta" (lo chiede il Garante privacy), "Preferenze" è un link. --- */
+#cookie-law-info-bar {
+	padding: var(--vv-s-2) !important;
+	background: var(--vv-fondo) !important;
+	border-top: 4px solid var(--vv-giallo) !important;
+	box-shadow: 0 -4px 18px rgb(var(--vv-ombra) / 0.16) !important;
+	color: var(--vv-testo) !important;
+	font-size: var(--vv-fs-piccolo) !important;
+	line-height: 1.5 !important;
+}
+#cookie-law-info-bar .cli-bar-container {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: var(--vv-s-2) var(--vv-s-4);
+	max-width: var(--vv-largo);
+	margin: 0 auto;
+}
+#cookie-law-info-bar .cli-bar-message {
+	flex: 1 1 420px;
+	width: auto !important;
+	margin: 0 !important;
+	color: inherit !important;
+	font-size: inherit !important;
+}
+#cookie-law-info-bar .cli-bar-message a {
+	color: var(--vv-link) !important;
+}
+#cookie-law-info-bar .cli-bar-btn_container {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: var(--vv-s-1) 12px;
+	margin: 0 !important;
+}
+#cookie-law-info-bar .cli-plugin-button {
+	margin: 0 !important;
+	padding: 11px 22px !important;
+	border: 0 !important;
+	border-radius: 0 !important;
+	font-size: var(--vv-fs-meta) !important;
+	font-weight: 700 !important;
+	line-height: 1.4 !important;
+	letter-spacing: 0.06em;
+	text-transform: uppercase;
+	text-decoration: none !important;
+	cursor: pointer;
+	transition: background-color var(--vv-transizione), color var(--vv-transizione), box-shadow var(--vv-transizione);
+}
+#cookie-law-info-bar :is(#wt-cli-accept-all-btn, #cookie_action_close_header) {
+	background: var(--vv-giallo) !important;
+	color: var(--vv-testo-su-giallo) !important;
+}
+#cookie-law-info-bar #cookie_action_close_header_reject {
+	background: transparent !important;
+	box-shadow: inset 0 0 0 2px var(--vv-testo) !important;
+	color: var(--vv-testo) !important;
+}
+#cookie-law-info-bar .cli-plugin-button:not(.cli_settings_button):is(:hover, :focus-visible) {
+	background: var(--vv-fondo-attivo) !important;
+	box-shadow: inset 0 0 0 2px var(--vv-giallo) !important;
+	color: var(--vv-testo-attivo) !important;
+}
+#cookie-law-info-bar .cli_settings_button {
+	padding-inline: 4px !important;
+	background: transparent !important;
+	color: var(--vv-link) !important;
+	font-weight: 600 !important;
+	letter-spacing: 0;
+	text-transform: none;
+	text-decoration: underline !important;
+	text-underline-offset: 3px;
+}
+#cookie-law-info-bar .cli_settings_button:is(:hover, :focus-visible) {
+	color: var(--vv-testo) !important;
+}
+#cookie-law-info-bar .cli-plugin-button:focus-visible {
+	outline: 3px solid var(--vv-link);
+	outline-offset: 2px;
+}
+/* Linguetta per riaprire le preferenze dopo aver scelto: attaccata al bordo sinistro, con la scritta
+ * in verticale, come il badge di reCAPTCHA su quello destro. Sale con la fascia turchese (--vv-sotto,
+ * vedi footer.css) invece di coprire la faccina di sinistra. Il plugin scrive posizione e larghezza
+ * nello stile inline (left: 16px; bottom: 0): servono gli !important. La scritta è girata di 180°
+ * per leggersi dal basso in alto, quindi gli angoli arrotondati a destra qui sono quelli "a sinistra". */
+#cookie-law-info-again {
+	left: 0 !important;
+	right: auto !important;
+	bottom: calc(14px + var(--vv-sotto, 0px)) !important;
+	width: auto !important;
+	writing-mode: vertical-rl;
+	rotate: 180deg;
+	padding: 12px 9px !important;
+	border-radius: 6px 0 0 6px;
+	background: var(--vv-giallo) !important;
+	color: var(--vv-testo-su-giallo) !important;
+	box-shadow: 0 0 8px rgb(var(--vv-ombra) / 0.3) !important;
+	font-size: var(--vv-fs-meta) !important;
+	font-weight: 600;
+	line-height: 1;
+	letter-spacing: 0.04em;
+	transition: box-shadow var(--vv-transizione);
+}
+#cookie-law-info-again:hover {
+	box-shadow: 0 0 12px rgb(var(--vv-ombra) / 0.45) !important;
+}
+/* Finestra delle preferenze */
+.cli-modal .cli-modal-content {
+	border-radius: 0 !important;
+	background: var(--vv-fondo) !important;
+	color: var(--vv-testo) !important;
+}
+.cli-modal :is(.cli-privacy-overview h4, .cli-privacy-content-text, .cli-nav-link, .wt-cli-cookie-description, .cli-necessary-caption, .cookielawinfo-row-cat-table td, .cookielawinfo-row-cat-table th) {
+	color: var(--vv-testo) !important;
+}
+.cli-modal .cli-tab-header {
+	border-radius: 0 !important;
+	background: var(--vv-fondo-card) !important;
+}
+.cli-modal .cookielawinfo-row-cat-table :is(td, th) {
+	border-color: var(--vv-bordo) !important;
+}
+.cli-modal .cli-privacy-readmore {
+	color: var(--vv-link) !important;
+}
+.cli-modal .cli-modal-close svg {
+	fill: var(--vv-testo) !important;
+}
+.cli-modal .cli-switch input:checked + .cli-slider {
+	background-color: var(--vv-fondo-attivo) !important;
+}
+.cli-modal #wt-cli-privacy-save-btn {
+	border-radius: 0 !important;
+	background: var(--vv-giallo) !important;
+	color: var(--vv-testo-su-giallo) !important;
+	font-weight: 700 !important;
+	letter-spacing: 0.06em;
+}
+.cli-modal #wt-cli-privacy-save-btn:is(:hover, :focus-visible) {
+	background: var(--vv-fondo-attivo) !important;
+	color: var(--vv-testo-attivo) !important;
+}

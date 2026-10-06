@@ -1,0 +1,112 @@
+/* VivaVoce 0.4 "classico": impaginazione. Solo ciò che serve alle parti nuove generate dal tema. */
+
+/* Colonna dei contenuti larga come quella originale (che aveva la sidebar a destra) */
+body:not(.siteorigin-panels) .content-area.no-sidebar .content-inner,
+body:not(.siteorigin-panels) .content-area.no-sidebar .entry-post,
+.single .content-area.no-sidebar .hentry {
+	max-width: var(--vv-lettura);
+}
+/* Senza sidebar Sydney lascia comunque 30px a destra del contenuto: le griglie non arrivavano al bordo */
+.content-area.no-sidebar .post-wrap,
+.content-area.col-md-12 .post-wrap {
+	padding-left: 0;
+	padding-right: 0;
+}
+/* La home (modello "Full width") usa tutta la larghezza, con o senza SiteOrigin */
+body.page-template-page_fullwidth .content-area.no-sidebar .content-inner,
+body.vv-has-hero .content-area.no-sidebar .content-inner,
+body.page-template-page_fullwidth .content-area.no-sidebar .entry-content {
+	max-width: none;
+}
+
+/* Griglie di card dentro il testo: tutta la larghezza del contenitore; anche i titoli di sezione e
+ * i paragrafi centrati che le accompagnano, altrimenti si centrerebbero sulla colonna del testo */
+.entry-content > .vv-grid,
+.entry-content > .vv-elenco,
+.entry-content > .vv-carousel,
+.entry-content > .vv-section-title,
+.entry-content > .has-text-align-center {
+	width: var(--vv-contenitore);
+	max-width: none;
+}
+.page-wrap {
+	overflow-x: clip;
+}
+/* Sydney: 83px sopra e 100 sotto a tutte le larghezze, troppo su telefono */
+.page-wrap {
+	padding: var(--vv-s-4) 0 var(--vv-s-5);
+}
+.vv-page-extra {
+	margin-top: var(--vv-spazio);
+}
+
+/* Breadcrumb: non flottante, altrimenti il titolo le copre e i link non si cliccano */
+.vv-breadcrumbs-wrap,
+.vv-breadcrumbs-wrap.col-md-12 {
+	float: none !important;
+	clear: both;
+	width: 100%;
+	position: relative;
+	z-index: 2;
+}
+.vv-breadcrumbs-wrap + #primary,
+.vv-breadcrumbs-wrap + .content-area {
+	clear: both;
+}
+.vv-breadcrumbs ol {
+	display: flex;
+	flex-wrap: wrap;
+	margin: 0 0 var(--vv-s-2);
+	padding: 0;
+	list-style: none;
+	font-size: var(--vv-fs-meta);
+	line-height: 1.5;
+	color: var(--vv-testo-2);
+}
+.vv-breadcrumbs li {
+	margin: 0;
+	padding: 0;
+}
+.vv-breadcrumbs li + li::before {
+	content: "/";
+	margin: 0 8px;
+	color: var(--vv-testo-2);
+}
+.vv-breadcrumbs a {
+	color: var(--vv-link);
+	text-decoration: none;
+}
+.vv-breadcrumbs a:hover {
+	color: var(--vv-testo);
+}
+
+/* Titoli di sezione del tema (elenchi, soci): come i titoli dei widget della home originale */
+.vv-section-title,
+.entry-content h2.vv-section-title {
+	position: relative;
+	margin: 0 0 var(--vv-s-4);
+	padding-bottom: 20px;
+	font-size: var(--vv-fs-sezione);
+	font-weight: 600;
+	line-height: 1.2;
+	text-align: center;
+	text-transform: uppercase;
+	color: var(--vv-titoli-sezione);
+}
+.vv-section-title::after {
+	content: "";
+	position: absolute;
+	left: 50%;
+	bottom: 0;
+	width: 50px;
+	height: 3px;
+	margin-left: -25px;
+	background: var(--vv-giallo);
+}
+@media (max-width: 599px) {
+	.vv-section-title,
+	.entry-content h2.vv-section-title {
+		margin-bottom: var(--vv-s-3);
+		padding-bottom: var(--vv-s-2);
+	}
+}

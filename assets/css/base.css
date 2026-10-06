@@ -1,0 +1,125 @@
+/* VivaVoce 0.4 "classico": base. Quasi tutto è lasciato a Sydney. */
+
+/* Il colore del testo lo metteva Sydney, fisso (#00102e, lo stesso valore): ora segue il tema */
+body {
+	background: var(--vv-fondo);
+	color: var(--vv-testo);
+}
+
+/* Poppins ovunque: testi, titoli, menu, pulsanti, campi dei moduli, banner dei cookie, barra di
+ * amministrazione e testo incollato con un altro font. Restano fuori solo i font delle icone
+ * (Font Awesome, Dashicons), che sono disegni e non lettere; le icone messe con ::before/::after
+ * non sono toccate perché * non prende gli pseudo-elementi. */
+html,
+body,
+body *:not(:is(.fa, .fas, .far, .fab, .fal, .fad, .fa-solid, .fa-regular, .fa-brands, .svg-inline--fa, [class^="fa-"], [class*=" fa-"], .dashicons, [class^="dashicons-"], [class*=" dashicons-"], .ab-icon)) {
+	font-family: var(--vv-font) !important;
+}
+
+/* h2 in inchiostro: nel Customizer sono gialli (1,4:1 sul bianco, illeggibili) */
+h2 {
+	color: var(--vv-testo);
+}
+
+/* Testo delle pagine e degli articoli: un po' più grande dei 16px di Sydney, titoli nella stessa scala */
+.entry-content {
+	font-size: var(--vv-fs-corpo);
+	line-height: 1.65;
+}
+.entry-content p {
+	margin: 0 0 1.1em;
+}
+.entry-content :is(ul, ol) {
+	margin: 0 0 1.1em;
+}
+.entry-content li + li {
+	margin-top: 0.35em;
+}
+.entry-content h2:not(.vv-section-title) { font-size: var(--vv-fs-h2); }
+.entry-content h3:not(.vv-year) { font-size: var(--vv-fs-h3); }
+.entry-content h4 { font-size: var(--vv-fs-h4); }
+.entry-content :is(h5, h6) { font-size: 1em; }
+/* Un titolo sta più vicino al testo che introduce che a quello prima (Sydney: 10px sopra, 24 sotto) */
+.entry-content :is(h2, h3, h4, h5, h6):not(.vv-section-title, .vv-card__title, .vv-year) {
+	margin: 1.8em 0 0.6em;
+	line-height: 1.25;
+}
+.entry-content > :first-child {
+	margin-top: 0 !important;
+}
+.entry-content :is(figcaption, .wp-caption-text) {
+	font-size: var(--vv-fs-meta);
+	color: var(--vv-testo-2);
+}
+
+/* Titolo di pagina, di articolo e di archivio */
+.content-area .entry-header .entry-title,
+.vv-builder-header .entry-title,
+.archive-header .archive-title {
+	font-size: var(--vv-fs-titolo);
+	line-height: 1.15;
+}
+.content-area .entry-header {
+	margin-bottom: var(--vv-s-3);
+}
+.single .entry-header .entry-meta {
+	margin-top: var(--vv-s-1);
+	font-size: var(--vv-fs-meta);
+	color: var(--vv-testo-2);
+}
+
+/* Link nel testo: turchese scuro e sottolineati (il turchese del logo sul bianco è 2,6:1).
+ * Il selettore ricalca quello di Sydney, che altrimenti li farebbe gialli al passaggio del mouse;
+ * !important perché gli stili globali di Sydney tolgono la sottolineatura a tutti i link con !important. */
+body .entry-content a:not(.button):not(.elementor-button-link):not(.wp-block-button__link):not(:where(.has-link-color a, .wp-block-post-title a, .wp-block-latest-posts__post-title)):not(.vv-card__link, .vv-chip, .vv-copy__btn, .vv-button, .page-numbers, .roll-button) {
+	color: var(--vv-link);
+	text-decoration: underline 1px !important;
+	text-underline-offset: 3px;
+}
+body .entry-content a:not(.button):not(.elementor-button-link):not(.wp-block-button__link):not(:where(.has-link-color a, .wp-block-post-title a, .wp-block-latest-posts__post-title)):not(.vv-card__link, .vv-chip, .vv-copy__btn, .vv-button, .page-numbers, .roll-button):hover {
+	color: var(--vv-testo);
+	text-decoration: underline 2px !important;
+}
+
+/* Pulsanti del tema: come ".button-slider" dell'originale (giallo, testo scuro, maiuscolo) */
+.vv-button {
+	display: inline-block;
+	padding: 12px 30px;
+	background: var(--vv-giallo);
+	color: var(--vv-testo-su-giallo) !important;
+	border: 0;
+	border-radius: 0;
+	font-size: var(--vv-fs-meta);
+	font-weight: 700;
+	line-height: 1.4;
+	letter-spacing: 1px;
+	text-transform: uppercase;
+	text-decoration: none !important;
+	transition: background-color var(--vv-transizione), color var(--vv-transizione);
+}
+/* Al passaggio del mouse (prima diventavano neri): turchese scuro come il sottomenu, testo bianco
+ * (5,1:1) e bordo giallo, che li stacca dal turchese dell'illustrazione */
+.vv-button--ghost {
+	background: var(--vv-bianco);
+	box-shadow: inset 0 0 0 2px var(--vv-giallo);
+}
+.vv-button:hover,
+.vv-button:focus-visible {
+	background: var(--vv-fondo-attivo);
+	box-shadow: inset 0 0 0 2px var(--vv-giallo);
+	color: var(--vv-testo-attivo) !important;
+}
+
+/* Separatori "____" (convertiti dal tema): una riga sottile come nell'originale */
+.entry-content hr.vv-rule {
+	border: 0;
+	border-top: 1px solid var(--vv-bordo);
+	max-width: 280px;
+	margin: 1.6em 0;
+}
+.entry-content .vv-rule--inline {
+	display: block;
+	width: 200px;
+	margin: 0.8em 0 0.2em;
+	border-top: 1px solid var(--vv-bordo);
+}

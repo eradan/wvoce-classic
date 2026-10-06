@@ -1,0 +1,319 @@
+/* VivaVoce 0.4 "classico": pagine interne e articoli. Gli elenchi restano elenchi puntati normali. */
+
+/* Pagine: l'immagine in evidenza fra titolo e testo (il filtro è in inc/setup.php), larga quanto
+ * il testo e ritagliata 16:9, a spigoli vivi. Senza immagine in evidenza non compare nulla. */
+.page .content-area .entry-thumb {
+	aspect-ratio: 16 / 9;
+	margin: 0 0 var(--vv-s-4);
+	overflow: hidden;
+	background: var(--vv-fondo-card);
+}
+.page .content-area .entry-thumb img {
+	display: block;
+	width: 100%;
+	height: 100%;
+	object-fit: cover;
+}
+@media (max-width: 599px) {
+	.page .content-area .entry-thumb {
+		aspect-ratio: 4 / 3;
+		margin-bottom: var(--vv-s-3);
+	}
+}
+
+/* Articoli: la locandina resta intera (spesso contiene testo), ma non più alta dello schermo */
+.single .content-area .entry-thumb {
+	margin: 0 0 var(--vv-s-4);
+}
+.single .content-area .entry-thumb img {
+	display: block;
+	width: auto;
+	max-width: 100%;
+	height: auto;
+	max-height: min(80vh, 720px);
+	margin: 0 auto;
+}
+
+/* Gallerie scritte nell'editor classico: i paragrafi vuoti fra le immagini non devono
+ * occupare celle della griglia (altrimenti ogni foto finisce da sola). */
+.entry-content .wp-block-gallery > :is(p, br),
+.entry-content .gallery > :is(p, br) {
+	display: none !important;
+}
+/* Gallerie come griglia di miniature quadrate (senza bordi), anche quando il CSS dei blocchi manca */
+.entry-content .wp-block-gallery,
+.entry-content .gallery {
+	display: grid !important;
+	grid-template-columns: repeat(auto-fill, minmax(min(100%, 200px), 1fr));
+	gap: 10px;
+	margin: var(--vv-s-4) 0;
+}
+.entry-content .wp-block-gallery > figure,
+.entry-content .wp-block-gallery .wp-block-image,
+.entry-content .gallery .gallery-item {
+	width: auto !important;
+	max-width: none !important;
+	margin: 0 !important;
+}
+.entry-content .wp-block-gallery img,
+.entry-content .gallery img {
+	width: 100% !important;
+	height: 100% !important;
+	aspect-ratio: 1;
+	object-fit: cover;
+}
+
+/* Modello "Page builder ready" (soci): margine laterale del contenuto */
+.post-template-post_full .content-area {
+	padding-left: 15px;
+	padding-right: 15px;
+}
+.vv-builder-header {
+	margin-bottom: var(--vv-s-3);
+}
+.vv-founders {
+	margin-top: var(--vv-spazio);
+}
+
+/* Articolo: testo + colonna laterale, come l'originale che aveva la sidebar a destra */
+.vv-single {
+	flex: 1 1 100%;
+	width: 100%;
+	max-width: 100%;
+}
+.vv-single__grid {
+	display: grid;
+	grid-template-columns: minmax(0, 1fr) 280px;
+	gap: var(--vv-s-4);
+	align-items: start;
+}
+.vv-single .hentry {
+	max-width: none !important;
+}
+@media (max-width: 991px) {
+	.vv-single__grid {
+		grid-template-columns: minmax(0, 1fr);
+	}
+}
+.vv-single__aside {
+	display: flex;
+	flex-direction: column;
+	gap: var(--vv-s-4);
+}
+.vv-single__comments {
+	margin-top: var(--vv-spazio);
+}
+
+/* "In breve" e "In questa sezione": come la vecchia sidebar grigia dei contatti */
+.vv-card--info {
+	padding: var(--vv-s-3);
+	background: var(--vv-riquadro);
+	font-size: var(--vv-fs-piccolo);
+	line-height: 1.5;
+	color: var(--vv-testo-riquadro);
+}
+/* Il margine interno è quello del riquadro: senza, quello del corpo delle card si sommava (44px) */
+.vv-card.vv-card--info .vv-card__body {
+	padding: 0;
+}
+.vv-info__title {
+	margin: 0 0 12px;
+	font-size: 16px;
+	font-weight: 600;
+	letter-spacing: 1px;
+	text-transform: uppercase;
+	color: var(--vv-testo);
+}
+.vv-info {
+	display: grid;
+	grid-template-columns: auto 1fr;
+	gap: var(--vv-s-1) 12px;
+	margin: 0;
+}
+.vv-info dt {
+	font-weight: 600;
+	color: var(--vv-testo);
+}
+.vv-info dd {
+	margin: 0;
+	min-width: 0;
+}
+.vv-info__chips {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 4px 10px;
+}
+.vv-chip {
+	color: var(--vv-testo) !important;
+	text-decoration: underline 1px !important;
+	text-underline-offset: 3px;
+}
+.vv-chip:hover {
+	text-decoration: underline 2px !important;
+}
+
+/* "In questa sezione" (pagine): la pagina madre, poi le altre pagine del ramo; quella corrente
+ * in grassetto con una barretta a sinistra. Link in inchiostro: il turchese scuro sul grigio non
+ * arriva a 4,5:1. */
+.vv-section-nav__parent {
+	margin: 0 0 var(--vv-s-1);
+	font-weight: 600;
+}
+.vv-section-nav__list,
+.vv-section-nav__list ul {
+	margin: 0;
+	padding: 0;
+	list-style: none;
+}
+.vv-section-nav__list ul {
+	margin: 2px 0 4px;
+	padding-left: var(--vv-s-2);
+}
+.vv-section-nav a {
+	display: block;
+	padding: 5px 0 5px 12px;
+	border-left: 3px solid transparent;
+	line-height: 1.35;
+	color: var(--vv-testo) !important;
+	text-decoration: none !important;
+}
+/* Sydney toglie la sottolineatura a tutti i link con ":root .site :where(a)" !important: serve di più */
+.vv-section-nav .vv-section-nav__parent a {
+	padding-left: 0;
+	border-left: 0;
+	text-decoration: underline 1px !important;
+	text-underline-offset: 3px;
+}
+.vv-section-nav a:hover {
+	text-decoration: underline 1px !important;
+	text-underline-offset: 3px;
+}
+.vv-section-nav a[aria-current="page"] {
+	font-weight: 600;
+	border-left-color: var(--vv-testo);
+}
+
+/* "Da non perdere": elenco di link con miniatura */
+.vv-aside-list {
+	margin: 0;
+	padding: 0;
+	list-style: none;
+}
+.vv-aside-list li + li {
+	margin-top: var(--vv-s-2);
+}
+.vv-aside-list a {
+	display: grid;
+	grid-template-columns: 60px 1fr;
+	align-items: center;
+	gap: 12px;
+	font-size: var(--vv-fs-piccolo);
+	font-weight: 600;
+	line-height: 1.35;
+	color: var(--vv-link);
+	text-decoration: none;
+}
+.vv-aside-list a:hover {
+	color: var(--vv-testo);
+}
+.vv-aside-list img {
+	width: 60px;
+	height: 60px;
+	object-fit: cover;
+}
+.vv-aside-list a:not(:has(img)) {
+	grid-template-columns: 1fr;
+}
+
+/* Articolo precedente / successivo: due link, come la navigazione di Sydney */
+.vv-post-nav {
+	display: grid;
+	grid-template-columns: 1fr 1fr;
+	gap: var(--vv-s-3);
+	margin: var(--vv-s-4) 0 0;
+	padding-top: var(--vv-s-3);
+	border-top: 1px solid var(--vv-bordo);
+}
+.vv-post-nav__link {
+	display: flex;
+	flex-direction: column;
+	gap: 4px;
+	color: var(--vv-link);
+	text-decoration: none;
+}
+.vv-post-nav__link--next {
+	align-items: flex-end;
+	text-align: right;
+}
+.vv-post-nav__link:hover {
+	color: var(--vv-testo);
+}
+.vv-post-nav__label {
+	font-size: 13px;
+	text-transform: uppercase;
+	letter-spacing: 1px;
+	color: var(--vv-testo-2);
+}
+.vv-post-nav__title {
+	font-size: 16px;
+	font-weight: 600;
+	line-height: 1.35;
+}
+@media (max-width: 599px) {
+	.vv-post-nav {
+		grid-template-columns: 1fr;
+	}
+	.vv-post-nav__empty {
+		display: none;
+	}
+}
+
+/* Pagine a sezioni (0.6.6, per es. Partecipa): ogni sezione è un Gruppo con classe "vv-sezione" che
+ * comincia con un'immagine allineata a sinistra o a destra, e il testo le scorre attorno.
+ * Una pagina che le contiene usa tutta la larghezza del contenitore, come quelle senza colonna laterale.
+ * Su telefono l'immagine torna sopra il testo, a tutta larghezza. */
+body:not(.siteorigin-panels) .content-area.no-sidebar .content-inner:has(.vv-sezione) {
+	max-width: none;
+}
+.entry-content .vv-sezione {
+	display: flow-root; /* contiene l'immagine flottante: la sezione dopo comincia sotto */
+	margin: 0 0 var(--vv-spazio);
+}
+/* Il titolo parte in pari con la foto. ".wp-block-heading" nell':is() serve a battere Sydney
+ * (body:not(…):not(…):not(…) .entry-content h2 { margin-top: 1.2em }) */
+.entry-content .vv-sezione > :first-child,
+.entry-content .vv-sezione > .wp-block-image:first-child + :is(h2, h3, .wp-block-heading) {
+	margin-top: 0;
+}
+.entry-content .vv-sezione > .wp-block-image:is(.alignleft, .alignright) {
+	width: 45%;
+	max-width: 560px;
+	margin-top: 0.3em;
+	margin-bottom: var(--vv-s-2);
+}
+.entry-content .vv-sezione > .wp-block-image.alignleft {
+	float: left;
+	margin-right: var(--vv-s-4);
+}
+.entry-content .vv-sezione > .wp-block-image.alignright {
+	float: right;
+	margin-left: var(--vv-s-4);
+}
+.entry-content .vv-sezione > .wp-block-image img {
+	display: block;
+	width: 100%;
+	height: auto;
+}
+/* Gli elenchi puntati accanto a un'immagine: senza, i pallini finirebbero sotto la foto */
+.entry-content .vv-sezione ul,
+.entry-content .vv-sezione ol {
+	display: flow-root;
+}
+@media (max-width: 599px) {
+	.entry-content .vv-sezione > .wp-block-image:is(.alignleft, .alignright) {
+		float: none;
+		width: 100%;
+		max-width: none;
+		margin: 0 0 var(--vv-s-3);
+	}
+}

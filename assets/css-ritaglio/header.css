@@ -1,0 +1,435 @@
+/* VivaVoce: header, menu, sottomenu, menu mobile. */
+
+.main-header,
+.main-header.sticky-active,
+.main-header.fixed,
+.header-wrap {
+	background: var(--vv-giallo) !important;
+	border-bottom: var(--vv-bordo);
+	box-shadow: none;
+}
+.main-header .site-header-inner {
+	padding-top: 12px;
+	padding-bottom: 12px;
+}
+.main-header .container {
+	max-width: calc(var(--vv-largo) + 2 * var(--vv-gutter));
+	padding-left: var(--vv-gutter);
+	padding-right: var(--vv-gutter);
+}
+
+/* Logo compatto */
+.site-branding .site-logo,
+.main-header .site-logo {
+	max-height: 64px !important;
+	width: auto !important;
+}
+/* Nessun rimpicciolimento allo scroll: l'header è già compatto */
+
+/* Menu principale su una riga (solo header desktop: il pannello mobile ha regole sue) */
+.main-header #mainnav > div > ul,
+.main-header #mainnav > ul {
+	display: flex;
+	flex-wrap: nowrap;
+	align-items: center;
+	gap: 4px;
+}
+.main-header #mainnav ul li {
+	padding: 0;
+	margin: 0;
+}
+/* La pillola di hover/voce corrente sta sulla voce intera (testo + freccia) */
+.main-header #mainnav > div > ul > li {
+	display: flex;
+	align-items: center;
+	border: 2px solid transparent;
+	border-radius: 999px;
+	transition: background-color var(--vv-transizione), border-color var(--vv-transizione);
+}
+.main-header #mainnav > div > ul > li:not(.vv-cta):hover,
+.main-header #mainnav > div > ul > li:not(.vv-cta):focus-within,
+.main-header #mainnav > div > ul > li.current-menu-item:not(.vv-cta),
+.main-header #mainnav > div > ul > li.current-menu-ancestor:not(.vv-cta),
+.main-header #mainnav > div > ul > li.current-menu-parent:not(.vv-cta) {
+	background-color: var(--vv-bianco);
+	border-color: var(--vv-inchiostro);
+}
+.main-header #mainnav ul li a,
+.main-header #mainnav > div > ul > li > a {
+	display: inline-block;
+	padding: 6px 14px;
+	border-radius: 999px;
+	border: 0;
+	color: var(--vv-inchiostro) !important;
+	font-family: var(--vv-font-titoli);
+	font-size: var(--vv-fs-m);
+	font-weight: 700;
+	line-height: 1.2;
+	white-space: nowrap;
+	background: transparent;
+	transition: background-color var(--vv-transizione), border-color var(--vv-transizione);
+}
+.main-header #mainnav > div > ul > li > a:focus-visible {
+	outline-offset: 2px;
+}
+/* Voci con sottomenu: il testo lascia spazio alla freccia dentro la pillola */
+.main-header #mainnav > div > ul > li.menu-item-has-children > a {
+	padding-right: 4px;
+}
+.main-header #mainnav .dropdown-symbol {
+	display: inline-flex;
+	align-items: center;
+	margin-left: 0;
+	padding: 0 12px 0 4px;
+	top: 0;
+	cursor: pointer;
+}
+.main-header #mainnav .dropdown-symbol svg,
+.main-header #mainnav ul li:hover > .dropdown-symbol svg {
+	width: 10px;
+	height: 10px;
+	fill: var(--vv-inchiostro) !important;
+}
+
+/* Voce di menu come pulsante: aggiungere la classe CSS "vv-cta" alla voce (Aspetto → Menu) */
+.main-header #mainnav li.vv-cta > a {
+	border: 2px solid var(--vv-inchiostro) !important;
+	background: var(--vv-rosso) !important;
+	color: var(--vv-inchiostro) !important;
+	border-color: var(--vv-inchiostro) !important;
+	box-shadow: var(--vv-ombra-s);
+	margin-left: 8px;
+}
+.main-header #mainnav li.vv-cta > a:hover {
+	transform: translate(-1px, -1px);
+	box-shadow: 5px 5px 0 var(--vv-inchiostro);
+}
+
+/* Sottomenu come card ritagliata, attaccato alla voce: nessuno spazio vuoto
+ * fra voce e sottomenu, altrimenti passando col mouse l'hover si perde e il menu si chiude. */
+.main-header #mainnav ul li ul.sub-menu {
+	top: 100%;
+	margin-top: 0;
+	background: var(--vv-bianco) !important;
+	border: var(--vv-bordo);
+	border-radius: var(--vv-raggio);
+	box-shadow: var(--vv-ombra);
+	padding: 8px !important;
+	width: auto;
+	min-width: 240px;
+	transition: opacity var(--vv-transizione), visibility var(--vv-transizione);
+}
+/* Ponte invisibile sopra il sottomenu: copre l'eventuale spazio fino alla voce */
+.main-header #mainnav ul li ul.sub-menu::before {
+	content: "";
+	position: absolute;
+	left: -3px;
+	right: -3px;
+	bottom: 100%;
+	height: 16px;
+}
+.main-header #mainnav ul li ul.sub-menu::after {
+	display: none !important;
+}
+/* Lo si può aprire anche da tastiera */
+.main-header #mainnav:not(.toggled) li:focus-within > ul.sub-menu {
+	opacity: 1;
+	visibility: visible;
+	left: auto;
+}
+.main-header #mainnav .sub-menu li,
+.main-header #mainnav ul ul li,
+.main-header #mainnav ul ul li:first-of-type,
+.main-header #mainnav ul ul li:last-of-type {
+	display: block;
+	width: 100%;
+	padding: 0;
+	background: transparent !important;
+}
+.main-header #mainnav .sub-menu li a,
+.main-header #mainnav li:hover > .sub-menu > li > a {
+	display: block;
+	width: 100%;
+	padding: 10px 14px;
+	border-radius: var(--vv-raggio-s);
+	font-size: var(--vv-fs-s);
+	white-space: normal;
+}
+.main-header #mainnav .sub-menu li + li {
+	margin-top: 4px;
+}
+/* Pagina corrente: carta calda e testo più pieno; hover: giallo */
+.main-header #mainnav .sub-menu li.current-menu-item > a {
+	background-color: var(--vv-carta-2) !important;
+	font-weight: 800;
+}
+.main-header #mainnav .sub-menu li a:hover,
+.main-header #mainnav .sub-menu li a:focus-visible {
+	background-color: var(--vv-giallo) !important;
+	box-shadow: none;
+}
+
+/* Ricerca nell'header */
+.header-search,
+.main-header .header-search .icon-search {
+	color: var(--vv-inchiostro);
+}
+.main-header .header-search svg,
+.main-header .header-item svg {
+	fill: var(--vv-inchiostro);
+}
+
+/* --- Menu mobile (pannello laterale di Sydney) --- */
+.menu-toggle,
+.mobile-header .menu-toggle {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	width: 44px;
+	height: 44px;
+	color: var(--vv-inchiostro);
+	border-radius: 50%;
+}
+.menu-toggle svg,
+.mobile-header svg {
+	fill: var(--vv-inchiostro);
+}
+.menu-toggle .sydney-svg-icon svg {
+	width: 22px;
+	height: 16px;
+}
+
+.sydney-offcanvas-menu {
+	width: min(360px, 88vw) !important;
+	max-width: none !important;
+	padding: 16px 20px 28px !important;
+	background: var(--vv-carta) !important;
+	border-right: var(--vv-bordo);
+	box-shadow: 8px 0 0 var(--vv-inchiostro) !important;
+	overscroll-behavior: contain;
+}
+/* Riga in alto: logo e chiusura (il vecchio CSS aggiuntivo nascondeva il logo) */
+.sydney-offcanvas-menu .mobile-header-item .site-branding {
+	display: block !important;
+}
+.sydney-offcanvas-menu .mobile-header-item:first-child {
+	padding-bottom: 14px;
+	margin-bottom: 8px;
+	border-bottom: var(--vv-bordo-sottile);
+}
+.sydney-offcanvas-menu .mobile-header-item:first-child .site-logo {
+	max-height: 48px !important;
+	width: auto !important;
+}
+.sydney-offcanvas-menu .mobile-menu-close {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	width: 44px;
+	height: 44px;
+	background: var(--vv-bianco);
+	border: var(--vv-bordo-sottile);
+	border-radius: 50%;
+	box-shadow: var(--vv-ombra-s);
+}
+.sydney-offcanvas-menu .mobile-menu-close svg {
+	width: 16px;
+	height: 16px;
+	fill: var(--vv-inchiostro) !important;
+}
+
+/* Voci: una per riga, grandi e facili da toccare */
+.sydney-offcanvas-menu #mainnav,
+.sydney-offcanvas-menu #mainnav > div,
+.sydney-offcanvas-menu #mainnav > div > ul {
+	display: block !important;
+	width: 100%;
+	float: none;
+}
+.sydney-offcanvas-menu #mainnav > div > ul > li {
+	display: flex !important;
+	flex-wrap: wrap;
+	align-items: center;
+	width: 100%;
+	margin: 0;
+	padding: 0;
+	border-bottom: 2px solid rgba(14, 14, 18, 0.1);
+	background: transparent;
+}
+.sydney-offcanvas-menu #mainnav ul li a,
+.sydney-offcanvas-menu #mainnav .menu-item-has-children > a {
+	display: block;
+	flex: 1;
+	width: auto !important;
+	min-height: 48px;
+	padding: 12px 10px !important;
+	color: var(--vv-inchiostro) !important;
+	background: transparent !important;
+	border: 0;
+	border-radius: var(--vv-raggio-s);
+	font-family: var(--vv-font-titoli);
+	font-size: var(--vv-fs-l) !important;
+	font-weight: 800;
+	line-height: 1.25;
+	white-space: normal;
+}
+.sydney-offcanvas-menu #mainnav ul li a:hover,
+.sydney-offcanvas-menu #mainnav ul li a:focus-visible {
+	background: var(--vv-giallo) !important;
+}
+/* Pagina corrente */
+.sydney-offcanvas-menu #mainnav li.current-menu-item > a {
+	background: var(--vv-carta-2) !important;
+	text-decoration: underline;
+	text-decoration-thickness: 3px;
+	text-decoration-color: var(--vv-giallo);
+	text-underline-offset: 0.2em;
+}
+/* Freccia dei sottomenu: bottone tondo che ruota quando è aperto */
+.sydney-offcanvas-menu #mainnav .dropdown-symbol {
+	display: inline-flex !important;
+	align-items: center;
+	justify-content: center;
+	flex: none;
+	width: 40px;
+	height: 40px;
+	margin: 4px 0 4px 8px !important;
+	padding: 0;
+	background: var(--vv-bianco);
+	border: var(--vv-bordo-sottile);
+	border-radius: 50%;
+	cursor: pointer;
+	transition: transform var(--vv-transizione), background-color var(--vv-transizione);
+}
+.sydney-offcanvas-menu #mainnav .dropdown-symbol svg {
+	width: 12px;
+	height: 12px;
+	fill: var(--vv-inchiostro) !important;
+}
+.sydney-offcanvas-menu #mainnav li.vv-open > .dropdown-symbol {
+	background: var(--vv-giallo);
+	transform: rotate(180deg);
+}
+/* Sottomenu: rientrati, sotto la voce */
+.sydney-offcanvas-menu #mainnav .sub-menu {
+	flex-basis: 100%;
+	width: 100% !important;
+	min-width: 0;
+	margin: 0 0 10px !important;
+	padding: 4px 0 4px 14px !important;
+	background: transparent !important;
+	border: 0 !important;
+	border-left: 3px solid var(--vv-giallo) !important;
+	border-radius: 0;
+	box-shadow: none !important;
+}
+.sydney-offcanvas-menu #mainnav .sub-menu li {
+	display: block !important;
+	width: 100%;
+	padding: 0;
+	border: 0;
+}
+.sydney-offcanvas-menu #mainnav .sub-menu li a {
+	min-height: 44px;
+	padding: 10px 10px !important;
+	font-size: var(--vv-fs-m) !important;
+	font-weight: 700;
+}
+/* "Diventa socio" in fondo, come pulsante pieno */
+.sydney-offcanvas-menu #mainnav li.vv-cta {
+	margin-top: 20px;
+	border-bottom: 0;
+}
+.sydney-offcanvas-menu #mainnav li.vv-cta > a {
+	text-align: center;
+	background: var(--vv-rosso) !important;
+	border: var(--vv-bordo) !important;
+	border-radius: 999px;
+	box-shadow: var(--vv-ombra-s);
+}
+/* Pagina dietro al pannello: oscurata e ferma */
+body.mobile-menu-visible {
+	overflow: hidden;
+}
+.vv-offcanvas-backdrop {
+	position: fixed;
+	inset: 0;
+	z-index: 99998;
+	background: rgba(14, 14, 18, 0.45);
+	opacity: 0;
+	visibility: hidden;
+	transition: opacity var(--vv-transizione), visibility var(--vv-transizione);
+}
+body.mobile-menu-visible .vv-offcanvas-backdrop {
+	opacity: 1;
+	visibility: visible;
+}
+
+@media (max-width: 1279px) {
+	.main-header #mainnav ul li a,
+	.main-header #mainnav > div > ul > li > a {
+		padding: 8px 10px;
+		font-size: var(--vv-fs-s);
+	}
+}
+
+/* Pannello di ricerca che si apre dalla lente */
+.header-search-form {
+	background-color: var(--vv-carta) !important;
+	border-bottom: var(--vv-bordo);
+	padding: 20px var(--vv-gutter) 24px;
+	box-shadow: 0 6px 0 rgba(14, 14, 18, 0.08);
+}
+
+/* Modulo di ricerca: nel pannello, nella pagina risultati, nella 404 */
+.search-form {
+	display: flex;
+	align-items: stretch;
+	gap: 12px;
+	max-width: var(--vv-lettura);
+	margin: 0 auto;
+}
+.search-form label {
+	flex: 1;
+	margin: 0;
+}
+.search-form .search-field,
+.header-search-form form .search-field {
+	width: 100%;
+	height: 52px;
+	min-height: 52px;
+	padding: 0 20px !important;
+	background: var(--vv-bianco) !important;
+	color: var(--vv-inchiostro) !important;
+	border: var(--vv-bordo) !important;
+	border-radius: 999px !important;
+	font-family: var(--vv-font-testo) !important;
+	font-size: var(--vv-fs-m) !important;
+	box-shadow: none !important;
+	-webkit-appearance: none;
+	appearance: none;
+}
+.search-form .search-field::placeholder {
+	color: var(--vv-inchiostro-2);
+	opacity: 1;
+}
+.search-form .search-field:focus {
+	outline: none;
+	box-shadow: 0 0 0 4px var(--vv-turchese) !important;
+}
+.search-form .search-submit,
+.header-search-form form .search-submit,
+.header-search-form form button {
+	flex: none;
+	height: 52px;
+	min-height: 52px;
+	margin: 0;
+	padding: 0 26px !important;
+	border-radius: 999px !important;
+	font-size: var(--vv-fs-m) !important;
+}
+@media (max-width: 480px) {
+	.search-form .search-submit {
+		padding: 0 18px !important;
+	}
+}

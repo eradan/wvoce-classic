@@ -1,0 +1,231 @@
+/*
+ * VivaVoce 0.4 "classico": aspetto il più vicino possibile al sito originale su Sydney.
+ * Colori, font e misure di Sydney; i colori globali restano quelli del Customizer
+ * (nel tema chiaro qui NON si ridefiniscono le variabili --sydney-global-color-*).
+ * La palette ha due livelli (marchio e ruoli, vedi :root qui sotto): le regole degli altri fogli
+ * non contengono colori scritti a mano.
+ * La versione "ritaglio di carta" è conservata in assets/css-ritaglio/.
+ */
+
+/* Poppins, il carattere delle locandine, ospitato nel tema (nessuna richiesta a Google).
+ * Latin e latin-ext: il secondo si scarica solo se in pagina c'è un carattere che gli serve. */
+@font-face {
+	font-family: "Poppins";
+	font-style: italic;
+	font-weight: 400;
+	font-display: swap;
+	src: url("../fonts/poppins-400-italic-latin-ext.woff2") format("woff2");
+	unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+@font-face {
+	font-family: "Poppins";
+	font-style: italic;
+	font-weight: 400;
+	font-display: swap;
+	src: url("../fonts/poppins-400-italic-latin.woff2") format("woff2");
+	unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+	font-family: "Poppins";
+	font-style: italic;
+	font-weight: 700;
+	font-display: swap;
+	src: url("../fonts/poppins-700-italic-latin-ext.woff2") format("woff2");
+	unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+@font-face {
+	font-family: "Poppins";
+	font-style: italic;
+	font-weight: 700;
+	font-display: swap;
+	src: url("../fonts/poppins-700-italic-latin.woff2") format("woff2");
+	unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+	font-family: "Poppins";
+	font-style: normal;
+	font-weight: 400;
+	font-display: swap;
+	src: url("../fonts/poppins-400-latin-ext.woff2") format("woff2");
+	unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+@font-face {
+	font-family: "Poppins";
+	font-style: normal;
+	font-weight: 400;
+	font-display: swap;
+	src: url("../fonts/poppins-400-latin.woff2") format("woff2");
+	unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+	font-family: "Poppins";
+	font-style: normal;
+	font-weight: 500;
+	font-display: swap;
+	src: url("../fonts/poppins-500-latin-ext.woff2") format("woff2");
+	unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+@font-face {
+	font-family: "Poppins";
+	font-style: normal;
+	font-weight: 500;
+	font-display: swap;
+	src: url("../fonts/poppins-500-latin.woff2") format("woff2");
+	unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+	font-family: "Poppins";
+	font-style: normal;
+	font-weight: 600;
+	font-display: swap;
+	src: url("../fonts/poppins-600-latin-ext.woff2") format("woff2");
+	unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+@font-face {
+	font-family: "Poppins";
+	font-style: normal;
+	font-weight: 600;
+	font-display: swap;
+	src: url("../fonts/poppins-600-latin.woff2") format("woff2");
+	unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+	font-family: "Poppins";
+	font-style: normal;
+	font-weight: 700;
+	font-display: swap;
+	src: url("../fonts/poppins-700-latin-ext.woff2") format("woff2");
+	unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+@font-face {
+	font-family: "Poppins";
+	font-style: normal;
+	font-weight: 700;
+	font-display: swap;
+	src: url("../fonts/poppins-700-latin.woff2") format("woff2");
+	unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+:root {
+	/* --- Palette, livello 1: marchio. I colori del logo e dell'inchiostro di Sydney; uguali in ogni tema. --- */
+	--vv-giallo: #ffd923;
+	--vv-turchese: #00b2c3;
+	--vv-rosso: #ff0000;
+	--vv-inchiostro: #00102e;      /* testo e titoli di Sydney; resta sul giallo e sul turchese */
+	--vv-bianco: #ffffff;          /* pulsante "fantasma" dell'hero */
+	--vv-perla: #f9fef8;           /* fondo dell'illustrazione originale */
+
+	/* --- Palette, livello 2: ruoli. Le regole usano solo questi (e i colori del marchio per fondi e
+	 * filetti); un tema, per esempio quello scuro, ridefinisce solo questo blocco.
+	 * Testo sempre ad almeno 4,5:1 sul suo fondo. Il turchese e il giallo pieni restano per fondi e
+	 * filetti: come colore del testo sul bianco non si leggono (2,6:1 e 1,4:1). --- */
+
+	/* Fondi. I grigi virano un poco sull'azzurro (tinta 207-215°, la stessa famiglia dell'inchiostro). */
+	--vv-fondo: #ffffff;           /* pagina, valori copiabili */
+	--vv-fondo-card: #f1f5f9;      /* card degli elenchi, "Sostienici", immagine in testa alle pagine */
+	--vv-riquadro: #d7e0e9;        /* footer, "In breve", card senza foto (la vecchia sidebar dei contatti) */
+	--vv-fondo-hero: var(--vv-perla); /* fondo dell'illustrazione della home */
+	--vv-fondo-disco: var(--vv-fondo-hero); /* ovale dietro testa e mano dell'illustrazione (home.css): nel chiaro come il fondo */
+	--vv-placeholder: #edf2f6;     /* dietro le immagini che si caricano */
+	--vv-fondo-attivo: #007a87;    /* mouse su pulsanti e sottomenu, voce corrente del sottomenu */
+	--vv-pulsante: #2c3a4a;        /* pulsanti "Copia" */
+
+	/* Testi */
+	--vv-testo: #00102e;           /* testo e titoli */
+	--vv-testo-2: #607189;         /* testo secondario sul fondo: 5:1, 4,5:1 sulla card */
+	--vv-testo-meta: #55657a;      /* date sul fondo delle card: 5,4:1 */
+	--vv-testo-riquadro: #384a5e;  /* testo secondario sul riquadro: 6,8:1 */
+	--vv-titoli-sezione: #3a4a5c;  /* titoli dei widget della home originale */
+	--vv-link: #007a87;            /* link e titoli delle card: 5,1:1 sul bianco */
+	--vv-testo-attivo: #ffffff;    /* sul fondo attivo: 5,1:1 */
+	--vv-testo-pulsante: #ffffff;  /* sul pulsante */
+	--vv-testo-su-giallo: #2c3a4a; /* pulsanti gialli: 8,2:1 */
+	--vv-testo-su-scuro: #ffffff;  /* badge, frecce e card su foto con il velo scuro */
+	--vv-header-testo: #00102e;    /* voci e icone dell'header giallo e dei sottomenu turchesi */
+
+	/* Linee, ombre, veli. Ombre e veli sono i tre canali RGB: rgb(var(--vv-ombra) / 0.12). */
+	--vv-bordo: #d7e0e9;
+	--vv-ombra: 0 16 46;
+	--vv-velo: 0 0 0;
+
+	/* Badge dei vecchi plugin di elenchi, scuriti perché il testo bianco si legga */
+	--vv-badge-1: #12806b;
+	--vv-badge-2: #1f6fb2;
+	--vv-badge-3: #c8321f;
+	--vv-badge-4: #5e35b1;
+
+	/* Poppins per tutto il sito; i font di sistema solo finché non è caricato */
+	--vv-font: "Poppins", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif;
+
+	/* Caratteri: una scala sola, fluida fra 360px (primo valore) e 1200px (ultimo) */
+	--vv-fs-meta: 14px;                                      /* date, breadcrumb, didascalie */
+	--vv-fs-piccolo: 15px;                                   /* testi secondari, footer */
+	--vv-fs-corpo: clamp(17px, 16.57px + 0.119vw, 18px);     /* testo delle pagine */
+	--vv-fs-card: clamp(19px, 18.14px + 0.238vw, 21px);      /* titoli delle card */
+	--vv-fs-h4: clamp(18px, 17.14px + 0.238vw, 20px);
+	--vv-fs-h3: clamp(20px, 18.29px + 0.476vw, 24px);
+	--vv-fs-h2: clamp(24px, 21.43px + 0.714vw, 30px);
+	--vv-fs-sezione: clamp(24px, 20.57px + 0.952vw, 32px);   /* titoli di sezione in maiuscolo */
+	--vv-fs-titolo: clamp(30px, 24px + 1.667vw, 44px);       /* titolo di pagina e di articolo */
+
+	/* Spazi: sempre questi cinque passi */
+	--vv-s-1: 8px;
+	--vv-s-2: 16px;
+	--vv-s-3: 24px;
+	--vv-s-4: 40px;
+	--vv-s-5: clamp(40px, 6vw, 64px);
+
+	/* Misure */
+	--vv-lettura: 830px;          /* larghezza della colonna contenuti originale (col-md-9) */
+	--vv-largo: 1140px;
+	--vv-spazio: var(--vv-s-5);
+	--vv-gap: 30px;               /* fra le card */
+	--vv-transizione: 0.3s ease;
+}
+@media (max-width: 599px) {
+	:root {
+		--vv-gap: 20px;
+	}
+}
+
+/* --- Tema scuro "Inchiostro": il blu notte del testo diventa il fondo. Ridefinisce solo i ruoli;
+ * header giallo, sottomenu e fascia turchesi, pulsanti gialli e badge restano come sono.
+ * Lo accende data-vv-tema="scuro" su <html>, messo dallo switcher dell'header prima che la pagina
+ * si disegni (vv_tema_script() in functions.php); in "auto" segue l'impostazione del sistema.
+ * Testo sempre ad almeno 4,5:1 (fra parentesi). --- */
+:root[data-vv-tema="scuro"] {
+	color-scheme: dark;
+
+	--vv-fondo: #0c1a33;
+	--vv-fondo-card: #14264a;
+	--vv-riquadro: #1b3059;
+	--vv-fondo-hero: #0c1a33;
+	--vv-fondo-disco: var(--vv-perla); /* stacca dal blu il nero della testa (su #0c1a33 è 1,1:1) */
+	--vv-placeholder: #1b2d50;
+	--vv-pulsante: #eaf0f8;
+
+	--vv-testo: #eaf0f8;           /* 15,1:1 */
+	--vv-testo-2: #9fb0c8;         /* 7,9:1 */
+	--vv-testo-meta: #a9b8cd;      /* 7,4:1 sulla card */
+	--vv-testo-riquadro: #c3cfe0;  /* 8,3:1 */
+	--vv-titoli-sezione: #d9e1ee;  /* 13,2:1 */
+	--vv-link: #4fd6e3;            /* 10:1, 8,6:1 sulla card */
+	--vv-testo-pulsante: #0c1a33;  /* 15,1:1 */
+
+	--vv-bordo: #2a406b;
+	--vv-ombra: 0 0 0;
+}
+/* Colori globali di Sydney (titoli, testo grigio, citazioni, bordi, fondo pagina) presi dai ruoli, in
+ * ogni tema: html:root vince sul :root del Customizer, che ha ancora i grigi neutri di prima. */
+html:root {
+	--sydney-global-color-4: var(--vv-testo);
+	--sydney-global-color-5: var(--vv-testo-2);
+	--sydney-global-color-7: var(--vv-fondo-card);
+	--sydney-global-color-8: var(--vv-bordo);
+	--sydney-global-color-9: var(--vv-fondo);
+}
+/* Larghezza utile del .container di Sydney (Bootstrap 3), per allineare le griglie a header e footer */
+:root { --vv-contenitore: calc(100vw - 30px); }
+@media (min-width: 768px) { :root { --vv-contenitore: 720px; } }
+@media (min-width: 992px) { :root { --vv-contenitore: 940px; } }
+@media (min-width: 1200px) { :root { --vv-contenitore: 1140px; } }

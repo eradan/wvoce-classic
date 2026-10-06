@@ -1,0 +1,406 @@
+/* VivaVoce 0.4 "classico": footer.
+ * Le colonne dei widget riprendono l'aspetto della vecchia sidebar dei contatti (riquadro grigio,
+ * testo piccolo, icona sopra il testo); la fascia turchese del copyright è quella originale
+ * (regole in style.css). */
+
+.footer-widgets {
+	background: var(--vv-riquadro) !important;
+	color: var(--vv-testo-riquadro);
+	font-size: var(--vv-fs-piccolo);
+	line-height: 1.5;
+	padding: var(--vv-s-5) 0 !important;
+}
+.footer-widgets .footer-widgets-grid {
+	padding-top: 0 !important;
+	padding-bottom: 0 !important;
+}
+.footer-widgets,
+.footer-widgets .widget,
+.footer-widgets p {
+	color: var(--vv-testo-riquadro);
+}
+.footer-widgets .widget-title,
+.footer-widgets .widget h2,
+.footer-widgets .widget h3 {
+	margin: 0 0 var(--vv-s-2);
+	font-size: 16px;
+	font-weight: 600;
+	letter-spacing: 1px;
+	text-transform: uppercase;
+	color: var(--vv-testo) !important;
+}
+.footer-widgets .widget p {
+	margin: 0 0 12px;
+}
+/* Su telefono le colonne vanno una sotto l'altra: un po' d'aria fra una e l'altra */
+@media (max-width: 767px) {
+	.footer-widgets .widget {
+		margin-bottom: var(--vv-s-4);
+	}
+}
+.footer-widgets a,
+#sidebar-footer .widget a {
+	color: var(--vv-testo-riquadro) !important;
+	text-decoration: underline 1px !important;
+	text-underline-offset: 3px;
+}
+.footer-widgets a:hover,
+#sidebar-footer .widget a:hover {
+	color: var(--vv-testo) !important;
+}
+/* Widget del footer scritti a mano (blocco "side-contacts", con le icone di Font Awesome):
+ * icona accanto al testo invece che sopra, testo alla dimensione del footer (style.css lo
+ * rimpiccioliva all'85%, 12,75px) */
+.footer-widgets #side-contacts {
+	font-size: inherit;
+}
+/* Niente gap: nei widget c'è un "&nbsp;" prima del testo, che davanti a un link diventerebbe un
+ * elemento a sé e sposterebbe il link di qualche pixel rispetto al testo semplice */
+#side-contacts p {
+	display: flex;
+	align-items: center;
+	margin: 0 0 12px;
+}
+#side-contacts p br {
+	display: none;
+}
+#side-contacts i {
+	flex: none;
+	width: 22px;
+	margin-right: 6px;
+	font-size: 18px;
+	text-align: center;
+	color: var(--vv-testo);
+}
+/* Loghi di Facebook e Instagram un po' più grandi */
+#side-contacts i:is(.fa-facebook, .fa-facebook-f, .fa-facebook-square, .fa-instagram) {
+	width: 26px;
+	font-size: 24px;
+}
+
+/* [vv_dati_fiscali]: etichetta sopra, poi valore e "Copia". I valori sono larghi quanto il più lungo
+ * (l'IBAN), così i pulsanti stanno in colonna; con l'etichetta sopra l'IBAN entra in una colonna da 320px. */
+.vv-dati {
+	display: grid;
+	grid-template-columns: max-content max-content;
+	align-items: center;
+	gap: 4px 0;
+	margin: 0;
+}
+.vv-dati dt {
+	grid-column: 1 / -1;
+	font-weight: 600;
+}
+.vv-dati dd + dt {
+	margin-top: 12px;
+}
+.vv-dati dd,
+.vv-dati .vv-copy {
+	display: contents;
+}
+.vv-dati .vv-copy__btn {
+	margin-left: var(--vv-s-1);
+}
+/* Nel testo di una pagina (es. Fai una donazione) lo stacco dal paragrafo che segue */
+.entry-content .vv-dati {
+	margin: 0 0 1.1em;
+}
+
+/* Colonne: tre uguali da 320px, centrate nella pagina come gruppo (il testo resta allineato a
+ * sinistra). Sotto i 1200px non ci stanno: due colonne e i dati fiscali su una riga intera. */
+@media (min-width: 1200px) {
+	.footer-widgets-grid.footer-layout-3 {
+		grid-template-columns: repeat(3, 320px);
+		justify-content: center;
+		column-gap: 60px;
+	}
+}
+@media (min-width: 768px) and (max-width: 1199px) {
+	.footer-widgets-grid.footer-layout-3 {
+		grid-template-columns: 1fr 1fr;
+	}
+	.footer-widgets-grid.footer-layout-3 > .sidebar-column:nth-child(3) {
+		grid-column: 1 / -1;
+	}
+}
+
+/* Fascia turchese: due faccine del logo ai lati che si guardano, "© anno" e la scritta in mezzo.
+ * La faccina è turchese: su un cerchio giallo, come il logo sul giallo dell'header, altrimenti sparisce. */
+.site-footer .site-info {
+	display: flex;
+	align-items: center;
+	gap: var(--vv-s-3);
+	padding-top: var(--vv-s-2);
+	padding-bottom: var(--vv-s-2);
+}
+.site-footer .site-info::before,
+.site-footer .site-info::after {
+	content: "";
+	flex: none;
+	width: var(--vv-disco);
+	height: var(--vv-disco);
+	border-radius: 50%;
+	background: var(--vv-giallo) url("../img/faccina.png") center / 68% auto no-repeat;
+}
+.site-footer .site-info {
+	--vv-disco: 64px;
+}
+.site-footer .site-info::after {
+	transform: scaleX(-1);
+}
+.site-footer .site-info > .row {
+	display: flex;
+	flex: 1;
+	flex-wrap: wrap;
+	align-items: center;
+	justify-content: center;
+	gap: 4px var(--vv-s-3);
+	margin: 0;
+}
+.site-footer .site-info > .row::before,
+.site-footer .site-info > .row::after {
+	display: none;
+}
+.site-footer .site-info > .row > [class*="col-"] {
+	flex: none;
+	width: auto;
+	max-width: none;
+	padding: 0;
+	text-align: center;
+}
+.site-footer .site-info > .row > [class*="col-"]:empty,
+.site-footer .site-info > .row > [class*="col-"]:not(:has(*)) {
+	display: none;
+}
+@media (max-width: 599px) {
+	.site-footer .site-info {
+		gap: var(--vv-s-2);
+	}
+	.site-footer .site-info {
+		--vv-disco: 48px;
+	}
+}
+/* Il vecchio CSS del Customizer (style.css) dà width: 90% alla fascia e ai suoi link e stringe
+ * l'icona social a 16px mentre l'SVG ne occupa 48: con le faccine ai lati si sovrapponevano */
+.site-footer .site-info {
+	width: 100% !important;
+}
+.site-footer .site-info a {
+	width: auto !important;
+}
+.site-footer .social-profile a,
+.site-footer .social-profile .sydney-svg-icon {
+	display: inline-flex;
+	width: auto;
+	height: auto;
+}
+.site-footer .social-profile .sydney-svg-icon svg {
+	width: 40px;
+	height: 40px;
+	margin-top: 0;
+}
+/* "© 2026" e la scritta del logo */
+.site-footer .sydney-credits {
+	display: flex;
+	align-items: center;
+	gap: 12px;
+}
+.site-footer .vv-credits__logo {
+	display: block;
+	width: auto;
+	height: 44px;
+}
+@media (max-width: 599px) {
+	.site-footer .vv-credits__logo {
+		height: 36px;
+	}
+}
+
+/* In basso a destra, uno sopra l'altro: il badge di reCAPTCHA e il pulsante "torna su". Quando la
+ * fascia turchese entra in vista salgono con lei (--vv-sotto, misurato da vv.js) invece di coprire la
+ * faccina di destra; col banner dei cookie aperto restano sopra il banner. */
+.grecaptcha-badge,
+.go-top {
+	--vv-su: max(var(--vv-sotto, 0px), var(--vv-cookie-h, 0px));
+}
+.grecaptcha-badge {
+	/* Google lo mette a bottom: 14px con uno stile inline */
+	bottom: calc(14px + var(--vv-su)) !important;
+}
+/* Il pulsante: la mano rossa del logo, raddrizzata con le dita in alto, su un disco giallo come le faccine.
+ * Compare scivolando su invece che dal fondo: "bottom" segue la fascia a ogni scroll e non va animato. */
+.go-top {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	width: 56px;
+	height: 56px;
+	padding: 0 !important;
+	background: var(--vv-giallo) !important;
+	border-radius: 50% !important;
+	box-shadow: 0 2px 8px rgb(var(--vv-ombra) / 0.3);
+	bottom: calc(14px + var(--vv-su)) !important;
+	translate: 0 24px;
+	transition: opacity var(--vv-transizione), visibility var(--vv-transizione), translate var(--vv-transizione), box-shadow var(--vv-transizione);
+}
+.go-top.show {
+	translate: 0 0;
+}
+.go-top.position-right {
+	right: 16px !important;
+}
+/* Col badge: il pulsante sta sopra la parte visibile del badge (70px dal bordo), centrato su di lei */
+body:has(.grecaptcha-badge) .go-top {
+	bottom: calc(14px + 60px + 12px + var(--vv-su)) !important;
+}
+body:has(.grecaptcha-badge) .go-top.position-right {
+	right: 7px !important;
+}
+.go-top .sydney-svg-icon {
+	display: none !important;
+}
+.go-top::before {
+	content: "";
+	/* le proporzioni dell'immagine (98 × 144), ritagliata sul disegno: così è centrata nel disco */
+	width: 24.5px;
+	height: 36px;
+	background: url("../img/mano-su.webp") center / contain no-repeat;
+	transition: translate var(--vv-transizione);
+}
+.go-top:hover,
+.go-top:focus-visible {
+	box-shadow: 0 4px 12px rgb(var(--vv-ombra) / 0.4);
+}
+.go-top:hover::before,
+.go-top:focus-visible::before {
+	translate: 0 -3px;
+}
+.go-top:focus-visible {
+	outline: 3px solid var(--vv-testo);
+	outline-offset: 2px;
+}
+
+/* Le due faccine, la prima volta che si arriva in fondo alla pagina, corrono al centro, si scontrano
+ * e rimbalzano al loro posto. Solo CSS:
+ * - scroll-state() dice quando la pagina è stata fatta scorrere e non può più scendere, cioè quando la
+ *   fascia è in vista. "Fatta scorrere" (scrollable: top) serve perché il browser valuta la query una
+ *   prima volta prima di impaginare, quando la pagina sembra non scorrere: senza, l'interruttore
+ *   scatterebbe subito. Su una pagina che non scorre affatto le faccine restano ferme;
+ * - --vv-scontro fa da interruttore: si accende subito e, grazie al ritardo enorme della transizione
+ *   di ritorno, non si spegne più, così l'animazione non riparte risalendo e tornando giù;
+ * - la corsa è metà della fascia meno un disco (unità cqw della fascia).
+ * Dove scroll-state() non c'è, le faccine restano ferme al loro posto. */
+@property --vv-scontro {
+	syntax: "running | paused";
+	inherits: true;
+	initial-value: paused;
+}
+html {
+	container-type: scroll-state;
+}
+.site-footer .site-info {
+	container-type: inline-size;
+	--vv-scontro: paused;
+	--vv-corsa: calc(50cqw - var(--vv-disco));
+	transition: --vv-scontro 0s 100000000s allow-discrete;
+}
+@container scroll-state((scrollable: top) and (not (scrollable: bottom))) {
+	.site-footer .site-info {
+		--vv-scontro: running;
+		transition-delay: 0s;
+	}
+}
+.site-footer .site-info::before,
+.site-footer .site-info::after {
+	position: relative;
+	z-index: 2;
+	translate: var(--vv-x) var(--vv-y);
+	animation: vv-scontro 2.6s 0.3s both, vv-salto-sx 2.6s 0.3s both;
+	animation-play-state: var(--vv-scontro);
+}
+.site-footer .site-info::before { --vv-verso: 1; }
+.site-footer .site-info::after {
+	--vv-verso: -1;
+	animation-name: vv-scontro, vv-salto-dx;
+}
+/* x e y animate a parte (proprietà registrate), così il salto in verticale può essere diverso
+ * per le due faccine mentre la corsa orizzontale è la stessa */
+@property --vv-x {
+	syntax: "<length>";
+	inherits: false;
+	initial-value: 0px;
+}
+@property --vv-y {
+	syntax: "<length>";
+	inherits: false;
+	initial-value: 0px;
+}
+@keyframes vv-scontro {
+	/* partono piano e accelerano verso il centro */
+	0% {
+		--vv-x: 0px;
+		scale: 1;
+		animation-timing-function: cubic-bezier(0.55, 0, 1, 0.45);
+	}
+	/* si toccano */
+	38% {
+		--vv-x: calc(var(--vv-verso) * var(--vv-corsa));
+		scale: 1;
+		animation-timing-function: linear;
+	}
+	/* si schiacciano nell'urto (restando a contatto) */
+	42% {
+		--vv-x: calc(var(--vv-verso) * (var(--vv-corsa) + 6px));
+		scale: 0.8 1.12;
+		animation-timing-function: cubic-bezier(0, 0.55, 0.45, 1);
+	}
+	/* rimbalzano indietro, un filo oltre il loro posto */
+	76% {
+		--vv-x: calc(var(--vv-verso) * -10px);
+		scale: 1;
+		animation-timing-function: ease-in-out;
+	}
+	/* e si assestano */
+	88% {
+		--vv-x: calc(var(--vv-verso) * 4px);
+		animation-timing-function: ease-in-out;
+	}
+	95% {
+		--vv-x: calc(var(--vv-verso) * -1px);
+	}
+	100% {
+		--vv-x: 0px;
+		scale: 1;
+	}
+}
+/* Dopo l'urto saltano come palle, in modo diverso. La sinistra: un salto grande e lento, poi due
+ * rimbalzi. (Salita che rallenta, discesa che accelera: come una palla.) */
+@keyframes vv-salto-sx {
+	0%, 42% { --vv-y: 0px; animation-timing-function: cubic-bezier(0.2, 0.6, 0.4, 1); }
+	60% { --vv-y: -64px; animation-timing-function: cubic-bezier(0.6, 0, 0.8, 0.4); }
+	75% { --vv-y: 0px; animation-timing-function: cubic-bezier(0.2, 0.6, 0.4, 1); }
+	83% { --vv-y: -20px; animation-timing-function: cubic-bezier(0.6, 0, 0.8, 0.4); }
+	90% { --vv-y: 0px; animation-timing-function: cubic-bezier(0.2, 0.6, 0.4, 1); }
+	94% { --vv-y: -5px; animation-timing-function: cubic-bezier(0.6, 0, 0.8, 0.4); }
+	97%, 100% { --vv-y: 0px; }
+}
+/* La destra: quattro saltelli bassi e rapidi che si smorzano */
+@keyframes vv-salto-dx {
+	0%, 42% { --vv-y: 0px; animation-timing-function: cubic-bezier(0.2, 0.6, 0.4, 1); }
+	48% { --vv-y: -26px; animation-timing-function: cubic-bezier(0.6, 0, 0.8, 0.4); }
+	54% { --vv-y: 0px; animation-timing-function: cubic-bezier(0.2, 0.6, 0.4, 1); }
+	60% { --vv-y: -22px; animation-timing-function: cubic-bezier(0.6, 0, 0.8, 0.4); }
+	66% { --vv-y: 0px; animation-timing-function: cubic-bezier(0.2, 0.6, 0.4, 1); }
+	72% { --vv-y: -15px; animation-timing-function: cubic-bezier(0.6, 0, 0.8, 0.4); }
+	78% { --vv-y: 0px; animation-timing-function: cubic-bezier(0.2, 0.6, 0.4, 1); }
+	83% { --vv-y: -8px; animation-timing-function: cubic-bezier(0.6, 0, 0.8, 0.4); }
+	88% { --vv-y: 0px; animation-timing-function: cubic-bezier(0.2, 0.6, 0.4, 1); }
+	91% { --vv-y: -3px; animation-timing-function: cubic-bezier(0.6, 0, 0.8, 0.4); }
+	94%, 100% { --vv-y: 0px; }
+}
+@media (prefers-reduced-motion: reduce) {
+	.site-footer .site-info::before,
+	.site-footer .site-info::after {
+		animation: none;
+	}
+}

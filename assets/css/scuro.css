@@ -1,0 +1,37 @@
+/* VivaVoce: tema scuro, la parte che i token non bastano a coprire. Sydney e i plugin scrivono
+ * a mano alcuni colori chiari (fondo bianco dei commenti, bordi neri delle tabelle, campi dei moduli
+ * con il fondo del browser): qui prendono i ruoli della palette. Tutte le regole valgono solo con
+ * data-vv-tema="scuro" (tokens.css); nel tema chiaro questo foglio non cambia nulla. */
+
+/* Schermata di caricamento di Sydney: bianca, si vedrebbe come un lampo */
+[data-vv-tema="scuro"] .preloader {
+	background: var(--vv-fondo) !important;
+}
+
+/* Campi dei moduli (contatti, commenti, ricerca, Forminator) */
+[data-vv-tema="scuro"] :is(input:not([type="submit"], [type="button"], [type="reset"], [type="checkbox"], [type="radio"], [type="image"]), textarea, select) {
+	background-color: var(--vv-fondo-card);
+	color: var(--vv-testo);
+	border-color: var(--vv-bordo);
+}
+
+/* Commenti */
+[data-vv-tema="scuro"] .comment-respond {
+	background-color: var(--vv-fondo-card);
+}
+[data-vv-tema="scuro"] .comments-area .fn {
+	color: var(--vv-testo);
+}
+
+/* Tabelle e citazioni nel testo */
+[data-vv-tema="scuro"] :is(th, td) {
+	border-color: var(--vv-bordo);
+}
+[data-vv-tema="scuro"] .hentry .wp-block-pullquote blockquote {
+	border-color: var(--vv-testo);
+}
+
+/* Titoli degli elenchi di Sydney (risultati della ricerca), fissi in inchiostro nel Customizer */
+[data-vv-tema="scuro"] .posts-layout .entry-title a {
+	color: var(--vv-testo);
+}

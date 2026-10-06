@@ -1,0 +1,168 @@
+/* VivaVoce: home. */
+
+.vv-hero {
+	background: var(--vv-carta);
+	border-bottom: var(--vv-bordo);
+	overflow: hidden;
+}
+.vv-hero__inner {
+	display: grid;
+	grid-template-columns: minmax(0, 1.05fr) minmax(0, 1fr);
+	align-items: center;
+	gap: clamp(24px, 4vw, 64px);
+	max-width: calc(var(--vv-largo) + 2 * var(--vv-gutter));
+	min-height: min(66vh, 620px);
+	margin: 0 auto;
+	padding: clamp(28px, 4.5vw, 64px) var(--vv-gutter);
+}
+.vv-hero__kicker {
+	display: inline-block;
+	margin: 0 0 1em;
+	padding: 4px 14px;
+	background: var(--vv-turchese);
+	border: var(--vv-bordo-sottile);
+	border-radius: 999px;
+	font-family: var(--vv-font-titoli);
+	font-size: var(--vv-fs-s);
+	font-weight: 700;
+}
+/* .vv-hero davanti: Sydney usa h1:not(.site-title), più specifico di una sola classe */
+.vv-hero .vv-hero__title {
+	margin: 0;
+	font-size: var(--vv-fs-display);
+	line-height: 1.05;
+	letter-spacing: -0.02em;
+}
+.vv-hero__stroke {
+	display: block;
+	width: min(300px, 70%);
+	height: 22px;
+	margin: 0.4em 0 0.9em;
+	color: var(--vv-rosso);
+}
+.vv-hero__lead {
+	max-width: 34ch;
+	margin: 0 0 1.6em;
+	font-size: var(--vv-fs-l);
+	line-height: 1.5;
+	color: var(--vv-inchiostro-2);
+}
+.vv-hero__actions {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 14px;
+	margin: 0;
+}
+/*
+ * L'illustrazione come cartoncino ritagliato e appoggiato di sbieco.
+ * Il file attuale ha molto margine vuoto (soprattutto sotto): il cartoncino ha le
+ * proporzioni del disegno e l'immagine è ingrandita attorno al suo centro.
+ * Cambiando illustrazione, regolare le variabili (zoom 1 = nessun ritaglio).
+ */
+.vv-hero__art {
+	/* proporzioni del file (1900×1615) e centro del disegno al suo interno */
+	--vv-hero-art-ratio: 1900 / 1615;
+	--vv-hero-art-zoom: 1.1;
+	--vv-hero-art-fx: 49.6%;
+	--vv-hero-art-fy: 43%;
+	justify-self: center;
+	width: 100%;
+	max-width: 560px;
+	aspect-ratio: var(--vv-hero-art-ratio);
+	max-height: 60vh;
+	overflow: hidden;
+	background: var(--vv-hero-art-bg, #f9fef8); /* = fondo dell'illustrazione attuale */
+	border: var(--vv-bordo);
+	border-radius: var(--vv-raggio);
+	box-shadow: 10px 10px 0 var(--vv-turchese), 10px 10px 0 3px var(--vv-inchiostro);
+	transform: rotate(-2deg);
+}
+.vv-hero__art img {
+	display: block;
+	width: 100%;
+	height: 100%;
+	object-fit: cover;
+	/* ingrandisce attorno al centro del disegno e lo porta al centro del cartoncino */
+	transform-origin: var(--vv-hero-art-fx) var(--vv-hero-art-fy);
+	transform: translate(calc(50% - var(--vv-hero-art-fx)), calc(50% - var(--vv-hero-art-fy))) scale(var(--vv-hero-art-zoom));
+}
+@media (prefers-reduced-motion: reduce) {
+	.vv-hero__art { transform: none; }
+}
+
+@media (max-width: 767px) {
+	.vv-hero__inner {
+		grid-template-columns: 1fr;
+		min-height: 0;
+		padding-top: 24px;
+		gap: 8px;
+	}
+	.vv-hero__art {
+		order: -1;
+	}
+	.vv-hero__art {
+		max-width: 78%;
+		margin-bottom: 16px;
+	}
+	.vv-hero__art {
+		max-height: 32vh;
+	}
+	.vv-hero__actions .vv-button {
+		flex: 1 1 100%;
+	}
+}
+
+/* L'h1 della home è nell'hero; il contenuto usa tutta la larghezza */
+.vv-has-hero .page-wrap .entry-header {
+	display: none;
+}
+.vv-has-hero .content-area.no-sidebar .content-inner {
+	max-width: var(--vv-largo);
+}
+/* Stesso respiro fra l'hero e la prima sezione che fra una sezione e l'altra */
+.vv-has-hero .page-wrap {
+	padding-top: clamp(48px, 6vw, 80px);
+}
+/* !important: Sydney dà ai h2 del contenuto margin-top 1.2em con un selettore molto specifico */
+.vv-has-hero .entry-content > .vv-section-title:first-child {
+	margin-top: 0 !important;
+}
+
+/* Pagina SiteOrigin della home: stesso respiro sotto l'hero (anche senza hero, 0 → spazio) */
+.home.siteorigin-panels .page-wrap {
+	padding-top: clamp(48px, 6vw, 80px);
+}
+/* Home costruita con i blocchi (senza SiteOrigin): stesso ritmo fra le sezioni */
+.vv-has-hero .entry-content > .vv-section-title:not(:first-child),
+.vv-has-hero .entry-content > .wp-block-heading.vv-section-title:not(:first-child) {
+	margin-top: clamp(48px, 6vw, 80px) !important;
+}
+
+/* Righe SiteOrigin: un solo spazio fra le sezioni (prima se ne sommavano tre) */
+.home .panel-grid {
+	padding-top: 0;
+}
+.home .panel-grid + .panel-grid {
+	margin-top: clamp(48px, 6vw, 80px);
+}
+.home .panel-grid > .panel-row-style {
+	padding-top: 0 !important;
+	padding-bottom: 0 !important;
+}
+.home .so-panel .widget-title,
+.home .panel-grid .widget-title {
+	display: block;
+	margin: 0 0 0.8em !important;
+	font-size: var(--vv-fs-3xl) !important;
+	font-weight: 800 !important;
+	text-align: left;
+	text-transform: none !important;
+	letter-spacing: -0.01em !important;
+}
+.home .panel-grid .panel-row-style {
+	background: transparent;
+}
+/* Àncora per il pulsante "Prossimi appuntamenti": ID riga SiteOrigin = appuntamenti */
+#appuntamenti {
+	scroll-margin-top: 110px;
+}
