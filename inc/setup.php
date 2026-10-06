@@ -96,7 +96,7 @@ function vv_plugin_strings( $translation, $text, $domain ) {
 	if ( ! in_array( $domain, $domains, true ) ) {
 		return $translation;
 	}
-	$map = array(
+	static $map = array(
 		'Read More' => 'Leggi',
 		'Read more' => 'Leggi',
 		'By'        => 'di',
@@ -126,11 +126,15 @@ add_filter( 'excerpt_more', 'vv_excerpt_more', 20 );
  * @param string $class Classe CSS da aggiungere.
  */
 function vv_svg( $name, $class = '' ) {
-	$file = VV_DIR . '/assets/svg/' . sanitize_file_name( $name ) . '.svg';
-	if ( ! is_readable( $file ) ) {
+	static $files = array();
+	if ( ! isset( $files[ $name ] ) ) {
+		$file           = VV_DIR . '/assets/svg/' . sanitize_file_name( $name ) . '.svg';
+		$files[ $name ] = is_readable( $file ) ? (string) file_get_contents( $file ) : ''; // phpcs:ignore WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents
+	}
+	$svg = $files[ $name ];
+	if ( '' === $svg ) {
 		return '';
 	}
-	$svg = file_get_contents( $file ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents
 	$attr = 'aria-hidden="true" focusable="false"' . ( $class ? ' class="' . esc_attr( $class ) . '"' : '' );
 	return preg_replace( '/<svg\b/', '<svg ' . $attr, $svg, 1 );
 }
@@ -234,8 +238,11 @@ function vv_menu_cta_class( $classes, $item, $args = null, $depth = 0 ) {
 	if ( 0 !== (int) $depth || in_array( 'vv-cta', (array) $classes, true ) ) {
 		return $classes;
 	}
-	$target = untrailingslashit( (string) wp_parse_url( vv_mod( 'vv_url_socio' ), PHP_URL_PATH ) );
-	$url    = untrailingslashit( (string) wp_parse_url( $item->url, PHP_URL_PATH ) );
+	static $target = null;
+	if ( null === $target ) {
+		$target = untrailingslashit( (string) wp_parse_url( vv_mod( 'vv_url_socio' ), PHP_URL_PATH ) );
+	}
+	$url = untrailingslashit( (string) wp_parse_url( $item->url, PHP_URL_PATH ) );
 	if ( $target && $url === $target ) {
 		$classes[] = 'vv-cta';
 	}

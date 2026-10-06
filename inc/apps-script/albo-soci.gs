@@ -48,11 +48,12 @@ function doPost(e) {
   try {
     var ss = foglio_(dati);
     var fatti = [];
+    var stati = {};
     (dati.righe || []).forEach(function (riga) {
       if (!riga[RIF]) {
         return;
       }
-      scriviRiga_(tabAnno_(ss, riga._tab), riga);
+      scriviRiga_(tabAnno_(ss, riga._tab), riga, stati);
       fatti.push(String(riga[RIF]));
     });
     SpreadsheetApp.flush();
@@ -86,8 +87,15 @@ function tabAnno_(ss, nome) {
   return tab;
 }
 
-/** Scrive una riga sotto le altre, valore per valore nella colonna con la stessa intestazione. */
-function scriviRiga_(tab, riga) {
+/**
+ * Intestazioni e Rif. già scritti di un tab, letti una volta per chiamata e tenuti in "stati" (per
+ * id del tab). Se manca la colonna "Rif." la aggiunge.
+ */
+function statoTab_(tab, stati) {
+  var id = tab.getSheetId();
+  if (stati[id]) {
+    return stati[id];
+  }
   var colonne = Math.max(tab.getLastColumn(), 1);
   var intestazioni = tab.getRange(1, 1, 1, colonne).getValues()[0].map(function (h) {
     return String(h).trim();
@@ -98,21 +106,31 @@ function scriviRiga_(tab, riga) {
     tab.getRange(1, colRif + 1).setValue(RIF);
     intestazioni.push(RIF);
   }
+  var presenti = {};
   var ultima = tab.getLastRow();
   if (ultima > 1) {
-    var presenti = tab.getRange(2, colRif + 1, ultima - 1, 1).getValues();
-    for (var i = 0; i < presenti.length; i++) {
-      if (String(presenti[i][0]) === String(riga[RIF])) {
-        return;
-      }
-    }
+    tab.getRange(2, colRif + 1, ultima - 1, 1).getValues().forEach(function (r) {
+      presenti[String(r[0])] = true;
+    });
   }
-  var valori = intestazioni.map(function (h) {
+  stati[id] = { intestazioni: intestazioni, presenti: presenti };
+  return stati[id];
+}
+
+/** Scrive una riga sotto le altre, valore per valore nella colonna con la stessa intestazione. */
+function scriviRiga_(tab, riga, stati) {
+  var stato = statoTab_(tab, stati);
+  var rif = String(riga[RIF]);
+  if (stato.presenti[rif]) {
+    return;
+  }
+  var valori = stato.intestazioni.map(function (h) {
     var chiave = Object.keys(riga).filter(function (k) { return k !== '_tab' && uguali_(k, h); })[0];
     return chiave === undefined ? '' : testo_(riga[chiave]);
   });
   // Come testo: codici fiscali, telefoni e CAP restano come sono scritti (niente zeri persi).
-  tab.getRange(ultima + 1, 1, 1, valori.length).setNumberFormat('@').setValues([valori]);
+  tab.getRange(tab.getLastRow() + 1, 1, 1, valori.length).setNumberFormat('@').setValues([valori]);
+  stato.presenti[rif] = true;
 }
 
 /**

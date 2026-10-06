@@ -31,6 +31,9 @@ function update_option( $name, $value ) {
 	global $vv_opzioni;
 	$vv_opzioni[ $name ] = $value;
 }
+function remove_accents( $text ) {
+	return strtr( (string) $text, array( 'à' => 'a', 'á' => 'a', 'è' => 'e', 'é' => 'e', 'ì' => 'i', 'í' => 'i', 'ò' => 'o', 'ó' => 'o', 'ù' => 'u', 'ú' => 'u', 'À' => 'A', 'È' => 'E', 'É' => 'E', 'Ì' => 'I', 'Ò' => 'O', 'Ù' => 'U' ) );
+}
 function wp_strip_all_tags( $text ) {
 	return trim( strip_tags( (string) $text ) );
 }
@@ -64,13 +67,21 @@ function wp_json_encode( $x ) {
 }
 $vv_richieste = array();
 $vv_risposta  = array( 'ok' => true );
+$vv_http      = null; // Risposta HTTP grezza al POST, al posto di quella con $vv_risposta.
 function wp_remote_post( $url, $args ) {
-	global $vv_richieste, $vv_risposta;
+	global $vv_richieste, $vv_risposta, $vv_http;
 	$vv_richieste[] = json_decode( $args['body'], true );
-	return array( 'code' => 200, 'body' => json_encode( $vv_risposta ) );
+	return $vv_http ? $vv_http : array( 'code' => 200, 'body' => json_encode( $vv_risposta ) );
+}
+function wp_remote_get( $url, $args = array() ) {
+	global $vv_risposta;
+	return '' === (string) $url ? new WP_Error( 'http_request_failed', 'A valid URL was not provided.' ) : array( 'code' => 200, 'body' => json_encode( $vv_risposta ) );
 }
 function wp_remote_retrieve_response_code( $res ) {
 	return $res['code'];
+}
+function wp_remote_retrieve_header( $res, $name ) {
+	return $res['headers'][ $name ] ?? '';
 }
 function wp_remote_retrieve_body( $res ) {
 	return $res['body'];
@@ -200,6 +211,16 @@ uguale( 'Più corsi: una riga per corso, senza ripetizioni', array( 'Lettura', '
 uguale( 'Più corsi: stesso Rif.', array( 'F1617-40', 'F1617-40' ), array_column( $righe, 'Rif.' ) );
 $righe = vv_corsi_righe( $vv_corsi_entry( $vv_opzioni_1617[2] . ', ' . $vv_opzioni_1617[1] ) );
 uguale( 'Caselle unite in un testo: opzioni del modulo', array( $vv_opzioni_1617[2], $vv_opzioni_1617[1] ), array_column( $righe, 'Corso' ) );
+uguale(
+	'Testo unito: opzione contenuta in un\'altra non trovata due volte',
+	array( 'Il gioco del teatro avanzato', 'Dizione' ),
+	vv_corsi_scelti( 'Il gioco del teatro avanzato, Dizione', array( 'Il gioco del teatro', 'Il gioco del teatro avanzato', 'Dizione' ) )
+);
+uguale(
+	'Testo unito: opzione corta e lunga scelte entrambe',
+	array( 'Il gioco del teatro avanzato', 'Il gioco del teatro' ),
+	vv_corsi_scelti( 'Il gioco del teatro avanzato, Il gioco del teatro', array( 'Il gioco del teatro', 'Il gioco del teatro avanzato' ) )
+);
 uguale( 'Testo unito senza opzioni note: un corso', array( 'Dizione, Canto' ), vv_corsi_scelti( 'Dizione, Canto', array() ) );
 uguale( 'Nessun corso: una riga con Corso vuoto', array( '' ), array_column( vv_corsi_righe( $vv_corsi_entry( '' ) ), 'Corso' ) );
 uguale( 'Campo del corso indicato: requisito soddisfatto', '', vv_corsi_requisito() );
@@ -219,6 +240,8 @@ $vv_mappa = array(
 	'tab'   => array( 'lettura-ad-alta-voce-2026', 'gioco-del-teatro-2026', 'configurazioni' ),
 );
 uguale( 'Normalizza: accenti, maiuscole, spazi', 'adulti: lettura e perche', vv_corsi_normalizza( "  Adulti:  Lettura\tè PERCHÉ " ) );
+uguale( 'Normalizza: spazio non separabile, come lo script', 'adulti: lettura', vv_corsi_normalizza( "Adulti:\u{00A0}Lettura" ) );
+uguale( 'Normalizza: maiuscole oltre l\'ASCII', 'ðorð', vv_corsi_normalizza( 'ÐORÐ' ) );
 uguale( 'Mappa: corso noto', 'lettura-ad-alta-voce-2026', vv_corsi_tab( $vv_opzioni_1617[0], $vv_mappa ) );
 uguale( 'Mappa: scritto in altro modo', 'gioco-del-teatro-2026', vv_corsi_tab( strtoupper( 'Bambini (elementari): Il gioco del teatro,  ottobre-dicembre 2026' ), $vv_mappa ) );
 uguale( 'Mappa: corso assente', 'Da smistare', vv_corsi_tab( $vv_opzioni_1617[1], $vv_mappa ) );
@@ -308,6 +331,12 @@ vv_sheets_verifica( 'corsi' );
 uguale( 'Senza foglio: la richiesta lo omette', false, array_key_exists( 'foglio', end( $vv_richieste ) ) );
 $vv_risposta = array( 'ok' => true, 'rif' => array() );
 uguale( 'Verifica con uno script precedente: nome vuoto', '', vv_sheets_verifica( 'corsi' ) );
+$vv_http = array( 'code' => 302, 'body' => '' );
+uguale( 'Reindirizzamento senza indirizzo: errore chiaro', 'Il foglio ha risposto: risposta inattesa (HTTP 302 senza indirizzo)', vv_sheets_verifica( 'corsi' )->get_error_message() );
+$vv_http     = array( 'code' => 302, 'body' => '', 'headers' => array( 'location' => 'https://script.googleusercontent.com/echo' ) );
+$vv_risposta = array( 'ok' => true, 'foglio' => 'Iscrizione Corsi', 'rif' => array() );
+uguale( 'Reindirizzamento seguito con una GET', 'Iscrizione Corsi', vv_sheets_verifica( 'corsi' ) );
+$vv_http     = null;
 $vv_risposta = array( 'ok' => false, 'errore' => 'foglio non raggiungibile' );
 uguale( 'Verifica: errore dello script', 'Il foglio ha risposto: foglio non raggiungibile', vv_sheets_verifica( 'corsi' )->get_error_message() );
 

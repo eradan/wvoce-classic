@@ -156,11 +156,23 @@ function vv_category_trail( $term ) {
 }
 
 /**
- * Voci del breadcrumb per la richiesta corrente, dalla home all'ultima (senza link).
+ * Voci del breadcrumb per la richiesta corrente, dalla home all'ultima (senza link). Calcolate una
+ * volta: servono al breadcrumb e alla voce di menu della sezione corrente.
  *
  * @return array<int,array{0:string,1:string}>
  */
 function vv_breadcrumb_items() {
+	static $items = null;
+	if ( null === $items ) {
+		$items = vv_breadcrumb_items_build();
+	}
+	return $items;
+}
+
+/**
+ * @return array<int,array{0:string,1:string}>
+ */
+function vv_breadcrumb_items_build() {
 	$items = array( array( 'Home', home_url( '/' ) ) );
 
 	if ( is_front_page() ) {
@@ -170,7 +182,7 @@ function vv_breadcrumb_items() {
 	} elseif ( is_singular( 'post' ) ) {
 		$post    = get_queried_object();
 		$section = array();
-		$cats    = array_filter( get_the_category( $post->ID ), static fn( $c ) => 'nessuna-categoria' !== $c->slug && 'uncategorized' !== $c->slug );
+		$cats    = vv_post_categories( $post->ID );
 		// Prima una categoria con pagina collegata (Soci → Chi siamo), poi una presente nel menu, poi la prima.
 		foreach ( $cats as $cat ) {
 			if ( vv_page_for_term( $cat ) ) {

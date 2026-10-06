@@ -2,6 +2,17 @@
 
 Tema child di **Sydney 2.71** per wvoce.it, aspetto "classico" vicino al sito originale. Le note di versione vengono prima; da *Messa in produzione* in poi la guida d'uso.
 
+## Versione 0.9.3: correzioni e pulizia
+
+- **Script Apps Script più veloci: vanno incollati di nuovo e ripubblicati.** Lo script dei corsi scriveva cella per cella e rileggeva l'intero tab a ogni riga per cercare i doppioni: con blocchi da 20 iscrizioni poteva superare i 30 secondi di attesa del sito, che segnalava errore anche a righe già scritte. Ora legge intestazioni, Rif. e Corso una volta per tab e scrive a tratti di celle contigue; le colonne senza valore (segreteria) restano intatte. Lo script dei soci tiene anch'esso i Rif. già presenti in memoria. Per entrambi: tab *Script Apps Script* → Copia lo script → incollare nell'editor → Gestisci deployment → matita → Nuova versione. URL, codice e foglio restano gli stessi; gli script della 0.9.2 continuano comunque a funzionare.
+- **Corsi uniti in un testo.** Se Forminator salva le caselle come testo unico, un'opzione contenuta in un'altra ("Il gioco del teatro" in "Il gioco del teatro avanzato") non viene più trovata due volte: si cercano prima le opzioni più lunghe (`vv_corsi_scelti()`).
+- **Confronto dei nomi dei corsi uguale a quello dello script.** `vv_corsi_normalizza()` tratta lo spazio non separabile e le maiuscole non ASCII come `normalizza_()` dello script: l'anteprima del pannello indica lo stesso tab del foglio.
+- **Cron dei fogli fuori dalle pagine del sito.** L'evento ogni 15 minuti si controlla nell'amministrazione e dopo il salvataggio, non più a ogni pagina (due query in meno); se tutti i collegamenti si spengono lo toglie il giro stesso.
+- **Risposta di Google senza indirizzo di reindirizzamento:** errore chiaro invece di "A valid URL was not provided".
+- **Eventi con la fine prima dell'inizio** (errore di battitura): restano in programma fino all'inizio, invece di sparire.
+- **Copia delle impostazioni del Customizer** (`inc/migrate.php`): segnata come fatta anche se nessun tema ha un logo; prima rientrava a ogni pagina dell'amministrazione e sovrascriveva le modifiche fatte nel Customizer del child. Finché non è fatta, le impostazioni della fonte si leggono una volta per richiesta.
+- **Pulizia del codice.** Articoli e pagine con colonna laterale usano un solo modello (`vv_two_column_template()`), le categorie "vere" di un articolo una sola funzione (`vv_post_categories()`); breadcrumb, traduzioni, SVG e opzioni del modulo dei corsi calcolati una volta per richiesta.
+
 ## Versione 0.9.2: consensi di Forminator leggibili nel tema scuro
 
 - **Testo dei consensi.** Nei moduli Forminator il testo accanto alle caselle (Regolamento, Iscrizione a socio, Privacy) sta in un `<p>` che lo stile del plugin colora di nero con un selettore proprio: sul blu del tema scuro risultava illeggibile. Ora segue il colore del testo del tema, come le etichette.
@@ -295,7 +306,7 @@ I fogli di `assets/css/` e `vv.js` escono con `?ver=` uguale alla data di modifi
 
 ## Sviluppo
 
-- **Test:** `php tests/run.php` controlla senza WordPress le funzioni pure: codice fiscale, righe e tab del foglio dei soci, date, slug, `meta_query`, lettere decorative.
+- **Test:** `php tests/run.php` controlla senza WordPress le funzioni pure: codice fiscale, righe e tab dei fogli dei soci e dei corsi, impostazioni e chiamate all'app web, date, slug, `meta_query`, lettere decorative. Senza PHP sulla macchina: `docker run --rm -v "$PWD":/app -w /app php:8.3-cli php tests/run.php`.
 - **Regole di scrittura:** `composer install`, poi `composer lint` (phpcs con WordPress-Extra e compatibilità PHP 7.4, regole in `phpcs.xml.dist`). Nel codice le eccezioni motivate sono segnate con `phpcs:ignore`.
 - **Zip del tema:** `bin/build-zip.sh` crea `build/wvoce-classic.zip` con dentro la cartella `wvoce-classic`, il nome che il tema ha sul server. Contiene l'ultimo commit; test, documenti e file di sviluppo restano fuori (`.gitattributes`).
 - **GitHub Actions** (`.github/workflows/ci.yml`): a ogni push sintassi PHP e test, con PHP 7.4 e 8.3.
@@ -319,6 +330,8 @@ inc/page.php              pagine con la colonna "In questa sezione"
 inc/redirects.php         301 degli indirizzi spariti
 inc/forminator.php        controllo del codice fiscale nei moduli Forminator
 inc/sheets.php            iscrizioni dei soci e dei corsi nei fogli Google
+inc/sheets-admin.php      Strumenti → Esporta iscrizioni (configurazione, stato, prova a secco, script)
+inc/apps-script/          script Apps Script dei fogli soci e corsi, da incollare nell'editor
 template-parts/           card.php, home-hero.php
 page-templates/           page-hub.php, page-elenco.php
 post-templates/           post_full.php ("Page builder ready" dei soci fondatori)
@@ -327,7 +340,7 @@ assets/js/vv.js           testata, switcher del tema, caroselli, menu mobile, pu
 assets/fonts/             Poppins (self-hosted, licenza OFL)
 assets/img/               livelli dell'hero, faccine e scritta del footer, mano del "torna su"
 assets/svg/               pennellata dell'hero, blob delle card senza foto
-docs/                     script Apps Script dei fogli soci e corsi, bozza di informativa privacy, piani di lavoro
+docs/                     bozza di informativa privacy, piani di lavoro
 tests/                    test senza WordPress
 bin/build-zip.sh          zip del tema
 ```

@@ -440,30 +440,44 @@ function vv_corsi_requisito() {
  * Valori delle opzioni del campo del corso, letti dal modulo.
  */
 function vv_corsi_opzioni() {
-	$campo = vv_corsi_campo();
-	foreach ( vv_sheets_campi( vv_sheets_config( 'corsi' )['form'] ) as $f ) {
-		if ( '' !== $campo && $f['id'] === $campo ) {
-			return array_values( array_filter( array_column( $f['opzioni'], 'valore' ), 'strlen' ) );
+	static $copie = array();
+
+	$campo  = vv_corsi_campo();
+	$form   = vv_sheets_config( 'corsi' )['form'];
+	$chiave = "{$form}/{$campo}";
+	if ( ! isset( $copie[ $chiave ] ) ) {
+		$copie[ $chiave ] = array();
+		foreach ( vv_sheets_campi( $form ) as $f ) {
+			if ( '' !== $campo && $f['id'] === $campo ) {
+				$copie[ $chiave ] = array_values( array_filter( array_column( $f['opzioni'], 'valore' ), 'strlen' ) );
+				break;
+			}
 		}
 	}
-	return array();
+	return $copie[ $chiave ];
 }
 
 /**
  * Corsi scelti in un'iscrizione. Le caselle arrivano come elenco; se arrivano come testo unito
  * ("a, b") si cercano dentro le opzioni del modulo, perché le opzioni stesse contengono virgole.
+ * Prima le opzioni più lunghe: il tratto trovato viene coperto, così un'opzione contenuta in
+ * un'altra ("Il gioco del teatro" in "Il gioco del teatro avanzato") non lo ritrova.
  *
  * @param mixed      $valore  Valore salvato del campo del corso.
  * @param array|null $opzioni Opzioni del modulo (null: lette dal modulo).
  */
 function vv_corsi_scelti( $valore, $opzioni = null ) {
 	if ( ! is_array( $valore ) ) {
-		$testo = trim( wp_strip_all_tags( (string) $valore ) );
-		$noti  = array();
-		foreach ( '' === $testo ? array() : ( null === $opzioni ? vv_corsi_opzioni() : $opzioni ) as $opzione ) {
-			$pos = '' === (string) $opzione ? false : strpos( $testo, (string) $opzione );
+		$testo  = trim( wp_strip_all_tags( (string) $valore ) );
+		$resto  = $testo;
+		$noti   = array();
+		$elenco = array_filter( array_map( 'strval', '' === $testo ? array() : ( null === $opzioni ? vv_corsi_opzioni() : $opzioni ) ), 'strlen' );
+		usort( $elenco, static fn( $a, $b ) => strlen( $b ) <=> strlen( $a ) );
+		foreach ( $elenco as $opzione ) {
+			$pos = strpos( $resto, $opzione );
 			if ( false !== $pos ) {
-				$noti[ $pos ] = (string) $opzione;
+				$noti[ $pos ] = $opzione;
+				$resto        = substr_replace( $resto, str_repeat( "\0", strlen( $opzione ) ), $pos, strlen( $opzione ) );
 			}
 		}
 		ksort( $noti );
@@ -504,11 +518,8 @@ function vv_corsi_righe( $entry ) {
  * @param string $testo Nome del corso.
  */
 function vv_corsi_normalizza( $testo ) {
-	$testo = (string) $testo;
-	$testo = function_exists( 'remove_accents' )
-		? remove_accents( $testo )
-		: strtr( $testo, array( 'à' => 'a', 'á' => 'a', 'è' => 'e', 'é' => 'e', 'ì' => 'i', 'í' => 'i', 'ò' => 'o', 'ó' => 'o', 'ù' => 'u', 'ú' => 'u', 'À' => 'A', 'È' => 'E', 'É' => 'E', 'Ì' => 'I', 'Ò' => 'O', 'Ù' => 'U' ) );
-	return trim( preg_replace( '/\s+/', ' ', strtolower( $testo ) ) );
+	// Come in JavaScript: \s comprende lo spazio non separabile, le minuscole valgono oltre l'ASCII.
+	return trim( (string) preg_replace( '/\s+/u', ' ', mb_strtolower( remove_accents( (string) $testo ), 'UTF-8' ) ) );
 }
 
 /**
@@ -707,7 +718,11 @@ function vv_sheets_chiama( $id, $dati ) {
 	$res  = wp_remote_post( $c['url'], $args );
 	$code = is_wp_error( $res ) ? 0 : (int) wp_remote_retrieve_response_code( $res );
 	if ( in_array( $code, array( 301, 302, 303, 307, 308 ), true ) ) {
-		$res  = wp_remote_get( wp_remote_retrieve_header( $res, 'location' ), array( 'timeout' => 30 ) );
+		$location = (string) wp_remote_retrieve_header( $res, 'location' );
+		if ( '' === $location ) {
+			return new WP_Error( 'vv_sheets', "Il foglio ha risposto: risposta inattesa (HTTP {$code} senza indirizzo)" );
+		}
+		$res  = wp_remote_get( $location, array( 'timeout' => 30 ) );
 		$code = is_wp_error( $res ) ? 0 : (int) wp_remote_retrieve_response_code( $res );
 	}
 	if ( is_wp_error( $res ) ) {
@@ -810,6 +825,10 @@ function vv_sheets_sync( $id = 'soci' ) {
  */
 function vv_sheets_sync_tutti() {
 	vv_sheets_migra_opzioni();
+	if ( ! vv_sheets_qualcuno() ) {
+		wp_clear_scheduled_hook( 'vv_sheets_sync' );
+		return;
+	}
 	foreach ( array_keys( vv_sheets_collegamenti() ) as $id ) {
 		if ( vv_sheets_configurato( $id ) ) {
 			vv_sheets_ultimo( $id ); // Fissa il punto di partenza anche prima che sia pronto.
@@ -847,6 +866,11 @@ function vv_sheets_schedules( $schedules ) {
 }
 add_filter( 'cron_schedules', 'vv_sheets_schedules' );
 
+/**
+ * Accende o spegne il giro. Si controlla nell'amministrazione e dopo ogni salvataggio, non a ogni
+ * pagina del sito (le impostazioni non sono in autoload); se tutti i collegamenti si spengono lo
+ * toglie anche il giro stesso (vv_sheets_sync_tutti()).
+ */
 function vv_sheets_schedule() {
 	$next = wp_next_scheduled( 'vv_sheets_sync' );
 	$on   = vv_sheets_qualcuno();
@@ -856,7 +880,7 @@ function vv_sheets_schedule() {
 		wp_clear_scheduled_hook( 'vv_sheets_sync' );
 	}
 }
-add_action( 'init', 'vv_sheets_schedule' );
+add_action( 'admin_init', 'vv_sheets_schedule' );
 add_action( 'switch_theme', static fn() => wp_clear_scheduled_hook( 'vv_sheets_sync' ) );
 
 /**

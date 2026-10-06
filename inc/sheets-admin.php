@@ -95,6 +95,7 @@ function vv_sheets_azioni() {
 			vv_sheets_avviso( 'warning', $avviso );
 		}
 		vv_sheets_avviso( 'success', "{$c['titolo']}: impostazioni salvate." );
+		vv_sheets_schedule();
 		if ( 'corsi' === $id ) {
 			delete_transient( 'vv_corsi_mappa' );
 		}

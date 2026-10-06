@@ -65,11 +65,12 @@ function doPost(e) {
       return risposta_({ ok: true, foglio: ss.getName(), mappa: conf.originale, tab: nomiTab_(ss) });
     }
     var fatti = [];
+    var stati = {};
     righe.forEach(function (riga) {
       if (!riga[RIF]) {
         return;
       }
-      scriviRiga_(tabCorso_(ss, conf, String(riga[CORSO] || '')), riga);
+      scriviRiga_(tabCorso_(ss, conf, String(riga[CORSO] || '')), riga, stati);
       if (fatti.indexOf(String(riga[RIF])) < 0) {
         fatti.push(String(riga[RIF]));
       }
@@ -181,11 +182,15 @@ function copiaIntestazioni_(modello, tab) {
 }
 
 /**
- * Scrive una riga sotto le altre, valore per valore nella colonna con la stessa intestazione. Le
- * colonne senza un valore dal sito non vengono toccate. In un tab con la colonna "Corso" il doppione
- * è la stessa coppia Rif. + Corso, altrove lo stesso Rif.
+ * Intestazioni e righe già scritte di un tab, lette una volta per chiamata e tenute in "stati"
+ * (per id del tab). Se manca la colonna "Rif." la aggiunge. Per i doppioni si leggono solo le
+ * colonne Rif. e Corso.
  */
-function scriviRiga_(tab, riga) {
+function statoTab_(tab, stati) {
+  var id = tab.getSheetId();
+  if (stati[id]) {
+    return stati[id];
+  }
   var intestazioni = leggiIntestazioni_(tab);
   var colRif = indice_(intestazioni, RIF);
   if (colRif < 0) {
@@ -194,29 +199,62 @@ function scriviRiga_(tab, riga) {
     intestazioni[colRif] = RIF;
   }
   var colCorso = indice_(intestazioni, CORSO);
+  var chiavi = {};
   var ultima = tab.getLastRow();
   if (ultima > 1) {
-    var presenti = tab.getRange(2, 1, ultima - 1, intestazioni.length).getValues();
-    for (var i = 0; i < presenti.length; i++) {
-      if (String(presenti[i][colRif]) === String(riga[RIF])
-        && (colCorso < 0 || String(presenti[i][colCorso]) === String(riga[CORSO] || ''))) {
-        return;
-      }
+    var rif = tab.getRange(2, colRif + 1, ultima - 1, 1).getValues();
+    var corsi = colCorso < 0 ? null : tab.getRange(2, colCorso + 1, ultima - 1, 1).getValues();
+    for (var i = 0; i < rif.length; i++) {
+      chiavi[chiave_(rif[i][0], corsi ? corsi[i][0] : '', colCorso)] = true;
     }
   }
-  var nuova = Math.max(ultima, 1) + 1;
-  Object.keys(riga).forEach(function (chiave) {
-    if (chiave === '_tab') {
+  stati[id] = { intestazioni: intestazioni, colCorso: colCorso, chiavi: chiavi };
+  return stati[id];
+}
+
+/** Chiave contro i doppioni: Rif. + Corso in un tab con la colonna "Corso", altrove il solo Rif. */
+function chiave_(rif, corso, colCorso) {
+  return String(rif) + (colCorso < 0 ? '' : '\u0001' + String(corso || ''));
+}
+
+/**
+ * Scrive una riga sotto le altre, valore per valore nella colonna con la stessa intestazione. Le
+ * colonne senza un valore dal sito non vengono toccate: si scrive a tratti di celle contigue, una
+ * chiamata per tratto. In un tab con la colonna "Corso" il doppione è la stessa coppia Rif. + Corso,
+ * altrove lo stesso Rif.
+ */
+function scriviRiga_(tab, riga, stati) {
+  var stato = statoTab_(tab, stati);
+  var chiave = chiave_(riga[RIF], riga[CORSO], stato.colCorso);
+  if (stato.chiavi[chiave]) {
+    return;
+  }
+  var valori = [];
+  Object.keys(riga).forEach(function (k) {
+    if (k === '_tab') {
       return;
     }
-    var col = indice_(intestazioni, chiave);
-    var valore = testo_(riga[chiave]);
-    if (col < 0 || valore === '') {
-      return;
+    var col = indice_(stato.intestazioni, k);
+    var valore = testo_(riga[k]);
+    if (col >= 0 && valore !== '') {
+      valori[col] = valore;
+    }
+  });
+  var nuova = Math.max(tab.getLastRow(), 1) + 1;
+  for (var inizio = 0; inizio < valori.length; inizio++) {
+    if (valori[inizio] === undefined) {
+      continue;
+    }
+    var fine = inizio;
+    while (fine + 1 < valori.length && valori[fine + 1] !== undefined) {
+      fine++;
     }
     // Come testo: codici fiscali e telefoni restano come sono scritti (niente zeri persi).
-    tab.getRange(nuova, col + 1).setNumberFormat('@').setValue(valore);
-  });
+    tab.getRange(nuova, inizio + 1, 1, fine - inizio + 1).setNumberFormat('@')
+      .setValues([valori.slice(inizio, fine + 1)]);
+    inizio = fine;
+  }
+  stato.chiavi[chiave] = true;
 }
 
 /** Intestazioni della riga 1, ripulite dagli spazi. */

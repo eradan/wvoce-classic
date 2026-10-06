@@ -40,29 +40,12 @@ function vv_page_has_aside( $page_id ) {
  * Due colonne: la pagina di Sydney (titolo, immagine, testo) e la colonna laterale.
  */
 function vv_page_template() {
-	?>
-	<div id="primary" class="content-area col-md-12 no-sidebar vv-single vv-page">
-		<main id="main" class="post-wrap" role="main">
-			<?php while ( have_posts() ) : the_post(); ?>
-				<div class="vv-single__grid">
-					<div class="vv-single__main">
-						<?php get_template_part( 'content', 'page' ); ?>
-					</div>
-					<aside class="vv-single__aside" aria-label="Altre pagine e appuntamenti">
-						<?php echo vv_page_section_nav( get_the_ID() ) . vv_aside_more(); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
-					</aside>
-				</div>
-				<?php
-				if ( comments_open() || get_comments_number() ) {
-					echo '<div class="vv-single__comments">';
-					comments_template();
-					echo '</div>';
-				}
-				?>
-			<?php endwhile; ?>
-		</main>
-	</div>
-	<?php
+	vv_two_column_template(
+		'vv-single vv-page',
+		'page',
+		'Altre pagine e appuntamenti',
+		static fn( $page_id ) => vv_page_section_nav( $page_id ) . vv_aside_more()
+	);
 }
 
 /**

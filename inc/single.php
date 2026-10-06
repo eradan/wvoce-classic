@@ -23,30 +23,7 @@ add_action( 'wp', 'vv_swap_single_template' );
  * Due colonne: articolo (colonna di lettura) e scheda laterale.
  */
 function vv_single_template() {
-	?>
-	<div id="primary" class="content-area col-md-12 no-sidebar vv-single">
-		<main id="main" class="post-wrap" role="main">
-			<?php while ( have_posts() ) : the_post(); ?>
-				<div class="vv-single__grid">
-					<div class="vv-single__main">
-						<?php get_template_part( 'content', 'single' ); ?>
-					</div>
-					<aside class="vv-single__aside" aria-label="Informazioni">
-						<?php echo vv_single_aside( get_the_ID() ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
-					</aside>
-				</div>
-				<?php
-				// Commenti sotto la griglia: su mobile la scheda "In breve" arriva subito dopo l'articolo.
-				if ( comments_open() || get_comments_number() ) {
-					echo '<div class="vv-single__comments">';
-					comments_template();
-					echo '</div>';
-				}
-				?>
-			<?php endwhile; ?>
-		</main>
-	</div>
-	<?php
+	vv_two_column_template( 'vv-single', 'single', 'Informazioni', 'vv_single_aside' );
 }
 
 /**
@@ -58,7 +35,7 @@ function vv_single_template() {
 function vv_single_aside( $post_id ) {
 	$dates = vv_event_dates( $post_id );
 	$luogo = get_post_meta( $post_id, 'vv_luogo', true );
-	$cats  = array_filter( get_the_category( $post_id ), static fn( $c ) => 'nessuna-categoria' !== $c->slug && 'uncategorized' !== $c->slug );
+	$cats  = vv_post_categories( $post_id );
 
 	$html  = '<div class="vv-card vv-card--info vv-accent--giallo"><div class="vv-card__body">';
 	$html .= '<h2 class="vv-info__title">In breve</h2><dl class="vv-info">';

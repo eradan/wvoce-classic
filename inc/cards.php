@@ -23,6 +23,10 @@ function vv_event_dates( $post ) {
 	// conta come assente: DateTimeImmutable fermerebbe la pagina con un errore.
 	$start = vv_sanitize_date( $start );
 	$end   = vv_sanitize_date( $end );
+	// Una fine scritta prima dell'inizio (errore di battitura) non fa sparire l'evento in anticipo.
+	if ( $start && $end && $end < $start ) {
+		$end = $start;
+	}
 
 	$has_meta = (bool) $start;
 	$start_ts = $start ? ( new DateTimeImmutable( $start, $tz ) )->getTimestamp() : get_post_timestamp( $post );
@@ -30,9 +34,7 @@ function vv_event_dates( $post ) {
 	$last_day = $end ? $end : $start;
 	$end_ts   = $last_day ? ( new DateTimeImmutable( $last_day . ' 23:59:59', $tz ) )->getTimestamp() : $start_ts;
 
-	if ( ! $has_meta ) {
-		$label = wp_date( 'j F Y', $start_ts );
-	} elseif ( ! $end || $end === $start ) {
+	if ( ! $has_meta || ! $end || $end === $start ) {
 		$label = wp_date( 'j F Y', $start_ts );
 	} elseif ( wp_date( 'Y', $start_ts ) === wp_date( 'Y', $end_ts ) ) {
 		$label = wp_date( 'F', $start_ts ) === wp_date( 'F', $end_ts )
@@ -183,6 +185,54 @@ function vv_posts_in( $slugs, $number = 6, $extra = array() ) {
 		$args['category_name'] = str_replace( ' ', '', $slugs );
 	}
 	return get_posts( array_merge( $args, $extra ) );
+}
+
+/**
+ * Categorie di un articolo, senza quella predefinita ("Nessuna categoria").
+ *
+ * @param int $post_id Articolo.
+ * @return WP_Term[]
+ */
+function vv_post_categories( $post_id ) {
+	return array_values( array_filter( get_the_category( $post_id ), static fn( $c ) => 'nessuna-categoria' !== $c->slug && 'uncategorized' !== $c->slug ) );
+}
+
+/**
+ * Due colonne, per articoli e pagine: il contenuto di Sydney (titolo, immagine, testo) e la colonna
+ * laterale; i commenti sotto la griglia, così su mobile la colonna arriva subito dopo il testo.
+ *
+ * @param string   $classes Classi aggiuntive della content-area.
+ * @param string   $part    Parte del contenuto di Sydney (single, page).
+ * @param string   $label   Nome accessibile della colonna laterale.
+ * @param callable $aside   Restituisce l'HTML della colonna, dato l'ID del contenuto.
+ */
+function vv_two_column_template( $classes, $part, $label, callable $aside ) {
+	?>
+	<div id="primary" class="content-area col-md-12 no-sidebar <?php echo esc_attr( $classes ); ?>">
+		<main id="main" class="post-wrap" role="main">
+			<?php
+			while ( have_posts() ) :
+				the_post();
+				?>
+				<div class="vv-single__grid">
+					<div class="vv-single__main">
+						<?php get_template_part( 'content', $part ); ?>
+					</div>
+					<aside class="vv-single__aside" aria-label="<?php echo esc_attr( $label ); ?>">
+						<?php echo $aside( get_the_ID() ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
+					</aside>
+				</div>
+				<?php
+				if ( comments_open() || get_comments_number() ) {
+					echo '<div class="vv-single__comments">';
+					comments_template();
+					echo '</div>';
+				}
+				?>
+			<?php endwhile; ?>
+		</main>
+	</div>
+	<?php
 }
 
 /**

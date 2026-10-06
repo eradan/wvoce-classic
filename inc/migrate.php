@@ -95,9 +95,13 @@ function vv_mods_source() {
  * @return array
  */
 function vv_merge_parent_mods( $child_mods ) {
+	// Letta una volta per richiesta: il filtro scatta a ogni get_theme_mod().
+	static $source = null;
+	if ( null === $source ) {
+		$source = vv_raw_mods( vv_mods_source() );
+		unset( $source['custom_css_post_id'], $source['sidebars_widgets'] );
+	}
 	$child_mods = is_array( $child_mods ) ? $child_mods : array();
-	$source     = vv_raw_mods( vv_mods_source() );
-	unset( $source['custom_css_post_id'], $source['sidebars_widgets'] );
 
 	$merged = array_merge( $child_mods, $source );
 	foreach ( array( 'nav_menu_locations', 'custom_css_post_id' ) as $key ) {
@@ -133,9 +137,9 @@ function vv_persist_parent_mods() {
 	remove_filter( "option_{$option}", 'vv_merge_parent_mods' );
 	remove_filter( "default_option_{$option}", 'vv_merge_parent_mods' );
 	update_option( $option, $merged );
-	if ( vv_mods_configured( vv_raw_mods( get_stylesheet() ) ) ) {
-		update_option( vv_migrated_option(), gmdate( 'c' ) . ' da ' . vv_mods_source(), false );
-	}
+	// Segnata sempre, anche senza logo: altrimenti la copia rientrerebbe a ogni pagina
+	// dell'amministrazione, sovrascrivendo le modifiche fatte nel Customizer del child.
+	update_option( vv_migrated_option(), gmdate( 'c' ) . ' da ' . vv_mods_source(), false );
 }
 add_action( 'after_switch_theme', 'vv_persist_parent_mods' );
 add_action( 'admin_init', 'vv_persist_parent_mods' );
