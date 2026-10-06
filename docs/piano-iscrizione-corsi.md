@@ -1,5 +1,7 @@
 # Iscrizioni ai corsi 2026-2027 nel foglio "VivaVoce / Iscrizione Corsi"
 
+> Documento storico della 0.8.0. Dalla 0.9.0 la configurazione sta in Strumenti → Esporta iscrizioni, gli script in `inc/apps-script/` e la corrispondenza corso → tab nel tab `configurazioni` del foglio: vedi README, *Versione 0.9.0*, e `docs/attivazione-corsi.md`.
+
 ## Stato (6 ottobre 2026)
 
 - Fatti i punti 1–5 dell'*Approccio* sul ramo `claude/great-allen-4cfg7x`: collegamenti multipli in `inc/sheets.php`, righe dei corsi, `docs/apps-script-iscrizione-corsi.gs`, Strumenti → Fogli Google, test, README 0.8.0, `docs/informativa-fogli-google.md`. Lo script è stato provato su un foglio simulato (tab giusto, due corsi, "Da smistare", reinvio senza doppioni, K–N intatte, `=1+1` come testo).

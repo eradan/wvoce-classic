@@ -2,25 +2,30 @@
  * VivaVoce: riceve dal sito le iscrizioni ai corsi (modulo Forminator "Iscrizione ai corsi
  * 2026-2027") e le scrive nel foglio "VivaVoce / Iscrizione Corsi", nel tab del corso scelto.
  *
+ * - Il tab di ogni corso si legge dal tab "configurazioni" del foglio: riga 1 intestazioni (Tab,
+ *   Corso), dalla riga 2 in colonna A il nome del tab e in colonna B il nome esteso del corso, cioè
+ *   il testo dell'opzione del modulo. Maiuscole, accenti e spazi doppi contano poco. Per un corso
+ *   nuovo basta un tab e una riga in "configurazioni": lo script resta com'è.
  * - Ogni valore va nella colonna con la stessa intestazione (riga 1). Le colonne della segreteria
  *   (dovuto, quota associativa, pagamento) restano vuote: lo script scrive solo dove ha un valore.
- * - Un tab del corso ancora vuoto riceve prima le intestazioni del tab modello (TAB_MODELLO).
- * - Un corso senza tab va in "Da smistare", creato con le intestazioni del modello più "Corso".
- *   Lo script non crea altri tab: un nome sconosciuto finisce sempre lì.
+ * - Un tab del corso ancora vuoto riceve prima le intestazioni del modello: il primo tab elencato in
+ *   "configurazioni" con la riga 1 compilata.
+ * - Un corso assente da "configurazioni", o con un tab inesistente, va in "Da smistare", creato con
+ *   le intestazioni del modello più "Corso". Lo script non crea altri tab.
  * - La colonna "Rif." (numero dell'iscrizione sul sito, nascondibile) evita i doppioni: una riga
  *   già scritta nel tab non viene ripetuta, anche se il sito la rimanda. Chi sceglie due corsi ha
  *   una riga in ciascun tab, con lo stesso Rif.
  *
- * Installazione (una volta):
- * 1. Nel foglio: Estensioni → Apps Script, incolla questo file al posto del codice che c'è, salva.
+ * Installazione (una volta), istruzioni complete nel sito: Strumenti → Esporta iscrizioni.
+ * 1. In Google Drive: Nuovo → Altro → Google Apps Script (progetto autonomo, con l'ID del foglio in
+ *    ID_FOGLIO), oppure dal foglio: Estensioni → Apps Script. Incolla questo file al posto del codice
+ *    che c'è, salva.
  * 2. Scegli la funzione "creaToken" in alto e premi Esegui (la prima volta chiede le autorizzazioni):
- *    nel registro compare il codice segreto da mettere in wp-config.php come VV_CORSI_TOKEN.
+ *    nel registro compare il codice segreto da mettere nel sito come VV_CORSI_TOKEN.
  * 3. Esegui il deployment → Nuovo deployment → tipo "App web"; Esegui come: me; Chi ha accesso:
- *    chiunque. L'URL dell'app web (finisce con /exec) va in wp-config.php come VV_CORSI_URL.
+ *    chiunque. L'URL dell'app web (finisce con /exec) va nel sito come VV_CORSI_URL.
  * 4. Lo script scrive con l'account di chi lo pubblica: il foglio può restare condiviso solo con
  *    account nominativi, senza "Chiunque abbia il link".
- * In alternativa lo script può stare nel proprio Drive (script.google.com → Nuovo progetto), con
- * l'ID del foglio in ID_FOGLIO: basta essere editor del foglio, non serve esserne proprietari.
  * Se modifichi questo codice: Esegui il deployment → Gestisci deployment → modifica → Nuova versione
  * (l'URL resta lo stesso).
  */
@@ -29,9 +34,7 @@
 // script.google.com nel proprio Drive: l'ID del foglio, cioè il pezzo dell'indirizzo fra /d/ e /edit.
 var ID_FOGLIO = '';
 
-// Tab da cui copiare le intestazioni. Se manca o è vuoto: il primo tab con la riga 1 compilata.
-var TAB_MODELLO = 'lettura-ad-alta-voce-2026';
-
+var CONFIGURAZIONI = 'configurazioni';
 var DA_SMISTARE = 'Da smistare';
 var CORSO = 'Corso';
 var RIF = 'Rif.';
@@ -53,12 +56,17 @@ function doPost(e) {
   }
   try {
     var ss = ID_FOGLIO ? SpreadsheetApp.openById(ID_FOGLIO) : SpreadsheetApp.getActiveSpreadsheet();
+    var righe = dati.righe || [];
+    var conf = leggiConfigurazioni_(ss, righe.length > 0);
+    if (dati.azione === 'mappa') {
+      return risposta_({ ok: true, mappa: conf.originale, tab: nomiTab_(ss) });
+    }
     var fatti = [];
-    (dati.righe || []).forEach(function (riga) {
+    righe.forEach(function (riga) {
       if (!riga[RIF]) {
         return;
       }
-      scriviRiga_(tabCorso_(ss, String(riga._tab || '')), riga);
+      scriviRiga_(tabCorso_(ss, conf, String(riga[CORSO] || '')), riga);
       if (fatti.indexOf(String(riga[RIF])) < 0) {
         fatti.push(String(riga[RIF]));
       }
@@ -72,14 +80,58 @@ function doPost(e) {
   }
 }
 
-/** Il tab da cui copiare le intestazioni. */
-function tabModello_(ss) {
-  var tab = TAB_MODELLO ? ss.getSheetByName(TAB_MODELLO) : null;
-  if (tab && tab.getLastColumn() > 0) {
-    return tab;
+/**
+ * Il tab "configurazioni": corso (normalizzato) → tab, più l'elenco dei tab nell'ordine in cui
+ * compaiono. Se manca e ci sono righe da scrivere lo crea con le intestazioni: finché resta vuoto
+ * le righe vanno in "Da smistare".
+ */
+function leggiConfigurazioni_(ss, crea) {
+  var conf = { mappa: {}, originale: {}, ordine: [] };
+  var tab = ss.getSheetByName(CONFIGURAZIONI);
+  if (!tab && !crea) {
+    return conf;
+  }
+  if (!tab) {
+    tab = ss.insertSheet(CONFIGURAZIONI, ss.getNumSheets());
+    tab.getRange(1, 1, 1, 2).setValues([['Tab', 'Corso']]).setFontWeight('bold');
+    tab.setFrozenRows(1);
+  }
+  var ultima = tab.getLastRow();
+  if (ultima < 2) {
+    return conf;
+  }
+  tab.getRange(2, 1, ultima - 1, 2).getValues().forEach(function (r) {
+    var nome = String(r[0]).trim();
+    var corso = String(r[1]).trim();
+    if (!nome || !corso) {
+      return;
+    }
+    conf.mappa[normalizza_(corso)] = nome;
+    conf.originale[corso] = nome;
+    if (conf.ordine.indexOf(nome) < 0) {
+      conf.ordine.push(nome);
+    }
+  });
+  return conf;
+}
+
+/** Nomi dei tab del foglio. */
+function nomiTab_(ss) {
+  return ss.getSheets().map(function (s) {
+    return s.getName();
+  });
+}
+
+/** Il tab da cui copiare le intestazioni: il primo di "configurazioni" con la riga 1 compilata. */
+function tabModello_(ss, conf) {
+  for (var i = 0; i < conf.ordine.length; i++) {
+    var tab = ss.getSheetByName(conf.ordine[i]);
+    if (tab && tab.getLastColumn() > 0) {
+      return tab;
+    }
   }
   var altri = ss.getSheets().filter(function (s) {
-    return s.getName() !== DA_SMISTARE && s.getLastColumn() > 0;
+    return s.getName() !== DA_SMISTARE && s.getName() !== CONFIGURAZIONI && s.getLastColumn() > 0;
   });
   if (!altri.length) {
     throw new Error('nessun tab con le intestazioni da copiare');
@@ -88,14 +140,16 @@ function tabModello_(ss) {
 }
 
 /**
- * Il tab del corso. Se esiste ma è vuoto riceve le intestazioni del modello; se non esiste la riga
- * va in "Da smistare", creato la prima volta con le intestazioni del modello e la colonna "Corso".
+ * Il tab del corso secondo "configurazioni". Se esiste ma è vuoto riceve le intestazioni del
+ * modello; se il corso manca o il tab non esiste la riga va in "Da smistare", creato la prima volta
+ * con le intestazioni del modello e la colonna "Corso".
  */
-function tabCorso_(ss, nome) {
-  var tab = nome && nome !== DA_SMISTARE ? ss.getSheetByName(nome) : null;
+function tabCorso_(ss, conf, corso) {
+  var nome = conf.mappa[normalizza_(corso)];
+  var tab = nome && nome !== DA_SMISTARE && nome !== CONFIGURAZIONI ? ss.getSheetByName(nome) : null;
   if (tab) {
     if (tab.getLastColumn() === 0) {
-      copiaIntestazioni_(tabModello_(ss), tab);
+      copiaIntestazioni_(tabModello_(ss, conf), tab);
     }
     return tab;
   }
@@ -104,7 +158,7 @@ function tabCorso_(ss, nome) {
     tab = ss.insertSheet(DA_SMISTARE, ss.getNumSheets());
   }
   if (tab.getLastColumn() === 0) {
-    copiaIntestazioni_(tabModello_(ss), tab);
+    copiaIntestazioni_(tabModello_(ss, conf), tab);
   }
   var intestazioni = leggiIntestazioni_(tab);
   if (indice_(intestazioni, CORSO) < 0) {
@@ -201,6 +255,15 @@ function indice_(intestazioni, nome) {
 /** Intestazioni uguali senza badare a maiuscole e spazi ("CODICE FISCALE" = "Codice Fiscale"). */
 function uguali_(a, b) {
   return String(a).trim().toLowerCase() === String(b).trim().toLowerCase();
+}
+
+/**
+ * Testo di un corso ridotto per il confronto: senza accenti, minuscole, spazi compressi. Il sito fa
+ * lo stesso (vv_corsi_normalizza).
+ */
+function normalizza_(testo) {
+  return String(testo || '').normalize('NFD').replace(/[̀-ͯ]/g, '')
+    .toLowerCase().replace(/\s+/g, ' ').trim();
 }
 
 function risposta_(oggetto) {

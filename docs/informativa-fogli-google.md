@@ -9,7 +9,7 @@ Il trasferimento a un servizio esterno va dichiarato nell'informativa che accomp
 
 ## Cosa passa al foglio "Albo Soci"
 
-Dalla corrispondenza in `vv_sheets_colonne()`:
+Dalla corrispondenza in `vv_soci_colonne()`:
 
 - **Dati anagrafici e di contatto:** tipologia, nome, cognome, codice fiscale, email, telefono, cellulare, indirizzo di residenza, genere, data, comune e provincia di nascita.
 - **Pagamento della quota:** il link al file caricato nel modulo. Il file sta nella cartella `uploads` del sito, e il link vale per chiunque lo conosca.
@@ -53,4 +53,4 @@ Il passaggio avviene in HTTPS verso un'app web di Google Apps Script protetta da
 - **Registro dei trattamenti:** va aggiunta la voce "Google Sheets / Apps Script", con Google come responsabile.
 - **Ricevute di pagamento:** i file caricati con Forminator hanno un indirizzo pubblico. Per tenerle riservate conviene verificare le opzioni sui caricamenti della versione installata di Forminator, oppure proteggere `wp-content/uploads/forminator/` con una regola del server.
 - **Tab "Da smistare"** (corsi): va svuotato a mano, spostando le righe nel tab giusto; resta un tab del registro come gli altri.
-- **Fine del collegamento:** basta togliere `VV_SHEETS_URL` (soci) o `VV_CORSI_URL` (corsi) da `wp-config.php` e archiviare il deployment dell'app web.
+- **Fine del collegamento:** basta svuotare `VV_SOCI_URL` (soci) o `VV_CORSI_URL` (corsi) in Strumenti → Esporta iscrizioni → Configurazione e archiviare il deployment dell'app web.
