@@ -3,8 +3,9 @@
 ## Stato (6 ottobre 2026)
 
 - Fatti i punti 1–5 dell'*Approccio* sul ramo `claude/great-allen-4cfg7x`: collegamenti multipli in `inc/sheets.php`, righe dei corsi, `docs/apps-script-iscrizione-corsi.gs`, Strumenti → Fogli Google, test, README 0.8.0, `docs/informativa-fogli-google.md`. Lo script è stato provato su un foglio simulato (tab giusto, due corsi, "Da smistare", reinvio senza doppioni, K–N intatte, `=1+1` come testo).
-- Collegamento a wvoce.it: le API pubbliche rispondono (`/wp-json/` 200); la richiesta autenticata a `/wp-json/wp/v2/users/me` dà 401, con il proxy che segnala `upstream auth failed` sulla connessione "wvoce". La password per le applicazioni va ricontrollata (utente, password ancora valida, intestazione `Authorization` passata dal server a PHP). Nessun altro tentativo, per fail2ban.
-- Da fare: leggere i campi del modulo 1617 (Strumenti → Fogli Google, oppure via API quando l'accesso funziona), completare `vv_corsi_colonne()` e `vv_corsi_campo()`, quindi installazione e verifica su una copia del foglio.
+- Collegamento a wvoce.it attivo (sessione del 6 ottobre, ramo `claude/funny-cannon-9pes3w`): l'API risponde con l'utente amministratore. Forminator espone via REST solo le anteprime, quindi i campi del modulo 1617 sono stati letti dalla pagina pubblica `/iscrizione-corso/` (id 943).
+- Fatto: `vv_corsi_colonne()` completa (name-1, name-2, text-1, email-1, phone-2, upload-1, consent-1/2/3, textarea-1), `vv_corsi_campo()` = `checkbox-1`, le quattro opzioni del modulo in `vv_corsi_tabs()`. Le opzioni cominciano con "Adulti: Laboratorio di…" e il confronto tollerante le avrebbe mandate tutte in "Da smistare"; "tecniche attoriali" e l'anno 2206 del tab dei bambini avrebbero comunque mancato la corrispondenza. Se il valore delle caselle arriva come testo unito ("a, b") le opzioni si riconoscono dentro il testo.
+- Da fare: installazione dello script sul foglio (o su una copia), costanti `VV_CORSI_URL` / `VV_CORSI_TOKEN` in `wp-config.php`, prova a secco in Strumenti → Fogli Google, verifica dell'elenco qui sotto. Il modulo indica "Bambini (elementari)", non più 3-6 anni: resta da chiarire quali dati del genitore servono per i minori.
 
 ## Context
 

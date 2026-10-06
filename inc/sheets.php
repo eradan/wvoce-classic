@@ -262,32 +262,32 @@ function vv_corsi_da_smistare() {
 
 /**
  * Intestazione della colonna del tab => campo del modulo 1617 (o array( campo, parte )).
- * Un campo vuoto lascia vuota la colonna: gli id si leggono in Strumenti → Fogli Google.
+ * Id letti dal modulo pubblicato su /iscrizione-corso/ (ottobre 2026).
  */
 function vv_corsi_colonne() {
 	return apply_filters(
 		'vv_corsi_colonne',
 		array(
-			'Nome'           => '',
-			'Cognome'        => '',
+			'Nome'           => 'name-1',
+			'Cognome'        => 'name-2',
 			'Codice Fiscale' => 'text-1',
-			'Email'          => '',
-			'Cellulare'      => '',
-			'Ricevuta'       => '',
-			'Regolamento'    => '',
-			'Socio'          => '',
-			'Privacy'        => '',
-			'Note'           => '',
+			'Email'          => 'email-1',
+			'Cellulare'      => 'phone-2',
+			'Ricevuta'       => 'upload-1',
+			'Regolamento'    => 'consent-1',
+			'Socio'          => 'consent-2',
+			'Privacy'        => 'consent-3',
+			'Note'           => 'textarea-1',
 		)
 	);
 }
 
 /**
- * Id del campo del modulo con il corso scelto (scelta singola o multipla). Finché è vuoto il
+ * Id del campo del modulo con il corso scelto (caselle multiple). Se il filtro lo svuota il
  * collegamento dei corsi resta fermo.
  */
 function vv_corsi_campo() {
-	return (string) apply_filters( 'vv_corsi_campo', '' );
+	return (string) apply_filters( 'vv_corsi_campo', 'checkbox-1' );
 }
 
 /**
@@ -302,10 +302,49 @@ function vv_corsi_tab_nomi() {
 }
 
 /**
- * Valore del modulo => nome del tab, per i casi che il confronto dei nomi non risolve.
+ * Valore del modulo => nome del tab, per i casi che il confronto dei nomi non risolve. Le opzioni
+ * del modulo 1617 cominciano con "Adulti: Laboratorio di…" e portano date e orari: vanno indicate
+ * per intero. Un'opzione riscritta nel modulo, senza la voce qui, finisce in "Da smistare".
  */
 function vv_corsi_tabs() {
-	return apply_filters( 'vv_corsi_tabs', array() );
+	return apply_filters(
+		'vv_corsi_tabs',
+		array(
+			'Adulti: Laboratorio di lettura ad alta voce corale, ottobre-dicembre 2026 (martedì 18.30-20.30)' => 'lettura-ad-alta-voce-2026',
+			'Adulti: Laboratorio di tecniche attoriali, ottobre-dicembre 2026 (giovedì 18.30-20.30)' => 'tecnica-attoriale-2026',
+			'Adulti: Laboratorio di messa in scena, gennaio-giugno 2027 (giovedì 18.30-20.30)' => 'messa-in-scena-2027',
+			'Bambini (elementari): Il gioco del teatro, ottobre-dicembre 2026' => 'gioco-del-teatro-2206',
+		)
+	);
+}
+
+/**
+ * Corsi scelti in un'iscrizione. Le caselle arrivano come elenco; se arrivano come testo unito
+ * ("a, b") si cercano dentro le opzioni note, perché le opzioni stesse contengono virgole.
+ *
+ * @param mixed $valore Valore salvato del campo del corso.
+ */
+function vv_corsi_scelti( $valore ) {
+	if ( ! is_array( $valore ) ) {
+		$testo = trim( wp_strip_all_tags( (string) $valore ) );
+		$noti  = array();
+		foreach ( array_keys( vv_corsi_tabs() ) as $opzione ) {
+			$pos = '' === (string) $opzione ? false : strpos( $testo, (string) $opzione );
+			if ( false !== $pos ) {
+				$noti[ $pos ] = (string) $opzione;
+			}
+		}
+		ksort( $noti );
+		$valore = $noti ? array_values( $noti ) : array( $testo );
+	}
+	$corsi = array();
+	foreach ( $valore as $v ) {
+		$v = is_scalar( $v ) ? trim( wp_strip_all_tags( (string) $v ) ) : '';
+		if ( '' !== $v ) {
+			$corsi[] = $v;
+		}
+	}
+	return array_values( array_unique( $corsi ) );
 }
 
 /**
@@ -380,19 +419,12 @@ function vv_corsi_tab( $corso ) {
  * @param object $entry Iscrizione.
  */
 function vv_corsi_righe( $entry ) {
-	$meta   = is_array( $entry->meta_data ?? null ) ? $entry->meta_data : array();
-	$campo  = vv_corsi_campo();
-	$valore = '' === $campo ? '' : ( $meta[ $campo ]['value'] ?? '' );
-	$corsi  = array();
-	foreach ( is_array( $valore ) ? $valore : array( $valore ) as $v ) {
-		$v = is_scalar( $v ) ? trim( wp_strip_all_tags( (string) $v ) ) : '';
-		if ( '' !== $v ) {
-			$corsi[] = $v;
-		}
-	}
+	$meta  = is_array( $entry->meta_data ?? null ) ? $entry->meta_data : array();
+	$campo = vv_corsi_campo();
+	$corsi = vv_corsi_scelti( '' === $campo ? '' : ( $meta[ $campo ]['value'] ?? '' ) );
 	$base  = array( 'Rif.' => sprintf( 'F%d-%d', (int) $entry->form_id, (int) $entry->entry_id ) ) + vv_sheets_valori( $meta, vv_corsi_colonne() );
 	$righe = array();
-	foreach ( $corsi ? array_unique( $corsi ) : array( '' ) as $corso ) {
+	foreach ( $corsi ? $corsi : array( '' ) as $corso ) {
 		$tab = vv_corsi_tab( $corso );
 		// Nello stesso tab una sola riga per iscrizione; in "Da smistare" una per corso.
 		$chiave = vv_corsi_da_smistare() === $tab ? $tab . "\n" . $corso : $tab;

@@ -136,7 +136,7 @@ uguale( 'Corso singolo: una riga', 1, count( $righe ) );
 uguale( 'Corso singolo: tab', 'tecnica-attoriale-2026', $righe[0]['_tab'] );
 uguale( 'Corso singolo: Rif.', 'F1617-40', $righe[0]['Rif.'] );
 uguale( 'Corso singolo: codice fiscale', 'RSSMRA85T10A562S', $righe[0]['Codice Fiscale'] );
-uguale( 'Corso singolo: colonna senza campo', '', $righe[0]['Nome'] );
+uguale( 'Corso singolo: campo vuoto, colonna vuota', '', $righe[0]['Nome'] );
 uguale( 'Corso singolo: chiavi', array_merge( array( '_tab', 'Rif.' ), array_keys( vv_corsi_colonne() ), array( 'Corso' ) ), array_keys( $righe[0] ) );
 $righe = vv_corsi_righe( $vv_corsi_entry( array( 'Lettura ad alta voce', 'Messa in scena' ) ) );
 uguale( 'Due corsi: due righe', array( 'lettura-ad-alta-voce-2026', 'messa-in-scena-2027' ), array_column( $righe, '_tab' ) );
@@ -150,8 +150,26 @@ uguale( 'Tabella dei tab, valore scritto in altro modo', 'tecnica-attoriale-2026
 unset( $vv_filtri['vv_corsi_tabs'] );
 uguale( 'Campo del corso indicato: requisito soddisfatto', '', vv_corsi_requisito() );
 unset( $vv_filtri['vv_corsi_campo'] );
+
+// Foglio dei corsi: le opzioni reali del modulo 1617
+$vv_opzioni_1617 = array_keys( vv_corsi_tabs() );
+uguale( 'Modulo 1617: campo del corso', 'checkbox-1', vv_corsi_campo() );
+uguale( 'Modulo 1617: ogni opzione nel suo tab', vv_corsi_tab_nomi(), array_map( 'vv_corsi_tab', $vv_opzioni_1617 ) );
+$righe = vv_corsi_righe( $vv_corsi_entry( array( $vv_opzioni_1617[0], $vv_opzioni_1617[3] ) ) );
+uguale( 'Modulo 1617: due caselle, due tab', array( 'lettura-ad-alta-voce-2026', 'gioco-del-teatro-2206' ), array_column( $righe, '_tab' ) );
+$righe = vv_corsi_righe( $vv_corsi_entry( $vv_opzioni_1617[2] . ', ' . $vv_opzioni_1617[1] ) );
+uguale( 'Modulo 1617: caselle unite in un testo', array( 'messa-in-scena-2027', 'tecnica-attoriale-2026' ), array_column( $righe, '_tab' ) );
+uguale( 'Modulo 1617: opzione riscritta', 'Da smistare', vv_corsi_tab( 'Adulti: Laboratorio di dizione, 2027' ) );
+uguale(
+	'Modulo 1617: colonne',
+	array( 'name-1', 'name-2', 'text-1', 'email-1', 'phone-2', 'upload-1', 'consent-1', 'consent-2', 'consent-3', 'textarea-1' ),
+	array_values( vv_corsi_colonne() )
+);
+
+$vv_filtri['vv_corsi_campo'] = static fn() => '';
 uguale( 'Senza campo del corso: fermo', 'manca il campo del corso (filtro vv_corsi_campo)', vv_corsi_requisito() );
 uguale( 'Senza campo del corso: riga in Da smistare', 'Da smistare', vv_corsi_righe( $vv_corsi_entry( 'Tecnica attoriale' ) )[0]['_tab'] );
+unset( $vv_filtri['vv_corsi_campo'] );
 
 // Collegamenti: i soci restano come prima
 $c = vv_sheets_config( 'soci' );

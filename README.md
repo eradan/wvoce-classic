@@ -17,7 +17,7 @@ Le iscrizioni del modulo n. 1617 arrivano nel foglio "VivaVoce / Iscrizione Cors
 - **Tab del corso.** Il valore scelto nel modulo trova il suo tab anche scritto in altro modo: "Lettura ad alta voce" → `lettura-ad-alta-voce-2026` (minuscole, senza accenti, trattini al posto degli spazi, anno finale facoltativo; un anno diverso da quello del tab non combacia). I casi che il confronto non risolve vanno in `vv_corsi_tabs()` (valore del modulo => nome del tab). Un tab esistente ma vuoto riceve le intestazioni del tab modello (`TAB_MODELLO` nello script).
 - **Corso senza tab:** la riga va in "Da smistare", creato dallo script la prima volta con le intestazioni del modello e una colonna "Corso". L'invio prosegue; lo script non crea altri tab.
 - **Si parte dalle iscrizioni nuove.** Alla prima apertura di Strumenti → Fogli Google (o al primo giro di wp-cron) con le costanti in `wp-config.php`, il sito fissa come punto di partenza l'iscrizione più recente già presente (opzione `vv_sheets_corsi_inizio`). "Ricomincia" torna a quel punto. Opzioni: `vv_sheets_corsi_ultimo`, `vv_sheets_corsi_stato`.
-- **Corrispondenza colonne → campi:** `vv_corsi_colonne()`; campo del corso: `vv_corsi_campo()`; nomi dei tab: `vv_corsi_tab_nomi()`. Tutti filtrabili. Oggi è noto solo il codice fiscale (`text-1`): gli altri id si leggono in Strumenti → Fogli Google → *Campi del modulo n. 1617*. Finché `vv_corsi_campo()` è vuoto il collegamento resta fermo; le iscrizioni arrivate nel frattempo partono appena è pronto.
+- **Corrispondenza colonne → campi:** `vv_corsi_colonne()`; campo del corso: `vv_corsi_campo()`; nomi dei tab: `vv_corsi_tab_nomi()`. Tutti filtrabili. Gli id vengono dal modulo pubblicato su `/iscrizione-corso/`: Nome `name-1`, Cognome `name-2`, Codice Fiscale `text-1`, Email `email-1`, Cellulare `phone-2`, Ricevuta `upload-1`, Regolamento `consent-1`, Socio `consent-2`, Privacy `consent-3`, Note `textarea-1`; corso `checkbox-1` (caselle multiple). Le quattro opzioni del corso, lunghe e con date e orari, sono elencate per intero in `vv_corsi_tabs()`. Se un filtro svuota `vv_corsi_campo()` il collegamento resta fermo; le iscrizioni arrivate nel frattempo partono appena è pronto. Strumenti → Fogli Google → *Campi del modulo n. 1617* resta utile per un controllo dopo una modifica del modulo.
 - **Installazione.**
   1. Nel foglio dei corsi: Estensioni → Apps Script, incollare `docs/apps-script-iscrizione-corsi.gs`, eseguire `creaToken`, poi Esegui il deployment → Nuovo deployment → App web, "Esegui come: me", "Chi ha accesso: chiunque".
   2. In `wp-config.php`:
@@ -30,7 +30,7 @@ Le iscrizioni del modulo n. 1617 arrivano nel foglio "VivaVoce / Iscrizione Cors
 
   3. Strumenti → Fogli Google: leggere i campi del modulo, completare la corrispondenza (un piccolo commit con gli id), controllare la prova a secco. Conviene provare prima su una copia del foglio.
   4. Togliere al foglio il permesso "Chiunque abbia il link": lo script scrive con l'account di chi lo pubblica.
-- **Nuovo corso:** un tab nuovo nel foglio, il suo nome in `vv_corsi_tab_nomi()` e, se il valore del modulo è molto diverso, una voce in `vv_corsi_tabs()`.
+- **Nuovo corso o opzione riscritta:** un tab nuovo nel foglio, il suo nome in `vv_corsi_tab_nomi()` e il testo esatto dell'opzione del modulo in `vv_corsi_tabs()`. Un'opzione modificata nel modulo senza questa voce finisce in "Da smistare", con il testo nella colonna "Corso".
 
 ## Versione 0.7.4: manutenzione, test e privacy
 
