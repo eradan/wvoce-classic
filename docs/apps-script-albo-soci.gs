@@ -106,10 +106,22 @@ function scriviRiga_(tab, riga) {
   }
   var valori = intestazioni.map(function (h) {
     var chiave = Object.keys(riga).filter(function (k) { return k !== '_tab' && uguali_(k, h); })[0];
-    return chiave === undefined ? '' : String(riga[chiave]);
+    return chiave === undefined ? '' : testo_(riga[chiave]);
   });
   // Come testo: codici fiscali, telefoni e CAP restano come sono scritti (niente zeri persi).
   tab.getRange(ultima + 1, 1, 1, valori.length).setNumberFormat('@').setValues([valori]);
+}
+
+/**
+ * Valore come testo puro. I dati arrivano da un modulo pubblico: un nome che comincia con "="
+ * diventerebbe una formula (che può leggere altri tab o chiamare indirizzi esterni con IMPORTXML).
+ * L'apostrofo davanti, che il foglio non mostra, lo tiene testo anche se il formato della cella
+ * venisse cambiato. Gli altri segni (+, -, @) nel foglio Google non avviano formule: i numeri di
+ * telefono "+39…" restano come sono.
+ */
+function testo_(valore) {
+  var s = String(valore);
+  return /^\s*=/.test(s) ? "'" + s : s;
 }
 
 function indice_(intestazioni, nome) {

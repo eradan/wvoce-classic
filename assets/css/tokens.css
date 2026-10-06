@@ -4,7 +4,7 @@
  * (nel tema chiaro qui NON si ridefiniscono le variabili --sydney-global-color-*).
  * La palette ha due livelli (marchio e ruoli, vedi :root qui sotto): le regole degli altri fogli
  * non contengono colori scritti a mano.
- * La versione "ritaglio di carta" è conservata in assets/css-ritaglio/.
+ * La versione "ritaglio di carta" (0.3.x) è nella storia git: commit cc6b27b, cartella assets/css-ritaglio/.
  */
 
 /* Poppins, il carattere delle locandine, ospitato nel tema (nessuna richiesta a Google).

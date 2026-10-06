@@ -18,7 +18,7 @@ function vv_setup() {
 add_action( 'after_setup_theme', 'vv_setup', 20 );
 
 /**
- * Classe sul body a cui si agganciano alcune regole (anche quelle di assets/css-ritaglio).
+ * Classe sul body a cui si agganciano alcune regole del tema.
  *
  * @param string[] $classes Classi del body.
  */
@@ -84,16 +84,15 @@ function vv_archive_title( $title, $plain = '' ) {
 add_filter( 'get_the_archive_title', 'vv_archive_title', 10, 2 );
 
 /**
- * Traduzioni mancanti nei plugin di elenchi e slider (finché restano attivi) e in Forminator,
- * che sul sito non ha la traduzione italiana: pulsante e testo del campo "carica un file",
- * messaggi d'errore predefiniti.
+ * Traduzioni mancanti in Sydney e in Forminator, che sul sito non ha la traduzione italiana:
+ * pulsante e testo del campo "carica un file", messaggi d'errore predefiniti.
  *
  * @param string $translation Testo tradotto.
  * @param string $text        Testo originale.
  * @param string $domain      Dominio del testo.
  */
 function vv_plugin_strings( $translation, $text, $domain ) {
-	static $domains = array( 'wp-responsive-recent-post-slider', 'featured-post-creative', 'post-carousel', 'sydney', 'forminator' );
+	static $domains = array( 'sydney', 'forminator' );
 	if ( ! in_array( $domain, $domains, true ) ) {
 		return $translation;
 	}

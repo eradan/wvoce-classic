@@ -91,7 +91,7 @@ function vv_page_for_category( $slug ) {
 		$pages = get_posts( array(
 			'post_type'      => 'page',
 			'post_status'    => 'publish',
-			'posts_per_page' => 50,
+			'posts_per_page' => -1,
 			'meta_key'       => 'vv_categoria', // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_key
 			'fields'         => 'ids',
 			'no_found_rows'  => true,
@@ -271,7 +271,7 @@ function vv_breadcrumbs() {
 		'@context'        => 'https://schema.org',
 		'@type'           => 'BreadcrumbList',
 		'itemListElement' => $ld,
-	), JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE ) . '</script>';
+	), JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_HEX_TAG | JSON_HEX_AMP ) . '</script>';
 	return $html;
 }
 

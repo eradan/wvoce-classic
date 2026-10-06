@@ -1,5 +1,18 @@
 # Tema child VivaVoce
 
+Tema child di **Sydney 2.71** per wvoce.it, aspetto "classico" vicino al sito originale. Le note di versione vengono prima; da *Messa in produzione* in poi la guida d'uso.
+
+## Versione 0.7.4: manutenzione, test e privacy
+
+- **Foglio dei soci al riparo dalle formule.** Un valore del modulo che comincia con `=` arriva nel foglio preceduto da un apostrofo (che il foglio non mostra) e resta testo: prima un "nome" come `=IMPORTXML(…)` poteva diventare una formula. È nello script Apps Script (`docs/apps-script-albo-soci.gs`, funzione `testo_`): **va incollato di nuovo nell'editor e pubblicato** con Esegui il deployment → Gestisci deployment → modifica → Nuova versione (l'URL resta lo stesso).
+- **Informativa privacy** per il trasferimento delle domande nel foglio Google: bozza e controlli in `docs/informativa-albo-soci.md`, da far verificare e poi riportare nel modulo "Iscrizione Socio" e nella pagina privacy.
+- **Nessun tetto agli elenchi.** Le *Pagine elenco* mostrano tutti gli articoli della categoria (prima i primi 200) e i collegamenti pagina ↔ categoria valgono per tutte le pagine (prima le prime 50).
+- **Filtri che si sommano.** In `[vv_cards]` "In evidenza" e le date dell'evento ora restano entrambi nella query al database (`vv_add_meta_query()` in `inc/cards.php`); prima uno dei due si perdeva e il conto si rifaceva in PHP su più articoli.
+- **Robustezza.** Una data dell'evento salvata in un formato diverso da AAAA-MM-GG conta come assente, invece di fermare la pagina con un errore. I dati strutturati dei breadcrumb hanno `<` `>` `&` codificati, così un titolo resta dentro il suo `<script>`.
+- **Plugin di elenchi e slider tolti dal codice:** `featured-post-creative`, `wp-responsive-recent-post-slider` e `post-carousel` sono stati rimossi dal sito. La spunta "In evidenza" è sempre nel riquadro "VivaVoce: date e luogo" e usa lo stesso campo, quindi le spunte già messe restano.
+- **Via l'aspetto "ritaglio di carta".** `assets/css-ritaglio/`, i font Baloo 2 e Nunito e `divisore.svg` erano usati solo da lì e sono nella storia git (commit `cc6b27b`). La procedura per tornarci non funzionava più: i fogli attuali usano token che quella versione non ha.
+- **Strumenti di sviluppo:** test, regole di scrittura, zip e controlli automatici su GitHub (vedi *Sviluppo*).
+
 ## Versione 0.7.3
 
 - **Linguetta "Cookie" sul bordo sinistro**, in verticale, come il badge di reCAPTCHA su quello destro (`plugins.css`). Prima stava in basso a 16px dal bordo e su telefono copriva la faccina di sinistra della fascia turchese; ora sale con la fascia (`--vv-sotto`) come il badge e il "torna su". Posizione e larghezza le scrive il plugin nello stile inline: nel tema ci sono gli `!important`.
@@ -31,7 +44,8 @@ Le iscrizioni del modulo "Iscrizione Socio" (n. 274) dal 1° settembre 2026 arri
   // facoltativi: define( 'VV_SHEETS_FORM', 274 ); define( 'VV_SHEETS_DAL', '2026-09-01' );
   ```
 
-  Senza le due costanti il collegamento è spento. Conviene provarlo prima su una copia del foglio.
+  Senza le due costanti il collegamento è spento. Conviene provarlo prima su una copia del foglio. Il trasferimento va dichiarato nell'informativa: vedi `docs/informativa-albo-soci.md`.
+- **Frequenza reale.** wp-cron parte solo quando qualcuno visita il sito: con poche visite i 15 minuti si allungano. Per un ritmo regolare si può far chiamare `wp-cron.php` da un cron dell'hosting e mettere `define( 'DISABLE_WP_CRON', true );` in `wp-config.php`.
 - **Se il deployment dà "Non disponi dell'autorizzazione necessaria"**: di solito il browser ha più account Google aperti e l'editor di Apps Script usa quello sbagliato (si risolve in una finestra anonima con un solo account), oppure il permesso sul foglio è appena cambiato (chiudere l'editor e riaprirlo dal foglio). In alternativa lo script si crea nel proprio Drive (script.google.com → Nuovo progetto) mettendo l'ID del foglio in `ID_FOGLIO`.
 - **Tab "Assicurazione".** Deve leggere il tab dell'anno in corso, per esempio `=FILTER(CHOOSECOLS('DomandeAmmissione 2026-2027'!D2:O; 1;2;3;4;6;7;8;9;10;11;12); 'DomandeAmmissione 2026-2027'!A2:A="sì")` (Nome…Data di nascita, senza Telefono).
 
@@ -89,15 +103,15 @@ Le parti che nel sito originale non esistevano (hero, card, breadcrumb, scheda "
 
 **Due temi installati.** In produzione ci sono "VivaVoce" (cartella `wvoce`) e "VivaVoce Classic" (cartella `wvoce-classic`). WordPress salva le impostazioni del Customizer tema per tema: un tema appena attivato parte vuoto. Dalla 0.4.1 il tema copia da solo le impostazioni da un altro tema VivaVoce già configurato (quello con il logo), altrimenti da Sydney. I visitatori le vedono subito; la copia viene salvata alla prima visita del pannello di amministrazione, oppure all'attivazione. Dal tema nuovo restano solo le posizioni dei menu e il suo CSS aggiuntivo. Il segno della copia è l'opzione `vv_theme_mods_migrated_<cartella>`.
 
-**Tornare all'aspetto "ritaglio di carta" (0.3.x):** copiare i file di `assets/css-ritaglio/` sopra quelli di `assets/css/`, rimettere il preload dei font in `functions.php` e alzare `Version:` in `style.css`. Le sezioni *Menu mobile* e *Correzioni automatiche* qui sotto descrivono in parte quella versione.
+**L'aspetto "ritaglio di carta" (0.3.x)** è nella storia git (commit `cc6b27b`, cartella `assets/css-ritaglio/`, font Baloo 2 e Nunito). Dalla 0.7.4 è fuori dal tema: i fogli attuali, `style.css` compreso, usano una palette a ruoli e una scala di caratteri e spazi che quella versione non conosce, quindi ripristinarlo richiede di riscriverne i token.
 
 
-Tema child di **Sydney 2.71** per wvoce.it. Mantiene i colori pieni del marchio, ma con regole precise (stile "ritaglio di carta") e riordina i primi 3 livelli del sito.
+Il tema mantiene i colori pieni del marchio con regole precise di leggibilità e riordina i primi 3 livelli del sito.
 
 ## Messa in produzione
 
 1. **Backup** di file e database dal pannello dell'hosting.
-2. **Carica il tema**: *Aspetto → Temi → Aggiungi → Carica* con lo zip e scegli *Sostituisci l'attuale con quello caricato*. Lo zip deve avere lo stesso nome della cartella sul server (`wvoce-classic`): con un altro nome si crea un secondo tema senza impostazioni. Il padre è `sydney` (minuscolo: `Template: sydney` in `style.css`).
+2. **Carica il tema**: *Aspetto → Temi → Aggiungi → Carica* con lo zip (`bin/build-zip.sh`, vedi *Sviluppo*) e scegli *Sostituisci l'attuale con quello caricato*. Lo zip deve avere lo stesso nome della cartella sul server (`wvoce-classic`): con un altro nome si crea un secondo tema senza impostazioni. Il padre è `sydney` (minuscolo: `Template: sydney` in `style.css`).
 3. **Attiva il child.** Le impostazioni del Customizer vengono copiate da sole (`inc/migrate.php`). Il "CSS aggiuntivo" di Sydney è già riportato in `style.css`.
 
 **Tornare indietro:** si riattiva il tema precedente, le cui impostazioni restano intatte.
@@ -114,7 +128,7 @@ Tema child di **Sydney 2.71** per wvoce.it. Mantiene i colori pieni del marchio,
 | Chi siamo, Cosa facciamo, Cosa puoi fare | Attributi pagina → Modello **Pagina hub**. Dai alle sottopagine un'immagine in evidenza e un riassunto. Per nascondere una sottopagina dalle card: riquadro "VivaVoce". |
 | Chi siamo | Sostituisci il carosello dei fondatori con `[vv_cards categoria="soci" variante="persona" numero="8" ordine="titolo"]`. |
 | Eventi, Formazione, Progetti | Modello **Pagina elenco** e, nel riquadro "VivaVoce", la categoria (es. `laboratori`). Negli articoli, riquadro "VivaVoce: date e luogo", e un'immagine in evidenza (senza, il pannello mostra un riquadro grigio chiaro). Finché la pagina ha il modello predefinito resta l'elenco scritto a mano. |
-| Plugin | Quando home e Chi siamo non li usano più: disattiva `featured-post-creative`, `wp-responsive-recent-post-slider`, `post-carousel`. **Nota:** i primi due risultano *chiusi* su wordpress.org (settembre 2026): niente più aggiornamenti, quindi conviene toglierli presto. Fino ad allora `plugins.css` ne uniforma badge e pulsanti. |
+| Plugin | `featured-post-creative`, `wp-responsive-recent-post-slider` e `post-carousel` sono stati rimossi (ottobre 2026): home e Chi siamo usano `[vv_cards]`. |
 
 ## Home senza SiteOrigin
 
@@ -172,9 +186,10 @@ Automatiche su tutte le pagine tranne la home ("Home › Chi siamo › Statuto e
 ## Shortcode
 
 - `[vv_cards categoria="slug,slug" numero="6" variante="evento|persona|stampa|pagina" colonne="3" ordine="data|titolo" ids="1,2"]`: non ripete articoli già mostrati più su nella stessa pagina (`doppioni="si"` per permetterlo).
-  - `in_evidenza="si"`: solo gli articoli con la spunta **In evidenza** (lo stesso campo del vecchio plugin Featured Post Creative, quindi le spunte già messe restano valide). Finché il plugin è attivo la spunta è nel suo riquadro, dopo nel riquadro "VivaVoce: date e luogo"; nell'elenco articoli c'è la colonna ★.
+  - `in_evidenza="si"`: solo gli articoli con la spunta **In evidenza** (lo stesso campo del vecchio plugin Featured Post Creative, quindi le spunte già messe restano valide), nel riquadro "VivaVoce: date e luogo"; nell'elenco articoli c'è la colonna ★. Si somma alle altre condizioni, `periodo` compreso.
+  - `periodo="futuro"` o `periodo="dal-3-mesi"`: eventi dalle loro date (vedi *Versione 0.6*).
   - `fissati="si"`: aggiunge agli ultimi articoli quelli **Fissati in cima al blog** (casella di WordPress nell'editor), come faceva il vecchio carosello; tutto in ordine dal più recente al più vecchio.
-  - `layout="carosello"`: una riga che scorre con dito, rotella o frecce, con il contatore "1–3 di 18"; niente autoplay.
+  - `layout="carosello"`: una riga che scorre con dito, rotella o frecce, con il contatore "1–3 di 18"; con `autoplay="si"` scorre da solo, una card ogni 5 secondi, con il pulsante di pausa.
 - `[vv_sottopagine padre="ID"]`: card delle pagine figlie.
 - `[vv_elenco categoria="slug"]`: "In programma" + archivio per anno, tutto a pannelli.
 - `[vv_sostienici]`: socio / donazione / 5×1000.
@@ -186,7 +201,7 @@ Cambiando tema, Sydney accende da solo il suo costruttore header/footer (che ha 
 
 ## Cache
 
-In produzione tutti i file CSS e JS escono con `?ver=` uguale alla versione del tema. Dopo ogni aggiornamento del CSS alza `Version:` in `style.css` (per esempio 0.3.0 → 0.3.1), altrimenti i browser continuano a usare la copia vecchia.
+I fogli di `assets/css/` e `vv.js` escono con `?ver=` uguale alla data di modifica del file (`filemtime()` in `functions.php`): dopo un aggiornamento i browser scaricano da soli la copia nuova. A ogni rilascio conviene comunque alzare `Version:` in `style.css` (per esempio 0.7.3 → 0.7.4): vale per `style.css` stesso, caricato da Sydney, e dice quale versione è installata.
 
 ## Correzioni automatiche dei contenuti
 
@@ -197,25 +212,41 @@ In produzione tutti i file CSS e JS escono con `?ver=` uguale alla versione del 
 
 - Voci di elenco rimaste fuori da un `</ul>` (HTML rotto, per esempio in Formazione e laboratori) → riavvolte in un elenco. Il contenuto salvato non cambia; correggerlo nell'editor resta comunque una buona idea.
 
+## Sviluppo
+
+- **Test:** `php tests/run.php` controlla senza WordPress le funzioni pure: codice fiscale, righe e tab del foglio dei soci, date, slug, `meta_query`, lettere decorative.
+- **Regole di scrittura:** `composer install`, poi `composer lint` (phpcs con WordPress-Extra e compatibilità PHP 7.4, regole in `phpcs.xml.dist`). Nel codice le eccezioni motivate sono segnate con `phpcs:ignore`.
+- **Zip del tema:** `bin/build-zip.sh` crea `build/wvoce-classic.zip` con dentro la cartella `wvoce-classic`, il nome che il tema ha sul server. Contiene l'ultimo commit; test, documenti e file di sviluppo restano fuori (`.gitattributes`).
+- **GitHub Actions** (`.github/workflows/ci.yml`): a ogni push sintassi PHP e test, con PHP 7.4 e 8.3.
+
 ## Struttura
 
 ```
 style.css                 intestazione + CSS aggiuntivo ereditato da Sydney
-functions.php             caricamento di CSS e JS, script del tema chiaro/scuro
+functions.php             caricamento di CSS e JS, preload dei font, script del tema chiaro/scuro
+inc/migrate.php           copia delle impostazioni del Customizer, costruttore header/footer spento
+inc/setup.php             filtri su Sydney, traduzioni mancanti, pulizia dei contenuti, credits del footer
+inc/customizer.php        pannello VivaVoce (hero, dati dell'associazione)
+inc/meta.php              date e luogo degli eventi, "In evidenza", opzioni delle pagine
+inc/cards.php             card, griglie, date degli eventi, eventi per periodo
+inc/shortcodes.php        [vv_cards], [vv_sottopagine], [vv_elenco], [vv_sostienici], [vv_dati_fiscali]
+inc/home.php              hero della home al posto dello slider
+inc/archive.php           archivi a card, 12 per pagina
+inc/breadcrumbs.php       percorso in alto, dati strutturati, voce di menu della sezione corrente
+inc/single.php            articolo con colonna laterale, navigazione, altri soci fondatori
+inc/page.php              pagine con la colonna "In questa sezione"
+inc/redirects.php         301 degli indirizzi spariti
 inc/forminator.php        controllo del codice fiscale nei moduli Forminator
 inc/sheets.php            domande dei soci nel foglio Google "Albo Soci"
-docs/                     script Apps Script da incollare nel foglio
-inc/migrate.php           copia delle impostazioni di Sydney all'attivazione
-inc/setup.php             sidebar spenta, titoli archivio, pulizia contenuti, gate footer
-inc/customizer.php        pannello VivaVoce
-inc/meta.php              date/luogo degli articoli, opzioni delle pagine
-inc/cards.php             card, griglie, date evento
-inc/shortcodes.php        shortcode
-inc/home.php              hero della home
-inc/archive.php           archivi a card
 template-parts/           card.php, home-hero.php
 page-templates/           page-hub.php, page-elenco.php
+post-templates/           post_full.php ("Page builder ready" dei soci fondatori)
 assets/css/               tokens, base, layout, header, footer, components, home, pages, plugins, scuro
-assets/fonts/             Baloo 2 e Nunito (self-hosted, licenza OFL)
-assets/svg/               pennellata, divisore, blob (segnaposto: da sostituire con tratti dell'illustratore)
+assets/js/vv.js           testata, switcher del tema, caroselli, menu mobile, pulsanti "Copia"
+assets/fonts/             Poppins (self-hosted, licenza OFL)
+assets/img/               livelli dell'hero, faccine e scritta del footer, mano del "torna su"
+assets/svg/               pennellata dell'hero, blob delle card senza foto
+docs/                     script Apps Script del foglio soci, bozza di informativa privacy
+tests/                    test senza WordPress
+bin/build-zip.sh          zip del tema
 ```

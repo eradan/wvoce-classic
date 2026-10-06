@@ -129,9 +129,7 @@ function vv_aside_more( $exclude_id = 0 ) {
 	$extra = $exclude_id ? array( 'post__not_in' => array( $exclude_id ) ) : array();
 	$more  = vv_posts_by_period( 'eventi', 'futuro', 3, $extra );
 	if ( ! $more ) {
-		$more = vv_posts_in( '', 3, $extra + array(
-			'meta_query' => array( array( 'key' => VV_FEATURED_KEY, 'value' => '1' ) ), // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_query
-		) );
+		$more = vv_posts_in( '', 3, vv_add_meta_query( $extra, vv_featured_clause() ) );
 	}
 	if ( ! $more ) {
 		$more = vv_posts_in( '', 3, $extra );
