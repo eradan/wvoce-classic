@@ -39,6 +39,11 @@ Il percorso ha tre tempi: collaudo su una copia del foglio, passaggio al foglio 
    - Chi ha accesso: **Chiunque**.
    - Deployment → copiare l'**URL dell'app web**, che finisce con `/exec`.
 
+> **Se il deployment risponde "Non disponi dell'autorizzazione necessaria per eseguire questa azione".** Tre cause, in ordine di frequenza:
+> 1. **Più account Google aperti nel browser.** L'editor di Apps Script usa l'account predefinito (il primo con cui si è entrati), che può essere diverso da quello del foglio: l'indirizzo dell'editor contiene `/u/1/` o `/u/2/`. Rimedio: una finestra anonima (Ctrl+Maiusc+N in Chrome), accesso a Google con il solo account che gestisce il foglio, apertura del foglio, Estensioni → Apps Script, deployment.
+> 2. **Permesso sul foglio cambiato da poco** (condivisione appena ricevuta o modificata). Rimedio: chiudere la scheda dell'editor e riaprirla dal foglio con Estensioni → Apps Script.
+> 3. **Foglio di proprietà di un altro account**, o limiti dell'amministratore di Google Workspace. Rimedio: creare lo script nel proprio Drive. Su script.google.com → Nuovo progetto, incollare lo script e in `ID_FOGLIO` mettere l'ID del foglio, cioè la parte dell'indirizzo fra `/d/` e `/edit`. Poi `creaToken` e deployment come sopra. Basta essere editor del foglio. Se in "Chi ha accesso" manca la voce "Chiunque", è un limite del dominio Workspace: serve un account che lo consenta, oppure l'intervento dell'amministratore.
+
 ### 2.2 Costanti in WordPress
 
 1. Aprire `wp-config.php` (FTP o file manager dell'hosting), nella cartella principale di WordPress.
