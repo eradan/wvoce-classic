@@ -28,7 +28,7 @@ Le iscrizioni del modulo n. 1617 arrivano nel foglio "VivaVoce / Iscrizione Cors
      // facoltativi: define( 'VV_CORSI_FORM', 1617 ); define( 'VV_CORSI_DAL', '2026-09-01' );
      ```
 
-  3. Strumenti → Fogli Google: leggere i campi del modulo, completare la corrispondenza (un piccolo commit con gli id), controllare la prova a secco. Conviene provare prima su una copia del foglio.
+  3. Strumenti → Fogli Google: controllare i campi del modulo e la prova a secco. Conviene provare prima su una copia del foglio. Procedura completa di collaudo: `docs/attivazione-corsi.md`.
   4. Togliere al foglio il permesso "Chiunque abbia il link": lo script scrive con l'account di chi lo pubblica.
 - **Nuovo corso o opzione riscritta:** un tab nuovo nel foglio, il suo nome in `vv_corsi_tab_nomi()` e il testo esatto dell'opzione del modulo in `vv_corsi_tabs()`. Un'opzione modificata nel modulo senza questa voce finisce in "Da smistare", con il testo nella colonna "Corso".
 
