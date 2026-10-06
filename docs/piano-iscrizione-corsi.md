@@ -4,7 +4,7 @@
 
 - Fatti i punti 1–5 dell'*Approccio* sul ramo `claude/great-allen-4cfg7x`: collegamenti multipli in `inc/sheets.php`, righe dei corsi, `docs/apps-script-iscrizione-corsi.gs`, Strumenti → Fogli Google, test, README 0.8.0, `docs/informativa-fogli-google.md`. Lo script è stato provato su un foglio simulato (tab giusto, due corsi, "Da smistare", reinvio senza doppioni, K–N intatte, `=1+1` come testo).
 - Collegamento a wvoce.it attivo (sessione del 6 ottobre, ramo `claude/funny-cannon-9pes3w`): l'API risponde con l'utente amministratore. Forminator espone via REST solo le anteprime, quindi i campi del modulo 1617 sono stati letti dalla pagina pubblica `/iscrizione-corso/` (id 943).
-- Fatto: `vv_corsi_colonne()` completa (name-1, name-2, text-1, email-1, phone-2, upload-1, consent-1/2/3, textarea-1), `vv_corsi_campo()` = `checkbox-1`, le quattro opzioni del modulo in `vv_corsi_tabs()`. Le opzioni cominciano con "Adulti: Laboratorio di…" e il confronto tollerante le avrebbe mandate tutte in "Da smistare"; "tecniche attoriali" e l'anno 2206 del tab dei bambini avrebbero comunque mancato la corrispondenza. Se il valore delle caselle arriva come testo unito ("a, b") le opzioni si riconoscono dentro il testo.
+- Fatto: `vv_corsi_colonne()` completa (name-1, name-2, text-1, email-1, phone-2, upload-1, consent-1/2/3, textarea-1), `vv_corsi_campo()` = `checkbox-1`, le quattro opzioni del modulo in `vv_corsi_tabs()`. Le opzioni cominciano con "Adulti: Laboratorio di…" e il confronto tollerante le avrebbe mandate tutte in "Da smistare"; "tecniche attoriali" avrebbe comunque mancato la corrispondenza. Se il valore delle caselle arriva come testo unito ("a, b") le opzioni si riconoscono dentro il testo.
 - Da fare: installazione dello script sul foglio (o su una copia), costanti `VV_CORSI_URL` / `VV_CORSI_TOKEN` in `wp-config.php`, prova a secco in Strumenti → Fogli Google, verifica dell'elenco qui sotto. Il modulo indica "Bambini (elementari)", non più 3-6 anni: resta da chiarire quali dati del genitore servono per i minori.
 
 ## Context
@@ -14,7 +14,7 @@ Il modulo Forminator "Iscrizione ai corsi 2026-2027" (id 1617) oggi raccoglie le
 | Tab | Stato |
 |---|---|
 | `lettura-ad-alta-voce-2026` | modello: A Nome · B Cognome · C Codice Fiscale · D Email · E Cellulare · F Ricevuta · G Regolamento · H Socio · I Privacy · J Note · K–N libere (dovuto, quota associativa, pagamento / come, pagamento / quando) |
-| `tecnica-attoriale-2026`, `messa-in-scena-2027`, `gioco-del-teatro-2206` | vuoti |
+| `tecnica-attoriale-2026`, `messa-in-scena-2027`, `gioco-del-teatro-2026` | vuoti |
 
 Obiettivo: ogni iscrizione arriva da sola nel tab del corso scelto, colonne A–J; K–N restano alla segreteria. Lo schema è quello già in produzione per i soci (`inc/sheets.php` + `docs/apps-script-albo-soci.gs`).
 
@@ -95,7 +95,7 @@ Una sezione per collegamento, con stato, prova a secco, "Invia adesso" e "Ricomi
 2. `wp-config.php`: `VV_CORSI_URL`, `VV_CORSI_TOKEN`.
 3. Strumenti → Fogli Google: leggere i campi del modulo 1617, confermare la mappa (eventuale piccolo commit con gli id), controllare la prova a secco.
 4. **Togliere il permesso di modifica a "chiunque abbia il link"**: lo script scrive con l'account di chi lo pubblica, quindi il foglio può tornare riservato.
-5. Da controllare: il nome del tab `gioco-del-teatro-2206` (forse "2026"). Va bene in qualunque forma, purché coincida con la mappa.
+5. Nome del tab dei bambini: `gioco-del-teatro-2026` (confermato il 6 ottobre; nel foglio va rinominato il vecchio `gioco-del-teatro-2206`).
 
 ## Verifica
 

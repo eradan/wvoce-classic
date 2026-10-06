@@ -11,7 +11,7 @@ Tema child di **Sydney 2.71** per wvoce.it, aspetto "classico" vicino al sito or
 
 ### Foglio dei corsi
 
-Le iscrizioni del modulo n. 1617 arrivano nel foglio "VivaVoce / Iscrizione Corsi", un tab per corso (`lettura-ad-alta-voce-2026`, `tecnica-attoriale-2026`, `messa-in-scena-2027`, `gioco-del-teatro-2206`). Lo script scrive Nome, Cognome, Codice Fiscale, Email, Cellulare, Ricevuta, Regolamento, Socio, Privacy e Note (A–J); dovuto, quota associativa e pagamento (K–N) restano alla segreteria e lo script li lascia intatti. In O compare "Rif." (`F1617-` + numero dell'iscrizione), che evita i doppioni e si può nascondere.
+Le iscrizioni del modulo n. 1617 arrivano nel foglio "VivaVoce / Iscrizione Corsi", un tab per corso (`lettura-ad-alta-voce-2026`, `tecnica-attoriale-2026`, `messa-in-scena-2027`, `gioco-del-teatro-2026`). Lo script scrive Nome, Cognome, Codice Fiscale, Email, Cellulare, Ricevuta, Regolamento, Socio, Privacy e Note (A–J); dovuto, quota associativa e pagamento (K–N) restano alla segreteria e lo script li lascia intatti. In O compare "Rif." (`F1617-` + numero dell'iscrizione), che evita i doppioni e si può nascondere.
 
 - **Più corsi in un'iscrizione:** una riga in ciascun tab, con lo stesso Rif.
 - **Tab del corso.** Il valore scelto nel modulo trova il suo tab anche scritto in altro modo: "Lettura ad alta voce" → `lettura-ad-alta-voce-2026` (minuscole, senza accenti, trattini al posto degli spazi, anno finale facoltativo; un anno diverso da quello del tab non combacia). I casi che il confronto non risolve vanno in `vv_corsi_tabs()` (valore del modulo => nome del tab). Un tab esistente ma vuoto riceve le intestazioni del tab modello (`TAB_MODELLO` nello script).

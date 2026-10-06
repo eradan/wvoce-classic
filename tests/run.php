@@ -112,7 +112,7 @@ uguale( 'Chiave di un nome', 'gioco-del-teatro-3-6-anni', vv_corsi_chiave( 'Gioc
 uguale( 'Chiave con accenti', 'attivita-e-perche', vv_corsi_chiave( 'Attività e perché' ) );
 uguale( 'Corso uguale al tab', 'tecnica-attoriale-2026', vv_corsi_tab( 'tecnica-attoriale-2026' ) );
 uguale( 'Corso senza anno', 'lettura-ad-alta-voce-2026', vv_corsi_tab( 'Lettura ad alta voce' ) );
-uguale( 'Corso con dettagli', 'gioco-del-teatro-2206', vv_corsi_tab( 'Gioco del teatro (3-6 anni)' ) );
+uguale( 'Corso con dettagli', 'gioco-del-teatro-2026', vv_corsi_tab( 'Gioco del teatro (3-6 anni)' ) );
 uguale( 'Corso con lo stesso anno', 'messa-in-scena-2027', vv_corsi_tab( 'Messa in scena 2027' ) );
 uguale( 'Corso con un altro anno', 'Da smistare', vv_corsi_tab( 'Messa in scena 2028' ) );
 uguale( 'Corso sconosciuto', 'Da smistare', vv_corsi_tab( 'Dizione' ) );
@@ -156,7 +156,7 @@ $vv_opzioni_1617 = array_keys( vv_corsi_tabs() );
 uguale( 'Modulo 1617: campo del corso', 'checkbox-1', vv_corsi_campo() );
 uguale( 'Modulo 1617: ogni opzione nel suo tab', vv_corsi_tab_nomi(), array_map( 'vv_corsi_tab', $vv_opzioni_1617 ) );
 $righe = vv_corsi_righe( $vv_corsi_entry( array( $vv_opzioni_1617[0], $vv_opzioni_1617[3] ) ) );
-uguale( 'Modulo 1617: due caselle, due tab', array( 'lettura-ad-alta-voce-2026', 'gioco-del-teatro-2206' ), array_column( $righe, '_tab' ) );
+uguale( 'Modulo 1617: due caselle, due tab', array( 'lettura-ad-alta-voce-2026', 'gioco-del-teatro-2026' ), array_column( $righe, '_tab' ) );
 $righe = vv_corsi_righe( $vv_corsi_entry( $vv_opzioni_1617[2] . ', ' . $vv_opzioni_1617[1] ) );
 uguale( 'Modulo 1617: caselle unite in un testo', array( 'messa-in-scena-2027', 'tecnica-attoriale-2026' ), array_column( $righe, '_tab' ) );
 uguale( 'Modulo 1617: opzione riscritta', 'Da smistare', vv_corsi_tab( 'Adulti: Laboratorio di dizione, 2027' ) );

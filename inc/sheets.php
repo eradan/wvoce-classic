@@ -297,7 +297,7 @@ function vv_corsi_campo() {
 function vv_corsi_tab_nomi() {
 	return apply_filters(
 		'vv_corsi_tab_nomi',
-		array( 'lettura-ad-alta-voce-2026', 'tecnica-attoriale-2026', 'messa-in-scena-2027', 'gioco-del-teatro-2206' )
+		array( 'lettura-ad-alta-voce-2026', 'tecnica-attoriale-2026', 'messa-in-scena-2027', 'gioco-del-teatro-2026' )
 	);
 }
 
@@ -313,7 +313,7 @@ function vv_corsi_tabs() {
 			'Adulti: Laboratorio di lettura ad alta voce corale, ottobre-dicembre 2026 (martedì 18.30-20.30)' => 'lettura-ad-alta-voce-2026',
 			'Adulti: Laboratorio di tecniche attoriali, ottobre-dicembre 2026 (giovedì 18.30-20.30)' => 'tecnica-attoriale-2026',
 			'Adulti: Laboratorio di messa in scena, gennaio-giugno 2027 (giovedì 18.30-20.30)' => 'messa-in-scena-2027',
-			'Bambini (elementari): Il gioco del teatro, ottobre-dicembre 2026' => 'gioco-del-teatro-2206',
+			'Bambini (elementari): Il gioco del teatro, ottobre-dicembre 2026' => 'gioco-del-teatro-2026',
 		)
 	);
 }
