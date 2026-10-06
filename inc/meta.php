@@ -8,18 +8,10 @@
 defined( 'ABSPATH' ) || exit;
 
 /*
- * Spunta "In evidenza": si usa lo stesso campo del plugin Featured Post Creative,
- * così gli articoli già segnati restano in evidenza anche dopo averlo disattivato.
+ * Spunta "In evidenza": il campo è quello del vecchio plugin Featured Post Creative (ora rimosso),
+ * così gli articoli segnati allora restano in evidenza.
  */
 const VV_FEATURED_KEY = '_wpfp_featured_post';
-
-/**
- * Il plugin Featured Post Creative è attivo? In quel caso la spunta la gestisce lui
- * (due caselle sullo stesso campo si sovrascriverebbero a vicenda).
- */
-function vv_featured_plugin_active() {
-	return defined( 'WPFP_VERSION' );
-}
 
 /**
  * Registrazione dei campi (visibili anche via REST).
@@ -97,12 +89,10 @@ function vv_render_evento_box( $post ) {
 		'vv_data_fine' => array( 'Fine (facoltativa)', 'date' ),
 		'vv_luogo'     => array( 'Luogo', 'text' ),
 	);
-	if ( ! vv_featured_plugin_active() ) {
-		printf(
-			'<p><label><input type="checkbox" name="vv_in_evidenza" value="1" %s> <strong>In evidenza</strong> (riserva: compare in home e in "Da non perdere" solo quando non ci sono eventi in calendario)</label></p>',
-			checked( (string) get_post_meta( $post->ID, VV_FEATURED_KEY, true ), '1', false )
-		);
-	}
+	printf(
+		'<p><label><input type="checkbox" name="vv_in_evidenza" value="1" %s> <strong>In evidenza</strong> (riserva: compare in home e in "Da non perdere" solo quando non ci sono eventi in calendario)</label></p>',
+		checked( (string) get_post_meta( $post->ID, VV_FEATURED_KEY, true ), '1', false )
+	);
 	foreach ( $fields as $key => list( $label, $type ) ) {
 		printf(
 			'<p><label for="%1$s"><strong>%2$s</strong></label><br><input type="%3$s" id="%1$s" name="%1$s" value="%4$s" class="widefat"></p>',
@@ -147,7 +137,7 @@ function vv_save_meta( $post_id ) {
 	if ( ! current_user_can( 'edit_post', $post_id ) ) {
 		return;
 	}
-	if ( 'post' === get_post_type( $post_id ) && ! vv_featured_plugin_active() ) {
+	if ( 'post' === get_post_type( $post_id ) ) {
 		update_post_meta( $post_id, VV_FEATURED_KEY, empty( $_POST['vv_in_evidenza'] ) ? 0 : 1 );
 	}
 	$keys = 'page' === get_post_type( $post_id ) ? array( 'vv_categoria', 'vv_nascondi' ) : array( 'vv_data', 'vv_data_fine', 'vv_luogo' );
@@ -167,14 +157,11 @@ function vv_save_meta( $post_id ) {
 add_action( 'save_post', 'vv_save_meta' );
 
 /**
- * Colonna "In evidenza" (stellina) nell'elenco articoli, quando il vecchio plugin non c'è più.
+ * Colonna "In evidenza" (stellina) nell'elenco articoli.
  *
  * @param string[] $columns Colonne.
  */
 function vv_featured_column( $columns ) {
-	if ( vv_featured_plugin_active() ) {
-		return $columns;
-	}
 	$columns['vv_in_evidenza'] = '<span class="dashicons dashicons-star-filled" title="In evidenza"></span><span class="screen-reader-text">In evidenza</span>';
 	return $columns;
 }

@@ -19,6 +19,11 @@ function vv_event_dates( $post ) {
 	$end   = get_post_meta( $post->ID, 'vv_data_fine', true );
 	$tz    = wp_timezone();
 
+	// Una data salvata prima dei controlli (o scritta a mano nel database) che non è AAAA-MM-GG
+	// conta come assente: DateTimeImmutable fermerebbe la pagina con un errore.
+	$start = vv_sanitize_date( $start );
+	$end   = vv_sanitize_date( $end );
+
 	$has_meta = (bool) $start;
 	$start_ts = $start ? ( new DateTimeImmutable( $start, $tz ) )->getTimestamp() : get_post_timestamp( $post );
 	// Un evento resta "in programma" fino alla fine del suo ultimo giorno.
@@ -60,13 +65,11 @@ function vv_posts_by_period( $slugs, $periodo, $number, $extra = array() ) {
 	$from = 'dal-3-mesi' === $periodo ? strtotime( '-3 months', $now ) : $now;
 	$day  = wp_date( 'Y-m-d', $from );
 	// Prefiltro nel database (date AAAA-MM-GG confrontabili come testo), poi il conto esatto su fine giornata.
-	$posts = vv_posts_in( $slugs, -1, $extra + array(
-		'meta_query' => array( // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_query
-			'relation' => 'OR',
-			array( 'key' => 'vv_data_fine', 'value' => $day, 'compare' => '>=' ),
-			array( 'key' => 'vv_data', 'value' => $day, 'compare' => '>=' ),
-		),
-	) );
+	$posts = vv_posts_in( $slugs, -1, vv_add_meta_query( $extra, array(
+		'relation' => 'OR',
+		array( 'key' => 'vv_data_fine', 'value' => $day, 'compare' => '>=' ),
+		array( 'key' => 'vv_data', 'value' => $day, 'compare' => '>=' ),
+	) ) );
 
 	$next = array();
 	$past = array();
@@ -84,6 +87,29 @@ function vv_posts_by_period( $slugs, $periodo, $number, $extra = array() ) {
 	usort( $next, static fn( $a, $b ) => $a[1] <=> $b[1] );
 	usort( $past, static fn( $a, $b ) => $b[1] <=> $a[1] );
 	return array_slice( array_column( array_merge( $next, $past ), 0 ), 0, max( 1, (int) $number ) );
+}
+
+/**
+ * Aggiunge una condizione sui meta agli argomenti di WP_Query, in AND con quella che c'è già
+ * (per esempio "In evidenza" più le date dell'evento): con $extra + array( 'meta_query' => … )
+ * una delle due andrebbe persa.
+ *
+ * @param array $args   Argomenti per WP_Query.
+ * @param array $clause Condizione da aggiungere.
+ * @return array
+ */
+function vv_add_meta_query( $args, $clause ) {
+	$args['meta_query'] = empty( $args['meta_query'] ) // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_query
+		? $clause
+		: array( 'relation' => 'AND', $args['meta_query'], $clause );
+	return $args;
+}
+
+/**
+ * Condizione "spuntato In evidenza" per vv_add_meta_query().
+ */
+function vv_featured_clause() {
+	return array( array( 'key' => VV_FEATURED_KEY, 'value' => '1' ) );
 }
 
 /**

@@ -1,12 +1,6 @@
 <?php
 /**
- * Eredità delle impostazioni del Customizer di Sydney.
- *
- * WordPress salva le impostazioni del Customizer (logo, colori, hero, footer…)
- * per tema: attivando il child senza copiarle il sito perderebbe logo e hero.
- * Finché la migrazione non è registrata, le impostazioni del child vengono
- * lette "sopra" quelle di Sydney (vale anche per l'Anteprima dal vivo);
- * all'attivazione il risultato viene salvato una volta per tutte.
+ * Eredità delle impostazioni del Customizer e header/footer classici di Sydney.
  *
  * @package VivaVoce
  */

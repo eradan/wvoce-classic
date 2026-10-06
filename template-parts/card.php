@@ -1,6 +1,6 @@
 <?php
 /**
- * Card "ritaglio di carta".
+ * Card di articoli e pagine (griglie, caroselli, archivi).
  *
  * Argomenti: post (WP_Post), variante (evento|persona|stampa|pagina), accento (giallo|turchese|rosso), hx (h2|h3|h4).
  *

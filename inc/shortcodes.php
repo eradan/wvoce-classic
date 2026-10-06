@@ -59,12 +59,7 @@ function vv_sc_cards( $atts ) {
 	}
 	// Spunta "In evidenza": stesso campo del vecchio plugin Featured Post Creative.
 	if ( 'si' === $atts['in_evidenza'] ) {
-		$extra['meta_query'] = array(
-			array(
-				'key'   => VV_FEATURED_KEY,
-				'value' => '1',
-			),
-		);
+		$extra = vv_add_meta_query( $extra, vv_featured_clause() );
 	}
 
 	// Articoli "Fissati in cima al blog" prima degli altri, come faceva il vecchio carosello.
@@ -88,9 +83,7 @@ function vv_sc_cards( $atts ) {
 			return '<p class="vv-empty">Al momento non ci sono appuntamenti in programma: torna a trovarci presto!</p>';
 		}
 		if ( ! $posts ) {
-			$posts = vv_posts_in( '', (int) $atts['numero'], $extra + array(
-				'meta_query' => array( array( 'key' => VV_FEATURED_KEY, 'value' => '1' ) ), // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_query
-			) );
+			$posts = vv_posts_in( '', (int) $atts['numero'], vv_add_meta_query( $extra, vv_featured_clause() ) );
 		}
 	} else {
 		$posts = vv_posts_in( $slugs, (int) $atts['numero'], $extra );
@@ -152,7 +145,7 @@ add_shortcode( 'vv_sottopagine', 'vv_sc_sottopagine' );
  * @return string HTML.
  */
 function vv_render_elenco( $slugs ) {
-	$posts = vv_posts_in( $slugs, 200 );
+	$posts = vv_posts_in( $slugs, -1 );
 	if ( ! $posts ) {
 		return '';
 	}
