@@ -33,13 +33,15 @@ function vv_register_meta() {
 		'sanitize_callback' => 'sanitize_text_field',
 		'auth_callback'     => static fn() => current_user_can( 'edit_posts' ),
 	) );
-	register_post_meta( 'post', 'vv_senza_immagine', array(
-		'type'              => 'boolean',
-		'single'            => true,
-		'show_in_rest'      => true,
-		'sanitize_callback' => 'rest_sanitize_boolean',
-		'auth_callback'     => static fn() => current_user_can( 'edit_posts' ),
-	) );
+	foreach ( array( 'post', 'page' ) as $type ) {
+		register_post_meta( $type, 'vv_senza_immagine', array(
+			'type'              => 'boolean',
+			'single'            => true,
+			'show_in_rest'      => true,
+			'sanitize_callback' => 'rest_sanitize_boolean',
+			'auth_callback'     => static fn() => current_user_can( 'edit_posts' ),
+		) );
+	}
 	register_post_meta( 'page', 'vv_nascondi', array(
 		'type'              => 'boolean',
 		'single'            => true,
@@ -100,10 +102,7 @@ function vv_render_evento_box( $post ) {
 		'<p><label><input type="checkbox" name="vv_in_evidenza" value="1" %s> <strong>In evidenza</strong> (riserva: compare in home e in "Da non perdere" solo quando non ci sono eventi in calendario)</label></p>',
 		checked( (string) get_post_meta( $post->ID, VV_FEATURED_KEY, true ), '1', false )
 	);
-	printf(
-		'<p><input type="hidden" name="vv_senza_immagine" value="0"><label><input type="checkbox" name="vv_senza_immagine" value="1" %s> <strong>Senza immagine in testa</strong> (l\'immagine in evidenza resta per card, anteprime e condivisioni)</label></p>',
-		checked( (bool) get_post_meta( $post->ID, 'vv_senza_immagine', true ), true, false )
-	);
+	vv_render_senza_immagine( $post );
 	foreach ( $fields as $key => list( $label, $type ) ) {
 		printf(
 			'<p><label for="%1$s"><strong>%2$s</strong></label><br><input type="%3$s" id="%1$s" name="%1$s" value="%4$s" class="widefat"></p>',
@@ -117,11 +116,24 @@ function vv_render_evento_box( $post ) {
 }
 
 /**
+ * Casella "Senza immagine in testa" (articoli e pagine).
+ *
+ * @param WP_Post $post Articolo o pagina.
+ */
+function vv_render_senza_immagine( $post ) {
+	printf(
+		'<p><input type="hidden" name="vv_senza_immagine" value="0"><label><input type="checkbox" name="vv_senza_immagine" value="1" %s> <strong>Senza immagine in testa</strong> (l\'immagine in evidenza resta per card, anteprime e condivisioni)</label></p>',
+		checked( (bool) get_post_meta( $post->ID, 'vv_senza_immagine', true ), true, false )
+	);
+}
+
+/**
  * @param WP_Post $post Pagina.
  */
 function vv_render_pagina_box( $post ) {
 	wp_nonce_field( 'vv_meta', 'vv_meta_nonce' );
 	echo '<p class="description">L\'<strong>immagine in evidenza</strong> e il <strong>riassunto</strong> di questa pagina sono quelli della sua card nella pagina madre (per esempio in Cosa facciamo). Nelle "Pagine elenco" l\'immagine non compare in testa alla pagina, ma solo nella card.</p>';
+	vv_render_senza_immagine( $post );
 	printf(
 		'<p><input type="hidden" name="vv_nascondi" value="0"><label><input type="checkbox" name="vv_nascondi" value="1" %s> Non mostrare fra le card della pagina madre</label></p>',
 		checked( (bool) get_post_meta( $post->ID, 'vv_nascondi', true ), true, false )
@@ -151,7 +163,7 @@ function vv_save_meta( $post_id ) {
 	if ( 'post' === get_post_type( $post_id ) ) {
 		update_post_meta( $post_id, VV_FEATURED_KEY, empty( $_POST['vv_in_evidenza'] ) ? 0 : 1 );
 	}
-	$keys = 'page' === get_post_type( $post_id ) ? array( 'vv_categoria', 'vv_nascondi' ) : array( 'vv_data', 'vv_data_fine', 'vv_luogo', 'vv_senza_immagine' );
+	$keys = 'page' === get_post_type( $post_id ) ? array( 'vv_categoria', 'vv_nascondi', 'vv_senza_immagine' ) : array( 'vv_data', 'vv_data_fine', 'vv_luogo', 'vv_senza_immagine' );
 	foreach ( $keys as $key ) {
 		if ( ! isset( $_POST[ $key ] ) ) {
 			continue;

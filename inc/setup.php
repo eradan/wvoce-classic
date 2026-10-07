@@ -46,6 +46,35 @@ function vv_page_featured_image( $value ) {
 add_filter( 'theme_mod_enable_page_feat_images', 'vv_page_featured_image' );
 
 /**
+ * "Senza immagine in testa" (riquadro VivaVoce di articoli e pagine): nella pagina del contenuto
+ * Sydney non trova l'immagine in evidenza e non la stampa sopra il testo. Altrove (card, "Da non
+ * perdere", anteprime dei social) l'immagine resta.
+ *
+ * @param bool             $has  Il contenuto ha un'immagine in evidenza.
+ * @param int|WP_Post|null $post Articolo o pagina.
+ * @return bool
+ */
+function vv_senza_immagine_in_testa( $has, $post = null ) {
+	if ( ! $has || is_admin() || ! is_singular( array( 'post', 'page' ) ) || ! in_the_loop() || ! is_main_query() ) {
+		return $has;
+	}
+	$post = get_post( $post );
+	return ! ( $post && get_queried_object_id() === $post->ID && get_post_meta( $post->ID, 'vv_senza_immagine', true ) );
+}
+add_filter( 'has_post_thumbnail', 'vv_senza_immagine_in_testa', 10, 2 );
+
+/**
+ * Stessa regola per chi stampa l'immagine senza chiedere prima has_post_thumbnail().
+ *
+ * @param string $html    Immagine.
+ * @param int    $post_id Articolo o pagina.
+ */
+function vv_senza_immagine_in_testa_html( $html, $post_id ) {
+	return vv_senza_immagine_in_testa( true, $post_id ) ? $html : '';
+}
+add_filter( 'post_thumbnail_html', 'vv_senza_immagine_in_testa_html', 10, 2 );
+
+/**
  * Fascia sotto il footer: "© anno" e la scritta VIVA VOCE del logo, al posto del testo del Customizer
  * (Footer → Credits, che su Sydney finiva con "Proudly powered by Sydney"). Sydney sostituisce
  * {copyright} e {year}; le faccine ai lati sono nel CSS (footer.css).
