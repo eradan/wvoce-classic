@@ -91,6 +91,9 @@ function current_time( $type ) {
 	global $vv_adesso;
 	return $vv_adesso;
 }
+function esc_attr( $text ) {
+	return htmlspecialchars( (string) $text, ENT_QUOTES );
+}
 function esc_url( $url ) {
 	return (string) $url;
 }
@@ -135,7 +138,8 @@ uguale( 'Partita IVA al posto del CF', false, vv_codice_fiscale_valido( '0244119
 
 $errori = vv_forminator_check_cf( array(), 1617, array( array( 'name' => 'text-1', 'value' => 'RSSMRA85T10A562T' ) ) );
 uguale( 'Modulo 1617: CF sbagliato segnalato', array( array( 'text-1' => 'Controlla il codice fiscale: sono 16 lettere e numeri, come sulla tessera sanitaria.' ) ), $errori );
-uguale( 'Altro modulo: nessun controllo', array(), vv_forminator_check_cf( array(), 274, array( array( 'name' => 'text-1', 'value' => 'xxx' ) ) ) );
+uguale( 'Modulo 274: CF sbagliato segnalato', 1, count( vv_forminator_check_cf( array(), 274, array( array( 'name' => 'text-1', 'value' => 'RSSMRA85T10A562T' ) ) ) ) );
+uguale( 'Altro modulo: nessun controllo', array(), vv_forminator_check_cf( array(), 999, array( array( 'name' => 'text-1', 'value' => 'xxx' ) ) ) );
 
 // Foglio dei soci: tab dell'anno sociale (settembre-agosto) e data
 uguale( 'Tab di settembre', 'DomandeAmmissione 2026-2027', vv_soci_tab( '2026-09-01 00:00:00' ) );
@@ -279,7 +283,15 @@ uguale( 'Socio dell\'anno: iscrizione al corso accettata', array(), $vv_cf_corso
 uguale( 'Socio dell\'anno precedente: errore con il link', array( array( 'text-1' => $vv_msg_socio ) ), $vv_cf_corso( 'BNCLRA90A41G702N' ) );
 uguale( 'Iscrizione a socio nello spam: errore', array( array( 'text-1' => $vv_msg_socio ) ), $vv_cf_corso( 'VRDGPP80A01H501U' ) );
 uguale( 'CF sbagliato: solo il messaggio sul formato', 1, count( $vv_cf_corso( 'RSSMRA85T10A562T' ) ) );
-uguale( 'Altro modulo: niente controllo del socio', array(), vv_forminator_check_cf( array(), 274, array( array( 'name' => 'text-1', 'value' => 'BNCLRA90A41G702N' ) ) ) );
+uguale( 'Modulo soci: iscrizione dell\'anno precedente, si rinnova', array(), vv_forminator_check_cf( array(), 274, array( array( 'name' => 'text-1', 'value' => 'BNCLRA90A41G702N' ) ) ) );
+$vv_msg_doppio = 'Questo codice fiscale risulta già fra i soci 2026-2027: l\'iscrizione di quest\'anno è già registrata in anagrafica. Per domande o per correggere i dati scrivi a <a href="mailto:info@wvoce.it">info@wvoce.it</a>.';
+$vv_cf_socio   = static fn( $cf ) => vv_forminator_check_cf( array(), 274, array( array( 'name' => 'text-1', 'value' => $cf ) ) );
+uguale( 'Modulo soci: già iscritto quest\'anno, errore con l\'email', array( array( 'text-1' => $vv_msg_doppio ) ), $vv_cf_socio( 'RSSMRA85T10A562S' ) );
+uguale( 'Modulo soci: CF minuscolo con spazi riconosciuto', array( array( 'text-1' => $vv_msg_doppio ) ), $vv_cf_socio( 'rssmra85t10a562s ' ) );
+uguale( 'Modulo soci: iscrizione nello spam, si iscrive', array(), $vv_cf_socio( 'VRDGPP80A01H501U' ) );
+$vv_filtri['vv_forminator_soci_unici'] = static fn() => array();
+uguale( 'Modulo soci: controllo spento dal filtro', array(), $vv_cf_socio( 'RSSMRA85T10A562S' ) );
+unset( $vv_filtri['vv_forminator_soci_unici'] );
 $vv_adesso = '2026-08-20 10:00:00';
 uguale( 'Agosto: vale ancora l\'anno precedente', array(), $vv_cf_corso( 'BNCLRA90A41G702N' ) );
 $vv_adesso = '2026-10-07 10:00:00';
