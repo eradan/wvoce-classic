@@ -21,48 +21,36 @@
 defined( 'ABSPATH' ) || exit;
 
 /**
- * Collegamenti modulo → foglio. Per ciascuno: prefisso delle proprietà mostrate nel pannello
- * (VV_SOCI_URL…), modulo e data di partenza predefiniti, opzioni in cui si tengono impostazioni,
- * punto raggiunto e stato, funzione che fa le righe di un'iscrizione, colonne del foglio, script
- * Apps Script da incollare. "inizio": opzione del punto di partenza fissato al primo giro (si parte
- * dalle iscrizioni nuove); vuoto per partire dalla data. "requisito": funzione che dice cosa manca
- * per attivarlo.
+ * Collegamenti modulo → foglio. Per ciascuno: modulo e data di partenza predefiniti, funzione che fa
+ * le righe di un'iscrizione, colonne del foglio, script Apps Script da incollare. "inizio": opzione
+ * del punto di partenza fissato al primo giro (si parte dalle iscrizioni nuove); vuoto per partire
+ * dalla data. "requisito": funzione che dice cosa manca per attivarlo. Prefisso delle proprietà del
+ * pannello (VV_SOCI_URL…) e opzioni di impostazioni, punto raggiunto e stato (vv_soci_ultimo…)
+ * vengono dall'id, in vv_sheets_config().
  */
 function vv_sheets_collegamenti() {
 	return apply_filters(
 		'vv_sheets_collegamenti',
 		array(
 			'soci'  => array(
-				'titolo'       => 'Foglio soci',
-				'foglio'       => 'Albo Soci',
-				'prefisso'     => 'VV_SOCI',
-				'form'         => 274,
-				'dal'          => '2026-09-01',
-				'impostazioni' => 'vv_soci_impostazioni',
-				'ultimo'       => 'vv_soci_ultimo',
-				'stato'        => 'vv_soci_stato',
-				'inizio'       => '',
-				'righe'        => 'vv_soci_righe',
-				'colonne'      => 'vv_soci_colonne',
-				'requisito'    => '',
-				'campi'        => false,
-				'script'       => 'albo-soci.gs',
+				'titolo'  => 'Foglio soci',
+				'foglio'  => 'Albo Soci',
+				'form'    => 274,
+				'dal'     => '2026-09-01',
+				'righe'   => 'vv_soci_righe',
+				'colonne' => 'vv_soci_colonne',
+				'script'  => 'albo-soci.gs',
 			),
 			'corsi' => array(
-				'titolo'       => 'Foglio corsi',
-				'foglio'       => 'Iscrizione Corsi',
-				'prefisso'     => 'VV_CORSI',
-				'form'         => 1617,
-				'dal'          => '',
-				'impostazioni' => 'vv_corsi_impostazioni',
-				'ultimo'       => 'vv_corsi_ultimo',
-				'stato'        => 'vv_corsi_stato',
-				'inizio'       => 'vv_corsi_inizio',
-				'righe'        => 'vv_corsi_righe',
-				'colonne'      => 'vv_corsi_colonne',
-				'requisito'    => 'vv_corsi_requisito',
-				'campi'        => true,
-				'script'       => 'iscrizione-corsi.gs',
+				'titolo'    => 'Foglio corsi',
+				'foglio'    => 'Iscrizione Corsi',
+				'form'      => 1617,
+				'inizio'    => 'vv_corsi_inizio',
+				'righe'     => 'vv_corsi_righe',
+				'colonne'   => 'vv_corsi_colonne',
+				'requisito' => 'vv_corsi_requisito',
+				'campi'     => true,
+				'script'    => 'iscrizione-corsi.gs',
 			),
 		)
 	);

@@ -82,8 +82,8 @@ function vv_aside_related( $post_id ) {
 	if ( ! $tags ) {
 		return '';
 	}
-	$press = get_category_by_slug( 'rassegna-stampa' );
-	$base  = array(
+	$press  = get_category_by_slug( 'rassegna-stampa' );
+	$base   = array(
 		'tag__in'      => $tags,
 		'post__not_in' => array( $post_id ),
 	);
@@ -127,7 +127,9 @@ function vv_aside_list( $title, $posts ) {
 	}
 	$html = '<div class="vv-aside-more"><h2 class="vv-info__title">' . esc_html( $title ) . '</h2><ul class="vv-aside-list">';
 	foreach ( $posts as $p ) {
+		// Senza immagine un riquadro della stessa misura, così i titoli restano in colonna.
 		$thumb = get_the_post_thumbnail( $p, 'thumbnail', array( 'alt' => '', 'loading' => 'lazy' ) );
+		$thumb = $thumb ? $thumb : '<span class="vv-aside-list__vuoto" aria-hidden="true"></span>';
 		$html .= '<li><a href="' . esc_url( get_permalink( $p ) ) . '">' . $thumb . '<span>' . esc_html( vv_plain_letters( wp_strip_all_tags( get_the_title( $p ) ), false ) ) . '</span></a></li>';
 	}
 	return $html . '</ul></div>';

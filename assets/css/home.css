@@ -1,6 +1,6 @@
-/* VivaVoce 0.4 "classico": home.
+/* VivaVoce: home.
  * Hero come l'originale: l'illustrazione a tutta larghezza con i pulsanti sopra, in basso.
- * Occhiello e testo dell'hero non si vedono; il titolo resta per screen reader e motori di ricerca. */
+ * Il titolo dell'hero non si vede: resta per screen reader e motori di ricerca. */
 
 .vv-hero {
 	position: relative;
@@ -18,12 +18,18 @@
 .vv-hero__art {
 	margin: 0;
 }
+/* Altezza: lo schermo meno la testata. svh è l'altezza con la barra degli indirizzi del telefono in
+ * vista, così i pulsanti restano sopra la piega; vh resta per i browser che non lo conoscono. */
+.vv-hero__art > img,
+.vv-hero__art--animata {
+	height: calc(100vh - 130px);
+	height: calc(100svh - 130px);
+	min-height: 420px;
+	max-height: 860px;
+}
 .vv-hero__art > img {
 	display: block;
 	width: 100%;
-	height: calc(100vh - 130px);
-	min-height: 420px;
-	max-height: 860px;
 	object-fit: contain;
 	object-position: center;
 }
@@ -35,11 +41,6 @@
 	z-index: 2;
 	padding: 0 15px;
 	text-align: center;
-}
-.vv-hero__kicker,
-.vv-hero__lead,
-.vv-hero__stroke {
-	display: none !important;
 }
 .vv-hero .vv-hero__title {
 	position: absolute !important;
@@ -78,9 +79,6 @@
  * (1900×1615), grande come l'immagine con object-fit: contain; posizioni in % della tela. */
 .vv-hero__art--animata {
 	position: relative;
-	height: calc(100vh - 130px);
-	min-height: 420px;
-	max-height: 860px;
 	container-type: size;
 }
 .vv-hero__tela {
@@ -90,17 +88,15 @@
 	width: min(100cqw, 100cqh * 1900 / 1615);
 	aspect-ratio: 1900 / 1615;
 	translate: -50% -50%;
-}
-/* Ovale dietro testa e mano, fermo mentre si muovono: sul fondo scuro stacca la parte nera del
- * disegno. Colore in tokens.css (--vv-fondo-disco: perla nel tema scuro, nel chiaro uguale al fondo,
- * quindi invisibile); forma e posizione in % della tela. Testa e mano insieme vanno da 8,5% a 85,6%
- * in larghezza e da 5,8% a 80,3% in altezza; le punte dei capelli possono uscire dall'ovale. */
-.vv-hero__tela {
 	--vv-disco-x: 5%;
 	--vv-disco-y: 12%;
 	--vv-disco-l: 86%;
 	--vv-disco-a: 76%;
 }
+/* Ovale dietro testa e mano, fermo mentre si muovono: sul fondo scuro stacca la parte nera del
+ * disegno. Colore in tokens.css (--vv-fondo-disco: perla nel tema scuro, nel chiaro uguale al fondo,
+ * quindi invisibile); forma e posizione in % della tela. Testa e mano insieme vanno da 8,5% a 85,6%
+ * in larghezza e da 5,8% a 80,3% in altezza; le punte dei capelli possono uscire dall'ovale. */
 .vv-hero__tela::before {
 	content: "";
 	position: absolute;
@@ -167,14 +163,10 @@
 }
 
 @media (max-width: 767px) {
+	.vv-hero__art > img,
 	.vv-hero__art--animata {
 		height: 60vh;
-		min-height: 300px;
-	}
-}
-@media (max-width: 767px) {
-	.vv-hero__art > img {
-		height: 60vh;
+		height: 60svh;
 		min-height: 300px;
 	}
 	.vv-hero__text {
@@ -206,17 +198,6 @@
 	text-transform: uppercase !important;
 	color: var(--vv-titoli-sezione) !important;
 }
-.home .so-panel .widget-title::after,
-.home .panel-grid .widget-title::after {
-	content: "";
-	position: absolute;
-	left: 50%;
-	bottom: 0;
-	width: 50px;
-	height: 3px;
-	margin-left: -25px;
-	background: var(--vv-giallo);
-}
 .home .panel-grid + .panel-grid {
 	margin-top: var(--vv-spazio);
 }
@@ -244,11 +225,9 @@
 	z-index: 1;
 	justify-content: flex-end;
 	padding: 60px 20px 20px;
-	background: linear-gradient(to bottom, transparent 0, rgb(var(--vv-velo) / 0.6) 35%, rgb(var(--vv-velo) / 0.85) 100%);
-}
-.home .vv-grid--evento:not(.vv-grid--carosello) .vv-card__body {
-	margin-top: auto;
 	flex: none;
+	margin-top: auto;
+	background: linear-gradient(to bottom, transparent 0, rgb(var(--vv-velo) / 0.6) 35%, rgb(var(--vv-velo) / 0.85) 100%);
 }
 .home .vv-grid--evento:not(.vv-grid--carosello) .vv-card__link,
 .home .vv-grid--evento:not(.vv-grid--carosello) .vv-card__meta {

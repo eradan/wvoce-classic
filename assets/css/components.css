@@ -1,4 +1,4 @@
-/* VivaVoce 0.4 "classico": card e griglie nello stile dei vecchi plugin di elenchi e degli archivi di Sydney. */
+/* VivaVoce: card e griglie nello stile dei vecchi plugin di elenchi e degli archivi di Sydney. */
 
 /* Griglie */
 .vv-grid {
@@ -14,30 +14,30 @@
 	.vv-grid--4 { grid-template-columns: repeat(4, 1fr); }
 }
 
-/* Card: immagine sopra, testo sotto, niente bordi né ombre */
+/* Card: immagine sopra, testo sotto, fondo grigio chiaro e barretta in alto che ruota fra giallo,
+ * turchese e rosso (classe vv-accent--* data da vv_accent()), come i riquadri di "Sostienici" */
 .vv-card {
 	position: relative;
 	display: flex;
 	flex-direction: column;
-	background: transparent;
-}
-/* Negli elenchi, come i riquadri di "Sostienici": fondo grigio chiaro e barretta in alto che ruota
- * fra giallo, turchese e rosso (classe vv-accent--* data da vv_accent()) */
-.vv-card:not(.vv-card--cta) {
 	background: var(--vv-fondo-card);
 	border-top: 4px solid var(--vv-giallo);
 }
-.vv-card.vv-accent--turchese:not(.vv-card--cta) { border-top-color: var(--vv-turchese); }
-.vv-card.vv-accent--rosso:not(.vv-card--cta) { border-top-color: var(--vv-rosso); }
-.vv-card:not(.vv-card--cta) .vv-card__body {
-	padding: var(--vv-s-2) 20px 20px;
+.vv-card.vv-accent--turchese { border-top-color: var(--vv-turchese); }
+.vv-card.vv-accent--rosso { border-top-color: var(--vv-rosso); }
+/* Il link copre tutta la card: il contorno del focus va sulla card, altrimenti non si vede */
+.vv-card:has(.vv-card__link:focus-visible) {
+	outline: 3px solid var(--vv-link);
+	outline-offset: 2px;
 }
-/* Sul grigio chiaro il grigio delle date (4,2:1) non basta: un tono più scuro (5,5:1) */
-.vv-card:not(.vv-card--cta) .vv-card__meta {
-	color: var(--vv-testo-meta);
+.vv-card__link:focus-visible {
+	outline: 0;
 }
 /* Senza foto: riquadro un po' più scuro del fondo della card */
 .vv-card--no-img .vv-card__media {
+	background: var(--vv-riquadro);
+}
+.vv-card__media {
 	background: var(--vv-riquadro);
 }
 .vv-card__media {
@@ -57,13 +57,11 @@
 .vv-card:hover .vv-card__img {
 	transform: scale(1.04);
 }
-.vv-card__blob {
-	display: none;
-}
 .vv-card__body {
 	display: flex;
 	flex: 1;
 	flex-direction: column;
+	padding: var(--vv-s-2) 20px 20px;
 }
 .vv-grid .vv-card .vv-card__title,
 .vv-card .vv-card__title {
@@ -79,7 +77,7 @@
 	margin: 0 0 var(--vv-s-1);
 	font-size: var(--vv-fs-meta);
 	line-height: 1.5;
-	color: var(--vv-testo-2);
+	color: var(--vv-testo-meta); /* sul grigio della card il grigio del testo secondario non basta */
 }
 .vv-card__text,
 .vv-card__source {
@@ -89,7 +87,7 @@
 	line-height: 1.6;
 	color: var(--vv-testo);
 }
-.vv-card:not(.vv-card--cta) .vv-card__text {
+.vv-card__text {
 	display: -webkit-box;
 	-webkit-box-orient: vertical;
 	-webkit-line-clamp: 3;
@@ -125,6 +123,7 @@
 	line-height: 1.4;
 	letter-spacing: 0.5px;
 	text-transform: uppercase;
+	pointer-events: none; /* il clic passa al link della card */
 }
 .vv-grid .vv-card:nth-child(4n+2) .vv-badge { background: var(--vv-badge-2); }
 .vv-grid .vv-card:nth-child(4n+3) .vv-badge { background: var(--vv-badge-3); }
@@ -164,16 +163,13 @@
 	font-size: var(--vv-fs-meta);
 }
 
-/* Sostienici */
+/* Sostienici: il margine interno è del riquadro, il testo resta intero */
 .vv-card--cta {
 	padding: var(--vv-s-3);
-	background: var(--vv-fondo-card);
-	border-top: 4px solid var(--vv-giallo);
 }
-.vv-accent--turchese.vv-card--cta { border-top-color: var(--vv-turchese); }
-.vv-accent--rosso.vv-card--cta { border-top-color: var(--vv-rosso); }
 .vv-card--cta .vv-card__body {
 	gap: 12px;
+	padding: 0;
 }
 .vv-grid .vv-card--cta .vv-card__title {
 	color: var(--vv-testo);
@@ -219,6 +215,17 @@
 	background: var(--vv-fondo-attivo);
 }
 
+/* [vv_cards periodo="futuro"] senza appuntamenti: un riquadro come le card, non una riga persa */
+.vv-empty {
+	margin: 0 0 var(--vv-gap);
+	padding: var(--vv-s-4) var(--vv-s-3);
+	background: var(--vv-fondo-card);
+	border-top: 4px solid var(--vv-giallo);
+	font-size: var(--vv-fs-corpo);
+	text-align: center;
+	color: var(--vv-testo-2);
+}
+
 /* Pagina elenco: "In programma" a card grandi, l'archivio per anno a pannelli più piccoli */
 .vv-elenco + .vv-elenco {
 	margin-top: var(--vv-spazio);
@@ -241,9 +248,10 @@
 		grid-template-columns: repeat(2, minmax(0, 1fr));
 	}
 }
-/* Schede delle "Pagine elenco" senza date (Progetti): il riassunto intero, senza data né etichetta
- * di categoria (sono tutte uguali) */
-.vv-elenco--schede .vv-card:not(.vv-card--cta) .vv-card__text {
+/* Riassunto intero in "Sostienici" e nelle schede delle "Pagine elenco" senza date (Progetti),
+ * queste ultime senza data né etichetta di categoria (sono tutte uguali) */
+.vv-card--cta .vv-card__text,
+.vv-elenco--schede .vv-card__text {
 	display: block;
 	-webkit-line-clamp: unset;
 	line-clamp: none;
@@ -262,7 +270,7 @@
 .vv-elenco--archivio .vv-badge {
 	display: none;
 }
-.vv-elenco--archivio .vv-card:not(.vv-card--cta) .vv-card__body {
+.vv-elenco--archivio .vv-card__body {
 	padding: 12px 14px 16px;
 }
 
@@ -273,18 +281,6 @@
 	.vv-elenco--archivio .vv-card__meta {
 		font-size: 13px;
 	}
-}
-.vv-timeline {
-	margin: 0 0 1em;
-	padding-left: 20px;
-}
-.vv-timeline li {
-	margin-bottom: 6px;
-}
-.vv-timeline__date {
-	margin-left: 6px;
-	font-size: var(--vv-fs-meta);
-	color: var(--vv-testo-2);
 }
 
 /* Carosello: scorrimento con le frecce scure ai lati, come il vecchio slider */
@@ -333,13 +329,23 @@
 	color: var(--vv-testo-su-scuro);
 	border: 0;
 	border-radius: 0;
-	font-size: 28px;
 	line-height: 1;
 	cursor: pointer;
 }
 .vv-carousel__btn[data-dir="-1"] { left: -15px; }
 .vv-carousel__btn[data-dir="1"] { right: -15px; }
 /* Sydney toglie il fondo ai pulsanti al passaggio del mouse (button:hover): la freccia spariva */
+.vv-carousel__btn svg {
+	display: block;
+	width: 22px;
+	height: 22px;
+	margin: auto;
+	fill: none;
+	stroke: currentColor;
+	stroke-width: 2.5;
+	stroke-linecap: round;
+	stroke-linejoin: round;
+}
 .vv-carousel__btn:hover,
 .vv-carousel__btn:focus-visible {
 	background: var(--vv-testo);
@@ -402,12 +408,10 @@
 		justify-content: center;
 		width: 36px;
 		height: 36px;
-		padding-bottom: 3px;
 		background: transparent;
 		color: var(--vv-testo);
 		border: 1px solid var(--vv-testo-2);
 		border-radius: 50%;
-		font-size: 24px;
 	}
 	.vv-carousel__bar .vv-carousel__btn[data-dir]:not(:disabled):hover,
 	.vv-carousel__bar .vv-carousel__btn[data-dir]:focus-visible {
@@ -422,13 +426,11 @@
 
 /* Link generati dal tema fuori dal contenuto (archivio per anno delle "Pagine elenco"):
  * Sydney li colorerebbe col colore 1 del Customizer (giallo su bianco). */
-.vv-page-extra a:not(.vv-card__link),
-.vv-timeline a {
+.vv-page-extra a:not(.vv-card__link) {
 	color: var(--vv-link);
 	text-decoration: none;
 }
-.vv-page-extra a:not(.vv-card__link):hover,
-.vv-timeline a:hover {
+.vv-page-extra a:not(.vv-card__link):hover {
 	color: var(--vv-testo);
 }
 

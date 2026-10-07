@@ -104,9 +104,23 @@ function sanitize_title( $title ) {
 	return trim( preg_replace( '/[^a-z0-9]+/', '-', strtolower( (string) $title ) ), '-' );
 }
 
+define( 'DAY_IN_SECONDS', 86400 );
+/**
+ * Date in italiano come wp_date(), per i soli formati del tema (j, n, Y, F, M).
+ */
+function wp_date( $format, $ts ) {
+	$mesi = array( 'gennaio', 'febbraio', 'marzo', 'aprile', 'maggio', 'giugno', 'luglio', 'agosto', 'settembre', 'ottobre', 'novembre', 'dicembre' );
+	$out  = '';
+	foreach ( str_split( $format ) as $c ) {
+		$n    = (int) gmdate( 'n', $ts ) - 1;
+		$out .= 'F' === $c ? $mesi[ $n ] : ( 'M' === $c ? substr( $mesi[ $n ], 0, 3 ) : ( ctype_alpha( $c ) ? gmdate( $c, $ts ) : $c ) );
+	}
+	return $out;
+}
+
 require dirname( __DIR__ ) . '/inc/meta.php';
 require dirname( __DIR__ ) . '/inc/cards.php';
-require dirname( __DIR__ ) . '/inc/setup.php';
+require dirname( __DIR__ ) . '/inc/contenuti.php';
 require dirname( __DIR__ ) . '/inc/forminator.php';
 require dirname( __DIR__ ) . '/inc/sheets.php';
 
@@ -300,6 +314,14 @@ uguale( 'Controllo del socio spento dal filtro', array(), $vv_cf_corso( 'BNCLRA9
 unset( $vv_filtri['vv_forminator_soci_richiesti'] );
 Forminator_API::$entries = array();
 
+// Controlli dei moduli: seguono il modulo scelto nel pannello, non un numero scritto nel codice
+uguale( 'Moduli predefiniti: corsi e soci', array( 1617 => 'text-1', 274 => 'text-1' ), vv_forminator_cf_fields() );
+$vv_opzioni['vv_corsi_impostazioni'] = array( 'form' => 1800 );
+uguale( 'Modulo dei corsi cambiato: CF controllato sul nuovo', 1, count( vv_forminator_check_cf( array(), 1800, array( array( 'name' => 'text-1', 'value' => 'RSSMRA85T10A562T' ) ) ) ) );
+uguale( 'Modulo dei corsi cambiato: socio richiesto sul nuovo', array( 1800 => 'text-1' ), vv_forminator_soci_richiesti() );
+uguale( 'Modulo dei corsi cambiato: il vecchio non si controlla più', array(), vv_forminator_check_cf( array(), 1617, array( array( 'name' => 'text-1', 'value' => 'xxx' ) ) ) );
+unset( $vv_opzioni['vv_corsi_impostazioni'] );
+
 // Impostazioni dal pannello, non da wp-config.php
 $vv_opzioni = array();
 define( 'VV_SHEETS_URL', 'https://script.google.com/macros/s/vecchio/exec' );
@@ -395,6 +417,15 @@ uguale( 'Script dei corsi con il tab configurazioni', true, false !== strpos( vv
 uguale( 'Data valida', '2026-10-06', vv_sanitize_date( ' 2026-10-06 ' ) );
 uguale( 'Data in altro formato', '', vv_sanitize_date( '06/10/2026' ) );
 uguale( 'Slug', 'eventi,corsi-e-laboratori', vv_sanitize_slugs( 'Eventi, Corsi e laboratori,,' ) );
+
+// Etichette degli eventi su più giorni: i giorni fino a un mese, poi i mesi
+$vv_giorni = static fn( $da, $a ) => vv_date_range_label( strtotime( $da ), strtotime( $a . ' 23:59:59' ) );
+uguale( 'Evento di tre giorni', '3–5 ottobre 2026', $vv_giorni( '2026-10-03', '2026-10-05' ) );
+uguale( 'Evento a cavallo di due mesi', '28 settembre – 3 ottobre 2026', $vv_giorni( '2026-09-28', '2026-10-03' ) );
+uguale( 'Evento a cavallo dell\'anno', '30 dicembre 2026 – 2 gennaio 2027', $vv_giorni( '2026-12-30', '2027-01-02' ) );
+uguale( 'Mese intero', '1–31 ottobre 2026', $vv_giorni( '2026-10-01', '2026-10-31' ) );
+uguale( 'Corso di una stagione', 'ott–dic 2026', $vv_giorni( '2026-10-01', '2026-12-15' ) );
+uguale( 'Corso su due anni', 'ott 2026 – mag 2027', $vv_giorni( '2026-10-01', '2027-05-31' ) );
 
 // meta_query: le condizioni si sommano, nessuna va persa
 $date = array( array( 'key' => 'vv_data', 'value' => '2026-10-06', 'compare' => '>=' ) );

@@ -1,4 +1,4 @@
-/* VivaVoce 0.4 "classico": pagine interne e articoli. Gli elenchi restano elenchi puntati normali. */
+/* VivaVoce: pagine interne e articoli. Gli elenchi restano elenchi puntati normali. */
 
 /* Pagine: l'immagine in evidenza fra titolo e testo (il filtro è in inc/setup.php), larga quanto
  * il testo e ritagliata 16:9, a spigoli vivi. Senza immagine in evidenza non compare nulla. */
@@ -216,13 +216,16 @@
 .vv-aside-list a:hover {
 	color: var(--vv-testo);
 }
-.vv-aside-list img {
+.vv-aside-list :is(img, .vv-aside-list__vuoto) {
+	display: block;
 	width: 60px;
 	height: 60px;
 	object-fit: cover;
 }
-.vv-aside-list a:not(:has(img)) {
-	grid-template-columns: 1fr;
+/* Senza immagine: il grigio del riquadro con la barretta gialla delle card */
+.vv-aside-list__vuoto {
+	background: var(--vv-riquadro);
+	border-top: 3px solid var(--vv-giallo);
 }
 
 /* Articolo precedente / successivo: due link, come la navigazione di Sydney */

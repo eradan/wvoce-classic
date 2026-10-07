@@ -34,15 +34,7 @@ function vv_event_dates( $post ) {
 	$last_day = $end ? $end : $start;
 	$end_ts   = $last_day ? ( new DateTimeImmutable( $last_day . ' 23:59:59', $tz ) )->getTimestamp() : $start_ts;
 
-	if ( ! $has_meta || ! $end || $end === $start ) {
-		$label = wp_date( 'j F Y', $start_ts );
-	} elseif ( wp_date( 'Y', $start_ts ) === wp_date( 'Y', $end_ts ) ) {
-		$label = wp_date( 'F', $start_ts ) === wp_date( 'F', $end_ts )
-			? wp_date( 'F Y', $start_ts )
-			: wp_date( 'M', $start_ts ) . '–' . wp_date( 'M Y', $end_ts );
-	} else {
-		$label = wp_date( 'M Y', $start_ts ) . ' – ' . wp_date( 'M Y', $end_ts );
-	}
+	$label = $has_meta && $end && $end !== $start ? vv_date_range_label( $start_ts, $end_ts ) : wp_date( 'j F Y', $start_ts );
 
 	return array(
 		'start'    => $start_ts,
@@ -53,12 +45,33 @@ function vv_event_dates( $post ) {
 }
 
 /**
+ * Etichetta di un evento su più giorni. Fino a un mese i giorni contano ("3–5 ottobre 2026",
+ * "28 settembre – 3 ottobre 2026"); oltre, per i corsi che durano una stagione, bastano i mesi
+ * ("ott–dic 2026", "ott 2026 – mag 2027").
+ *
+ * @param int $start_ts Inizio.
+ * @param int $end_ts   Fine.
+ */
+function vv_date_range_label( $start_ts, $end_ts ) {
+	$same_year = wp_date( 'Y', $start_ts ) === wp_date( 'Y', $end_ts );
+	if ( $end_ts - $start_ts <= 31 * DAY_IN_SECONDS ) {
+		if ( $same_year && wp_date( 'n', $start_ts ) === wp_date( 'n', $end_ts ) ) {
+			return wp_date( 'j', $start_ts ) . '–' . wp_date( 'j F Y', $end_ts );
+		}
+		return wp_date( $same_year ? 'j F' : 'j F Y', $start_ts ) . ' – ' . wp_date( 'j F Y', $end_ts );
+	}
+	return $same_year
+		? wp_date( 'M', $start_ts ) . '–' . wp_date( 'M Y', $end_ts )
+		: wp_date( 'M Y', $start_ts ) . ' – ' . wp_date( 'M Y', $end_ts );
+}
+
+/**
  * Eventi di un periodo, dalle date dell'evento (vv_data, vv_data_fine), non da quella di pubblicazione.
  * Prima quelli in programma, dal più vicino; poi quelli già passati, dal più recente.
  *
  * @param string $slugs   Categorie separate da virgola (le figlie sono comprese).
  * @param string $periodo futuro (non ancora finiti) | dal-3-mesi (finiti da meno di 3 mesi, o non ancora finiti).
- * @param int    $number  Quanti al massimo.
+ * @param int    $number  Quanti al massimo (0 o meno: tutti).
  * @param array  $extra   Argomenti aggiuntivi per WP_Query (per esempio post__not_in).
  * @return WP_Post[]
  */
@@ -88,7 +101,8 @@ function vv_posts_by_period( $slugs, $periodo, $number, $extra = array() ) {
 	}
 	usort( $next, static fn( $a, $b ) => $a[1] <=> $b[1] );
 	usort( $past, static fn( $a, $b ) => $b[1] <=> $a[1] );
-	return array_slice( array_column( array_merge( $next, $past ), 0 ), 0, max( 1, (int) $number ) );
+	$posts = array_column( array_merge( $next, $past ), 0 );
+	return (int) $number > 0 ? array_slice( $posts, 0, (int) $number ) : $posts;
 }
 
 /**
@@ -136,7 +150,7 @@ function vv_render_cards( $posts, $variante = 'evento', $opts = array() ) {
 	if ( ! $posts ) {
 		return '';
 	}
-	$opts = wp_parse_args( $opts, array(
+	$opts     = wp_parse_args( $opts, array(
 		'colonne'        => 'persona' === $variante ? 4 : 3,
 		'titolo_livello' => 'h3',
 		'layout'         => 'griglia',
@@ -195,65 +209,4 @@ function vv_posts_in( $slugs, $number = 6, $extra = array() ) {
  */
 function vv_post_categories( $post_id ) {
 	return array_values( array_filter( get_the_category( $post_id ), static fn( $c ) => 'nessuna-categoria' !== $c->slug && 'uncategorized' !== $c->slug ) );
-}
-
-/**
- * Due colonne, per articoli e pagine: il contenuto di Sydney (titolo, immagine, testo) e la colonna
- * laterale; i commenti sotto la griglia, così su mobile la colonna arriva subito dopo il testo.
- *
- * @param string   $classes Classi aggiuntive della content-area.
- * @param string   $part    Parte del contenuto di Sydney (single, page).
- * @param string   $label   Nome accessibile della colonna laterale.
- * @param callable $aside   Restituisce l'HTML della colonna, dato l'ID del contenuto.
- */
-function vv_two_column_template( $classes, $part, $label, callable $aside ) {
-	?>
-	<div id="primary" class="content-area col-md-12 no-sidebar <?php echo esc_attr( $classes ); ?>">
-		<main id="main" class="post-wrap" role="main">
-			<?php
-			while ( have_posts() ) :
-				the_post();
-				?>
-				<div class="vv-single__grid">
-					<div class="vv-single__main">
-						<?php get_template_part( 'content', $part ); ?>
-					</div>
-					<aside class="vv-single__aside" aria-label="<?php echo esc_attr( $label ); ?>">
-						<?php echo $aside( get_the_ID() ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
-					</aside>
-				</div>
-				<?php
-				if ( comments_open() || get_comments_number() ) {
-					echo '<div class="vv-single__comments">';
-					comments_template();
-					echo '</div>';
-				}
-				?>
-			<?php endwhile; ?>
-		</main>
-	</div>
-	<?php
-}
-
-/**
- * Corpo comune dei modelli di pagina del child: identico alla pagina di Sydney,
- * più un blocco finale.
- *
- * @param callable $after Restituisce l'HTML da aggiungere dopo il contenuto.
- */
-function vv_page_with_extra( callable $after ) {
-	$classes = apply_filters( 'sydney_content_area_class', 'col-md-9' );
-	?>
-	<div id="primary" class="content-area <?php echo esc_attr( sydney_sidebar_position() . ' ' . $classes ); ?>">
-		<main id="main" class="post-wrap" role="main">
-			<?php
-			while ( have_posts() ) :
-				the_post();
-				get_template_part( 'content', 'page' );
-				echo '<div class="vv-page-extra">' . $after( get_the_ID() ) . '</div>'; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
-			endwhile;
-			?>
-		</main>
-	</div>
-	<?php
 }

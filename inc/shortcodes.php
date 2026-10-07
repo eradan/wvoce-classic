@@ -282,7 +282,7 @@ function vv_sc_dati_fiscali( $atts = array() ) {
 		'piva' => array( 'P.IVA', vv_mod( 'vv_piva' ), 'Copia la partita IVA' ),
 		'iban' => array( 'IBAN', vv_mod( 'vv_iban' ), 'Copia l\'IBAN' ),
 	);
-	$out = '<dl class="vv-dati">';
+	$out  = '<dl class="vv-dati">';
 	foreach ( $rows as $key => list( $label, $value, $aria ) ) {
 		if ( $value && in_array( $key, $show, true ) ) {
 			$out .= '<dt>' . esc_html( $label ) . '</dt><dd>' . vv_copy_value( $value, $aria ) . '</dd>';
