@@ -12,6 +12,7 @@ define( 'VV_URI', get_stylesheet_directory_uri() );
 
 require VV_DIR . '/inc/migrate.php';
 require VV_DIR . '/inc/setup.php';
+require VV_DIR . '/inc/contenuti.php';
 require VV_DIR . '/inc/customizer.php';
 require VV_DIR . '/inc/meta.php';
 require VV_DIR . '/inc/cards.php';
@@ -64,7 +65,7 @@ add_action( 'wp_head', 'vv_preload_fonts', 1 );
  * Chi non ha mai scelto vede il tema predefinito. vvTema() la usa anche lo switcher.
  */
 function vv_tema_script() {
-	$predefinito = 'chiaro'; // 'chiaro', 'scuro' o 'auto'
+	$predefinito = 'chiaro'; // Uno fra chiaro, scuro e auto.
 	?>
 <script>
 (function (d) {

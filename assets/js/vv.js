@@ -58,19 +58,31 @@
 		syncTema();
 	}
 
-	// Pulsanti "Copia"
+	// Pulsanti "Copia". Se il browser nega gli appunti il valore resta selezionato, pronto per Ctrl+C.
 	if (navigator.clipboard) {
 		document.querySelectorAll('[data-vv-copy]').forEach(function (btn) {
+			var label = btn.textContent;
+			var avviso = function (testo) {
+				btn.textContent = testo;
+				btn.classList.add('is-done');
+				setTimeout(function () {
+					btn.textContent = label;
+					btn.classList.remove('is-done');
+				}, 1800);
+			};
 			btn.hidden = false;
 			btn.addEventListener('click', function () {
 				navigator.clipboard.writeText(btn.getAttribute('data-vv-copy')).then(function () {
-					var label = btn.textContent;
-					btn.textContent = 'Copiato!';
-					btn.classList.add('is-done');
-					setTimeout(function () {
-						btn.textContent = label;
-						btn.classList.remove('is-done');
-					}, 1800);
+					avviso('Copiato!');
+				}, function () {
+					var valore = btn.parentNode.querySelector('.vv-copy__value');
+					if (valore && window.getSelection) {
+						var range = document.createRange();
+						range.selectNodeContents(valore);
+						window.getSelection().removeAllRanges();
+						window.getSelection().addRange(range);
+					}
+					avviso('Selezionato');
 				});
 			});
 		});
@@ -191,13 +203,16 @@
 
 		// Riga sotto il carosello: ‹ (pausa) contatore ›. Su schermo largo le frecce escono dalla riga e
 		// stanno ai lati delle card (CSS); su telefono restano qui, dove non coprono le foto.
+		var freccia = function (d) {
+			return '<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="' + d + '"/></svg>';
+		};
 		var nav = document.createElement('div');
 		nav.className = 'vv-carousel__nav';
 		nav.innerHTML =
 			'<div class="vv-carousel__bar">' +
-			'<button type="button" class="vv-carousel__btn" data-dir="-1" aria-label="Contenuti precedenti">‹</button>' +
+			'<button type="button" class="vv-carousel__btn" data-dir="-1" aria-label="Contenuti precedenti">' + freccia('M15 5l-7 7 7 7') + '</button>' +
 			'<span class="vv-carousel__count" aria-live="polite"></span>' +
-			'<button type="button" class="vv-carousel__btn" data-dir="1" aria-label="Contenuti successivi">›</button>' +
+			'<button type="button" class="vv-carousel__btn" data-dir="1" aria-label="Contenuti successivi">' + freccia('M9 5l7 7-7 7') + '</button>' +
 			'</div>';
 		carousel.insertBefore(nav, track);
 

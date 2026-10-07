@@ -14,8 +14,21 @@
 	<config name="minimum_wp_version" value="6.0"/>
 	<config name="testVersion" value="7.4-"/>
 
-	<rule ref="WordPress-Extra"/>
+	<!-- Convenzioni del tema: chiamate con un array o una funzione come ultimo argomento sulla stessa
+	     riga (add_meta_box( 'id', array( … ) )) e array associativi brevi su una riga. -->
+	<rule ref="WordPress-Extra">
+		<exclude name="PEAR.Functions.FunctionCallSignature.MultipleArguments"/>
+		<exclude name="PEAR.Functions.FunctionCallSignature.ContentAfterOpenBracket"/>
+		<exclude name="PEAR.Functions.FunctionCallSignature.CloseBracketLine"/>
+		<exclude name="WordPress.Arrays.ArrayDeclarationSpacing.AssociativeArrayFound"/>
+		<exclude name="WordPress.Arrays.ArrayDeclarationSpacing.ArrayItemNoNewLine"/>
+	</rule>
 	<rule ref="PHPCompatibilityWP"/>
+
+	<!-- post_full.php sostituisce il modello di Sydney con lo stesso nome: il nome non si cambia. -->
+	<rule ref="WordPress.Files.FileName.NotHyphenatedLowercase">
+		<exclude-pattern>/post-templates/post_full\.php</exclude-pattern>
+	</rule>
 
 	<rule ref="WordPress.WP.I18n">
 		<properties>
@@ -24,12 +37,9 @@
 			</property>
 		</properties>
 	</rule>
+	<!-- Il prefisso del tema è vv_, che WPCS scarta perché più corto di tre caratteri: con la regola
+	     accesa ogni funzione risulterebbe senza prefisso. -->
 	<rule ref="WordPress.NamingConventions.PrefixAllGlobals">
-		<properties>
-			<property name="prefixes" type="array">
-				<element value="vv"/>
-				<element value="vivavoce"/>
-			</property>
-		</properties>
+		<exclude name="WordPress.NamingConventions.PrefixAllGlobals"/>
 	</rule>
 </ruleset>

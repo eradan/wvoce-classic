@@ -19,26 +19,26 @@ defined( 'ABSPATH' ) || exit;
 function vv_redirects() {
 	return apply_filters( 'vv_redirects', array(
 		// Categorie eliminate
-		'/category/appuntamenti/'      => '/in-programma/',
-		'/category/notizie/'           => '/cosa-facciamo/eventi/',
-		'/category/nessuna-categoria/' => '/cosa-facciamo/eventi/',
-		'/category/alice/'             => '/alice/',
+		'/category/appuntamenti/'                       => '/in-programma/',
+		'/category/notizie/'                            => '/cosa-facciamo/eventi/',
+		'/category/nessuna-categoria/'                  => '/cosa-facciamo/eventi/',
+		'/category/alice/'                              => '/alice/',
 		// Progetti: le schede da pagine ad articoli
 		'/cosa-facciamo/progetti/la-bicicletta-gialla/' => '/la-bicicletta-gialla-spettacolo-per-bambini/',
-		'/cosa-facciamo/alice-in-lucca/'               => '/alice/',
+		'/cosa-facciamo/alice-in-lucca/'                => '/alice/',
 		// Vecchie sottopagine di Formazione e Laboratori (2022-2023)
-		'/cosa-facciamo/formazione-e-laboratori/abitare-la-scena/'               => '/abitare-la-scena-corso-di-teatro/',
-		'/cosa-facciamo/formazione-e-laboratori/a-sbagliare-le-storie/'          => '/a-sbagliare-le-storie/',
-		'/cosa-facciamo/formazione-e-laboratori/lettere-agli-antenati/'          => '/lettera-agli-antenati-laboratorio-di-letture-e-scrittura/',
-		'/cosa-facciamo/formazione-e-laboratori/ti-daro-voce/'                   => '/ti-daro-voce/',
+		'/cosa-facciamo/formazione-e-laboratori/abitare-la-scena/' => '/abitare-la-scena-corso-di-teatro/',
+		'/cosa-facciamo/formazione-e-laboratori/a-sbagliare-le-storie/' => '/a-sbagliare-le-storie/',
+		'/cosa-facciamo/formazione-e-laboratori/lettere-agli-antenati/' => '/lettera-agli-antenati-laboratorio-di-letture-e-scrittura/',
+		'/cosa-facciamo/formazione-e-laboratori/ti-daro-voce/' => '/ti-daro-voce/',
 		'/cosa-facciamo/formazione-e-laboratori/corso-di-formazione-sulla-voce/' => '/corso-di-formazione-vivavoce/',
-		'/cosa-facciamo/formazione-e-laboratori/il-gioco-del-teatro-3-6-anni/'   => '/il-gioco-del-teatro-2022/',
-		'/cosa-facciamo/formazione-e-laboratori/abitare-la-scena-14-19-anni/'    => '/abitare-la-scena-ragazzi-2023/',
+		'/cosa-facciamo/formazione-e-laboratori/il-gioco-del-teatro-3-6-anni/' => '/il-gioco-del-teatro-2022/',
+		'/cosa-facciamo/formazione-e-laboratori/abitare-la-scena-14-19-anni/' => '/abitare-la-scena-ragazzi-2023/',
 		// Pagina nascosta con due ritagli: ora c'è l'archivio
-		'/chi-siamo/dicono-di-noi/' => '/category/rassegna-stampa/',
+		'/chi-siamo/dicono-di-noi/'                     => '/category/rassegna-stampa/',
 		// Articoli uniti a un altro
-		'/vivavoce-a-if-2021/' => '/vivavoce-a-internet-festival/',
-		'/alice_pop/'          => '/cartoline-dal-paese-delle-meraviglie/',
+		'/vivavoce-a-if-2021/'                          => '/vivavoce-a-internet-festival/',
+		'/alice_pop/'                                   => '/cartoline-dal-paese-delle-meraviglie/',
 	) );
 }
 

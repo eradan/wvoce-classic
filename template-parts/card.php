@@ -41,7 +41,7 @@ if ( 'post' === $vv_post->post_type && 'persona' !== $vv_variante ) {
 
 $vv_badge = '';
 if ( 'evento' === $vv_variante ) {
-	$vv_cats = get_the_category( $vv_post->ID );
+	$vv_cats = vv_post_categories( $vv_post->ID );
 	if ( $vv_cats ) {
 		$vv_badge = $vv_cats[0]->name;
 	}
@@ -54,11 +54,7 @@ if ( ! $vv_img ) {
 ?>
 <article class="<?php echo esc_attr( implode( ' ', $vv_classes ) ); ?>">
 	<div class="vv-card__media">
-		<?php if ( $vv_img ) : ?>
-			<?php echo $vv_img; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
-		<?php else : ?>
-			<?php echo vv_svg( 'blob', 'vv-card__blob' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
-		<?php endif; ?>
+		<?php echo $vv_img; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
 		<?php if ( $vv_badge ) : ?>
 			<span class="vv-badge"><?php echo esc_html( $vv_badge ); ?></span>
 		<?php endif; ?>

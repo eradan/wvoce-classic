@@ -7,6 +7,9 @@
  * - Se il tab dell'anno non c'è lo crea, con le intestazioni del tab DomandeAmmissione più recente.
  * - La colonna "Rif." (numero dell'iscrizione sul sito) evita i doppioni: una riga già scritta non
  *   viene ripetuta, anche se il sito la rimanda.
+ * - Lo script scrive solo nelle colonne del sito e sotto l'ultima riga con dati in quelle colonne: le
+ *   colonne della segreteria (Assicurazione, caselle, formule riempite in anticipo) restano intatte e
+ *   non spingono le iscrizioni in fondo.
  *
  * Installazione (una volta), istruzioni complete nel sito: Strumenti → Esporta iscrizioni.
  * 1. In Google Drive: Nuovo → Altro → Google Apps Script (progetto autonomo), oppure dal foglio:
@@ -88,10 +91,10 @@ function tabAnno_(ss, nome) {
 }
 
 /**
- * Intestazioni e Rif. già scritti di un tab, letti una volta per chiamata e tenuti in "stati" (per
- * id del tab). Se manca la colonna "Rif." la aggiunge.
+ * Intestazioni, Rif. già scritti e prima riga libera di un tab, letti una volta per chiamata e tenuti
+ * in "stati" (per id del tab). Se manca la colonna "Rif." la aggiunge.
  */
-function statoTab_(tab, stati) {
+function statoTab_(tab, stati, riga) {
   var id = tab.getSheetId();
   if (stati[id]) {
     return stati[id];
@@ -106,31 +109,89 @@ function statoTab_(tab, stati) {
     tab.getRange(1, colRif + 1).setValue(RIF);
     intestazioni.push(RIF);
   }
+  var dati = righeTab_(tab, intestazioni.length);
   var presenti = {};
-  var ultima = tab.getLastRow();
-  if (ultima > 1) {
-    tab.getRange(2, colRif + 1, ultima - 1, 1).getValues().forEach(function (r) {
-      presenti[String(r[0])] = true;
-    });
-  }
-  stati[id] = { intestazioni: intestazioni, presenti: presenti };
+  dati.forEach(function (r) {
+    if (r[colRif] !== '') {
+      presenti[String(r[colRif])] = true;
+    }
+  });
+  stati[id] = {
+    intestazioni: intestazioni,
+    presenti: presenti,
+    prossima: prossimaRiga_(dati, colonneSito_(intestazioni, riga))
+  };
   return stati[id];
 }
 
-/** Scrive una riga sotto le altre, valore per valore nella colonna con la stessa intestazione. */
+/**
+ * Scrive una riga sotto le altre, valore per valore nella colonna con la stessa intestazione. Le
+ * colonne senza un valore dal sito non vengono toccate: si scrive a tratti di celle contigue.
+ */
 function scriviRiga_(tab, riga, stati) {
-  var stato = statoTab_(tab, stati);
+  var stato = statoTab_(tab, stati, riga);
   var rif = String(riga[RIF]);
   if (stato.presenti[rif]) {
     return;
   }
-  var valori = stato.intestazioni.map(function (h) {
-    var chiave = Object.keys(riga).filter(function (k) { return k !== '_tab' && uguali_(k, h); })[0];
-    return chiave === undefined ? '' : testo_(riga[chiave]);
+  var valori = [];
+  Object.keys(riga).forEach(function (k) {
+    var col = k === '_tab' ? -1 : indice_(stato.intestazioni, k);
+    var valore = testo_(riga[k]);
+    if (col >= 0 && valore !== '') {
+      valori[col] = valore;
+    }
   });
-  // Come testo: codici fiscali, telefoni e CAP restano come sono scritti (niente zeri persi).
-  tab.getRange(tab.getLastRow() + 1, 1, 1, valori.length).setNumberFormat('@').setValues([valori]);
+  var nuova = stato.prossima++;
+  for (var inizio = 0; inizio < valori.length; inizio++) {
+    if (valori[inizio] === undefined) {
+      continue;
+    }
+    var fine = inizio;
+    while (fine + 1 < valori.length && valori[fine + 1] !== undefined) {
+      fine++;
+    }
+    // Come testo: codici fiscali, telefoni e CAP restano come sono scritti (niente zeri persi).
+    tab.getRange(nuova, inizio + 1, 1, fine - inizio + 1).setNumberFormat('@')
+      .setValues([valori.slice(inizio, fine + 1)]);
+    inizio = fine;
+  }
   stato.presenti[rif] = true;
+}
+
+/** Valori delle righe sotto le intestazioni (vuoto se il tab ha solo la riga 1). */
+function righeTab_(tab, colonne) {
+  var ultima = tab.getLastRow();
+  return ultima > 1 ? tab.getRange(2, 1, ultima - 1, colonne).getValues() : [];
+}
+
+/** Indici delle colonne che il sito scrive: le intestazioni che corrispondono alle voci della riga. */
+function colonneSito_(intestazioni, riga) {
+  var colonne = [];
+  Object.keys(riga).forEach(function (k) {
+    var col = k === '_tab' ? -1 : indice_(intestazioni, k);
+    if (col >= 0) {
+      colonne.push(col);
+    }
+  });
+  return colonne;
+}
+
+/**
+ * Numero della riga in cui scrivere: sotto l'ultima con un valore in una colonna del sito. Le colonne
+ * della segreteria riempite in anticipo non contano; le righe scritte a mano nelle colonne del sito
+ * sì, e restano intatte.
+ */
+function prossimaRiga_(dati, colonne) {
+  for (var i = dati.length - 1; i >= 0; i--) {
+    for (var j = 0; j < colonne.length; j++) {
+      var v = dati[i][colonne[j]];
+      if (v !== '' && v !== null && v !== undefined) {
+        return i + 3;
+      }
+    }
+  }
+  return 2;
 }
 
 /**
@@ -141,7 +202,7 @@ function scriviRiga_(tab, riga, stati) {
  * telefono "+39…" restano come sono.
  */
 function testo_(valore) {
-  var s = String(valore);
+  var s = valore === null || valore === undefined ? '' : String(valore);
   return /^\s*=/.test(s) ? "'" + s : s;
 }
 

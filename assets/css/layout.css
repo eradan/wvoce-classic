@@ -1,4 +1,4 @@
-/* VivaVoce 0.4 "classico": impaginazione. Solo ciò che serve alle parti nuove generate dal tema. */
+/* VivaVoce: impaginazione. Solo ciò che serve alle parti nuove generate dal tema. */
 
 /* Colonna dei contenuti larga come quella originale (che aveva la sidebar a destra) */
 body:not(.siteorigin-panels) .content-area.no-sidebar .content-inner,
@@ -29,12 +29,10 @@ body.page-template-page_fullwidth .content-area.no-sidebar .entry-content {
 	width: var(--vv-contenitore);
 	max-width: none;
 }
-.page-wrap {
-	overflow-x: clip;
-}
 /* Sydney: 83px sopra e 100 sotto a tutte le larghezze, troppo su telefono */
 .page-wrap {
 	padding: var(--vv-s-4) 0 var(--vv-s-5);
+	overflow-x: clip;
 }
 .vv-page-extra {
 	margin-top: var(--vv-spazio);
@@ -80,7 +78,8 @@ body.page-template-page_fullwidth .content-area.no-sidebar .entry-content {
 	color: var(--vv-testo);
 }
 
-/* Titoli di sezione del tema (elenchi, soci): come i titoli dei widget della home originale */
+/* Titoli di sezione del tema (elenchi, soci, home): come i titoli dei widget della home originale,
+ * che restano nell'istantanea SiteOrigin (h3.widget-title, il resto in home.css) */
 .vv-section-title,
 .entry-content h2.vv-section-title {
 	position: relative;
@@ -93,7 +92,9 @@ body.page-template-page_fullwidth .content-area.no-sidebar .entry-content {
 	text-transform: uppercase;
 	color: var(--vv-titoli-sezione);
 }
-.vv-section-title::after {
+.vv-section-title::after,
+.home .so-panel .widget-title::after,
+.home .panel-grid .widget-title::after {
 	content: "";
 	position: absolute;
 	left: 50%;

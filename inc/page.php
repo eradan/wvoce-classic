@@ -3,6 +3,8 @@
  * Pagine con il modello predefinito: testo + colonna laterale, come gli articoli.
  * Nella colonna "In questa sezione" (le pagine dello stesso ramo) e "Da non perdere".
  * Home, Pagina hub e Pagina elenco hanno modelli propri e restano a tutta larghezza.
+ * Qui anche gli schemi comuni: due colonne (articoli e pagine) e pagina con un blocco finale
+ * (modelli Pagina hub e Pagina elenco).
  *
  * @package VivaVoce
  */
@@ -117,4 +119,65 @@ function vv_page_section_nav( $page_id ) {
 		$html .= '</li>';
 	}
 	return $html . '</ul></div></nav>';
+}
+
+/**
+ * Due colonne, per articoli e pagine: il contenuto di Sydney (titolo, immagine, testo) e la colonna
+ * laterale; i commenti sotto la griglia, così su mobile la colonna arriva subito dopo il testo.
+ *
+ * @param string   $classes Classi aggiuntive della content-area.
+ * @param string   $part    Parte del contenuto di Sydney (single, page).
+ * @param string   $label   Nome accessibile della colonna laterale.
+ * @param callable $aside   Restituisce l'HTML della colonna, dato l'ID del contenuto.
+ */
+function vv_two_column_template( $classes, $part, $label, callable $aside ) {
+	?>
+	<div id="primary" class="content-area col-md-12 no-sidebar <?php echo esc_attr( $classes ); ?>">
+		<main id="main" class="post-wrap" role="main">
+			<?php
+			while ( have_posts() ) :
+				the_post();
+				?>
+				<div class="vv-single__grid">
+					<div class="vv-single__main">
+						<?php get_template_part( 'content', $part ); ?>
+					</div>
+					<aside class="vv-single__aside" aria-label="<?php echo esc_attr( $label ); ?>">
+						<?php echo $aside( get_the_ID() ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
+					</aside>
+				</div>
+				<?php
+				if ( comments_open() || get_comments_number() ) {
+					echo '<div class="vv-single__comments">';
+					comments_template();
+					echo '</div>';
+				}
+				?>
+			<?php endwhile; ?>
+		</main>
+	</div>
+	<?php
+}
+
+/**
+ * Corpo comune dei modelli di pagina del child: identico alla pagina di Sydney,
+ * più un blocco finale.
+ *
+ * @param callable $after Restituisce l'HTML da aggiungere dopo il contenuto.
+ */
+function vv_page_with_extra( callable $after ) {
+	$classes = apply_filters( 'sydney_content_area_class', 'col-md-9' );
+	?>
+	<div id="primary" class="content-area <?php echo esc_attr( sydney_sidebar_position() . ' ' . $classes ); ?>">
+		<main id="main" class="post-wrap" role="main">
+			<?php
+			while ( have_posts() ) :
+				the_post();
+				get_template_part( 'content', 'page' );
+				echo '<div class="vv-page-extra">' . $after( get_the_ID() ) . '</div>'; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+			endwhile;
+			?>
+		</main>
+	</div>
+	<?php
 }

@@ -9,35 +9,42 @@
 defined( 'ABSPATH' ) || exit;
 
 /**
- * Campi "codice fiscale" da controllare: id del modulo => id del campo.
- * 1617 è "Iscrizione ai corsi 2026-2027" (pagina "Iscriviti a un corso"), 274 "Iscrizione Socio".
+ * Modulo di un collegamento (Strumenti → Esporta iscrizioni → Configurazione) con il campo del codice
+ * fiscale: array( id del modulo => id del campo ). Così il controllo segue il modulo scelto nel pannello,
+ * anche quando ogni anno ne arriva uno nuovo.
+ *
+ * @param string $id Collegamento (soci, corsi).
+ */
+function vv_forminator_modulo( $id ) {
+	$form = function_exists( 'vv_sheets_config' ) ? (int) vv_sheets_config( $id )['form'] : 0;
+	return $form > 0 ? array( $form => 'text-1' ) : array();
+}
+
+/**
+ * Campi "codice fiscale" da controllare: id del modulo => id del campo. Predefiniti: i moduli dei soci
+ * e dei corsi del pannello (274 "Iscrizione Socio", 1617 "Iscrizione ai corsi 2026-2027").
  */
 function vv_forminator_cf_fields() {
-	return apply_filters(
-		'vv_forminator_cf_fields',
-		array(
-			1617 => 'text-1',
-			274  => 'text-1',
-		)
-	);
+	return apply_filters( 'vv_forminator_cf_fields', vv_forminator_modulo( 'corsi' ) + vv_forminator_modulo( 'soci' ) );
 }
 
 /**
  * Moduli riservati ai soci dell'anno: id del modulo => id del campo con il codice fiscale. Il codice
  * deve comparire fra le iscrizioni del modulo dei soci dal 1° settembre dell'anno sociale in corso.
- * Un filtro che restituisce un array vuoto spegne il controllo.
+ * Predefinito: il modulo dei corsi. Un filtro che restituisce un array vuoto spegne il controllo.
  */
 function vv_forminator_soci_richiesti() {
-	return apply_filters( 'vv_forminator_soci_richiesti', array( 1617 => 'text-1' ) );
+	return apply_filters( 'vv_forminator_soci_richiesti', vv_forminator_modulo( 'corsi' ) );
 }
 
 /**
  * Moduli in cui un socio si iscrive una volta per anno sociale: id del modulo => id del campo con il
  * codice fiscale. Se il codice compare già fra le iscrizioni del modulo dei soci dal 1° settembre,
- * il modulo si ferma. Un filtro che restituisce un array vuoto spegne il controllo.
+ * il modulo si ferma. Predefinito: il modulo dei soci. Un filtro che restituisce un array vuoto spegne
+ * il controllo.
  */
 function vv_forminator_soci_unici() {
-	return apply_filters( 'vv_forminator_soci_unici', array( 274 => 'text-1' ) );
+	return apply_filters( 'vv_forminator_soci_unici', vv_forminator_modulo( 'soci' ) );
 }
 
 /**

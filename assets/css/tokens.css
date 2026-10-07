@@ -1,7 +1,7 @@
 /*
- * VivaVoce 0.4 "classico": aspetto il più vicino possibile al sito originale su Sydney.
- * Colori, font e misure di Sydney; i colori globali restano quelli del Customizer
- * (nel tema chiaro qui NON si ridefiniscono le variabili --sydney-global-color-*).
+ * VivaVoce "classico": aspetto il più vicino possibile al sito originale su Sydney.
+ * Colori, font e misure di Sydney. I colori globali di Sydney (--sydney-global-color-*) prendono i
+ * ruoli della palette in fondo al file, in ogni tema, perché seguano il tema scuro.
  * La palette ha due livelli (marchio e ruoli, vedi :root qui sotto): le regole degli altri fogli
  * non contengono colori scritti a mano.
  * La versione "ritaglio di carta" (0.3.x) è nella storia git: commit cc6b27b, cartella assets/css-ritaglio/.
@@ -123,7 +123,7 @@
 	/* Fondi. I grigi virano un poco sull'azzurro (tinta 207-215°, la stessa famiglia dell'inchiostro). */
 	--vv-fondo: #ffffff;           /* pagina, valori copiabili */
 	--vv-fondo-card: #f1f5f9;      /* card degli elenchi, "Sostienici", immagine in testa alle pagine */
-	--vv-riquadro: #d7e0e9;        /* footer, "In breve", card senza foto (la vecchia sidebar dei contatti) */
+	--vv-riquadro: #d7e0e9;        /* footer, "In breve", "In questa sezione", card senza foto (la vecchia sidebar dei contatti) */
 	--vv-fondo-hero: var(--vv-perla); /* fondo dell'illustrazione della home */
 	--vv-fondo-disco: var(--vv-fondo-hero); /* ovale dietro testa e mano dell'illustrazione (home.css): nel chiaro come il fondo */
 	--vv-placeholder: #edf2f6;     /* dietro le immagini che si caricano */

@@ -13,9 +13,7 @@ defined( 'ABSPATH' ) || exit;
 function vv_defaults() {
 	return array(
 		'vv_hero_enable'    => true,
-		'vv_hero_kicker'    => 'Associazione culturale · Pisa',
 		'vv_hero_title'     => 'Lettura ad alta voce, teatro e creatività',
-		'vv_hero_text'      => 'Laboratori, spettacoli e progetti per grandi e piccoli, tra libri, voce e nuove tecnologie.',
 		'vv_hero_cta1_text' => 'Prossimi appuntamenti',
 		'vv_hero_cta1_url'  => '#appuntamenti',
 		'vv_hero_cta2_text' => 'Diventa socio',
@@ -71,9 +69,7 @@ function vv_customize_register( $wp_customize ) {
 	) );
 
 	$text_fields = array(
-		'vv_hero_kicker'    => array( 'vv_hero', 'Occhiello', 'text' ),
-		'vv_hero_title'     => array( 'vv_hero', 'Titolo', 'text' ),
-		'vv_hero_text'      => array( 'vv_hero', 'Testo', 'textarea' ),
+		'vv_hero_title'     => array( 'vv_hero', 'Titolo (per screen reader e motori di ricerca)', 'text' ),
 		'vv_hero_cta1_text' => array( 'vv_hero', 'Pulsante 1: testo', 'text' ),
 		'vv_hero_cta1_url'  => array( 'vv_hero', 'Pulsante 1: link', 'url' ),
 		'vv_hero_cta2_text' => array( 'vv_hero', 'Pulsante 2: testo', 'text' ),
@@ -96,7 +92,7 @@ function vv_customize_register( $wp_customize ) {
 	) );
 
 	foreach ( $text_fields as $id => list( $section, $label, $type ) ) {
-		$sanitize = 'url' === $type ? 'vv_sanitize_link' : ( 'textarea' === $type ? 'sanitize_textarea_field' : 'sanitize_text_field' );
+		$sanitize = 'url' === $type ? 'vv_sanitize_link' : 'sanitize_text_field';
 		$wp_customize->add_setting( $id, array(
 			'default'           => $defaults[ $id ],
 			'sanitize_callback' => $sanitize,
@@ -104,7 +100,7 @@ function vv_customize_register( $wp_customize ) {
 		$wp_customize->add_control( $id, array(
 			'section' => $section,
 			'label'   => $label,
-			'type'    => 'url' === $type ? 'text' : $type,
+			'type'    => 'text',
 		) );
 	}
 

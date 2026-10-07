@@ -38,14 +38,14 @@ function vv_primary_menu_items() {
  * Percorso nel menu fino a un oggetto (pagina o categoria), voce compresa.
  *
  * @param string $type      post_type | taxonomy.
- * @param string $object    page | category.
+ * @param string $kind      page | category.
  * @param int    $object_id ID dell'oggetto.
  * @return array<int,array{0:string,1:string}>|null Coppie [titolo, url] o null se non è nel menu.
  */
-function vv_menu_trail( $type, $object, $object_id ) {
+function vv_menu_trail( $type, $kind, $object_id ) {
 	$items = vv_primary_menu_items();
 	foreach ( $items as $item ) {
-		if ( $item->type === $type && $item->object === $object && (int) $item->object_id === (int) $object_id ) {
+		if ( $item->type === $type && $item->object === $kind && (int) $item->object_id === (int) $object_id ) {
 			$trail = array();
 			for ( $cur = $item; $cur; $cur = $items[ (int) $cur->menu_item_parent ] ?? null ) {
 				array_unshift( $trail, array( $cur->title, $cur->url ) );

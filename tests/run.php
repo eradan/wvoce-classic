@@ -104,9 +104,30 @@ function sanitize_title( $title ) {
 	return trim( preg_replace( '/[^a-z0-9]+/', '-', strtolower( (string) $title ) ), '-' );
 }
 
+define( 'DAY_IN_SECONDS', 86400 );
+function wp_list_pluck( $list, $field ) {
+	return array_map( static fn( $x ) => is_object( $x ) ? $x->$field : $x[ $field ], $list );
+}
+function wp_mail() {}
+function admin_url( $path = '' ) {
+	return 'https://wvoce.it/wp-admin/' . $path;
+}
+/**
+ * Date in italiano come wp_date(), per i soli formati del tema (j, n, Y, F, M).
+ */
+function wp_date( $format, $ts ) {
+	$mesi = array( 'gennaio', 'febbraio', 'marzo', 'aprile', 'maggio', 'giugno', 'luglio', 'agosto', 'settembre', 'ottobre', 'novembre', 'dicembre' );
+	$out  = '';
+	foreach ( str_split( $format ) as $c ) {
+		$n    = (int) gmdate( 'n', $ts ) - 1;
+		$out .= 'F' === $c ? $mesi[ $n ] : ( 'M' === $c ? substr( $mesi[ $n ], 0, 3 ) : ( ctype_alpha( $c ) ? gmdate( $c, $ts ) : $c ) );
+	}
+	return $out;
+}
+
 require dirname( __DIR__ ) . '/inc/meta.php';
 require dirname( __DIR__ ) . '/inc/cards.php';
-require dirname( __DIR__ ) . '/inc/setup.php';
+require dirname( __DIR__ ) . '/inc/contenuti.php';
 require dirname( __DIR__ ) . '/inc/forminator.php';
 require dirname( __DIR__ ) . '/inc/sheets.php';
 
@@ -262,6 +283,7 @@ uguale( 'Mappa: scritto in altro modo', 'gioco-del-teatro-2026', vv_corsi_tab( s
 uguale( 'Mappa: corso assente', 'Da smistare', vv_corsi_tab( $vv_opzioni_1617[1], $vv_mappa ) );
 uguale( 'Mappa: tab inesistente', 'Da smistare', vv_corsi_tab( 'Dizione', $vv_mappa ) );
 uguale( 'Mappa: corso vuoto', 'Da smistare', vv_corsi_tab( '', $vv_mappa ) );
+uguale( 'Mappa: tab "configurazioni" non è di un corso', 'Da smistare', vv_corsi_tab( 'Canto', array( 'mappa' => array( 'Canto' => 'configurazioni' ), 'tab' => array( 'configurazioni' ) ) ) );
 
 $vv_filtri['vv_corsi_campo'] = static fn() => '';
 uguale( 'Senza campo del corso: fermo', 'manca il campo del corso (filtro vv_corsi_campo)', vv_corsi_requisito() );
@@ -299,6 +321,14 @@ $vv_filtri['vv_forminator_soci_richiesti'] = static fn() => array();
 uguale( 'Controllo del socio spento dal filtro', array(), $vv_cf_corso( 'BNCLRA90A41G702N' ) );
 unset( $vv_filtri['vv_forminator_soci_richiesti'] );
 Forminator_API::$entries = array();
+
+// Controlli dei moduli: seguono il modulo scelto nel pannello, non un numero scritto nel codice
+uguale( 'Moduli predefiniti: corsi e soci', array( 1617 => 'text-1', 274 => 'text-1' ), vv_forminator_cf_fields() );
+$vv_opzioni['vv_corsi_impostazioni'] = array( 'form' => 1800 );
+uguale( 'Modulo dei corsi cambiato: CF controllato sul nuovo', 1, count( vv_forminator_check_cf( array(), 1800, array( array( 'name' => 'text-1', 'value' => 'RSSMRA85T10A562T' ) ) ) ) );
+uguale( 'Modulo dei corsi cambiato: socio richiesto sul nuovo', array( 1800 => 'text-1' ), vv_forminator_soci_richiesti() );
+uguale( 'Modulo dei corsi cambiato: il vecchio non si controlla più', array(), vv_forminator_check_cf( array(), 1617, array( array( 'name' => 'text-1', 'value' => 'xxx' ) ) ) );
+unset( $vv_opzioni['vv_corsi_impostazioni'] );
 
 // Impostazioni dal pannello, non da wp-config.php
 $vv_opzioni = array();
@@ -359,6 +389,36 @@ $vv_opzioni['vv_corsi_ultimo'] = 32;
 uguale( 'Dopo un invio conta l\'ultima confermata', 32, vv_sheets_ultimo( 'corsi' ) );
 uguale( 'Soci: si parte da zero', 0, vv_sheets_ultimo( 'soci' ) );
 
+// Modulo dei corsi cambiato (anno nuovo): si parte dalla prima iscrizione del modulo nuovo, comprese
+// quelle arrivate prima del cambio nel pannello
+$vv_opzioni = array( 'vv_corsi_ultimo' => 32, 'vv_corsi_inizio' => 31 );
+vv_sheets_salva_impostazioni( 'corsi', array( 'url' => 'https://script.google.com/macros/s/abc/exec', 'token' => 't', 'form' => '1800' ) );
+Forminator_API::$entries = array( (object) array( 'entry_id' => 3, 'date_created_sql' => '2026-08-20 10:00:00' ), (object) array( 'entry_id' => 5, 'date_created_sql' => '2026-08-21 10:00:00' ) );
+uguale( 'Modulo cambiato: partono tutte le iscrizioni del nuovo', array( 3, 5 ), array_map( static fn( $e ) => $e->entry_id, vv_sheets_da_inviare( 'corsi' ) ) );
+
+// Iscrizioni passate oltre perché bozze o spam: ripartono quando tornano valide
+$vv_opzioni = array( 'vv_soci_ultimo' => 10 );
+Forminator_API::$entries = array(
+	(object) array( 'form_id' => 274, 'entry_id' => 8, 'date_created_sql' => '2026-09-10 10:00:00', 'draft_id' => 'abc' ),
+	(object) array( 'form_id' => 274, 'entry_id' => 11, 'date_created_sql' => '2026-09-12 10:00:00' ),
+);
+uguale( 'Bozza sotto il punto raggiunto: in attesa', array( 11 ), array_map( static fn( $e ) => $e->entry_id, vv_sheets_da_inviare( 'soci' ) ) );
+uguale( 'Bozza sotto il punto raggiunto: annotata', array( 8 ), vv_sheets_iscrizioni( 'soci' )['sospese'] );
+$vv_opzioni['vv_soci_sospese'] = array( 8 );
+Forminator_API::$entries[0]->draft_id = '';
+uguale( 'Bozza completata: parte', array( 8, 11 ), array_map( static fn( $e ) => $e->entry_id, vv_sheets_da_inviare( 'soci' ) ) );
+// Invio: la ripresa non fa tornare indietro il punto raggiunto; se il foglio non risponde resta annotata
+$vv_opzioni['vv_soci_impostazioni'] = array( 'url' => 'https://script.google.com/macros/s/abc/exec', 'token' => 't' );
+$vv_risposta = array( 'ok' => false, 'errore' => 'foglio occupato' );
+vv_sheets_sync( 'soci' );
+uguale( 'Invio non riuscito: la ripresa resta annotata', array( 8 ), $vv_opzioni['vv_soci_sospese'] );
+uguale( 'Invio non riuscito: punto raggiunto fermo', 10, $vv_opzioni['vv_soci_ultimo'] );
+$vv_risposta = array( 'ok' => true, 'rif' => array( 'F274-8', 'F274-11' ) );
+uguale( 'Invio riuscito: due iscrizioni', 2, vv_sheets_sync( 'soci' )['inviate'] );
+uguale( 'Invio riuscito: punto raggiunto avanti, mai indietro', 11, $vv_opzioni['vv_soci_ultimo'] );
+uguale( 'Invio riuscito: nessuna sospesa', array(), $vv_opzioni['vv_soci_sospese'] );
+Forminator_API::$entries = array();
+
 // ID del foglio dal pannello, mandato allo script a ogni chiamata
 $vv_id = '1TvSREeUfoeAcA1uI3Hx9qpytOVUOMQQc5664DqwxUOw';
 uguale( 'ID dall\'indirizzo del foglio', $vv_id, vv_sheets_id_foglio( "https://docs.google.com/spreadsheets/d/{$vv_id}/edit#gid=0" ) );
@@ -395,6 +455,15 @@ uguale( 'Script dei corsi con il tab configurazioni', true, false !== strpos( vv
 uguale( 'Data valida', '2026-10-06', vv_sanitize_date( ' 2026-10-06 ' ) );
 uguale( 'Data in altro formato', '', vv_sanitize_date( '06/10/2026' ) );
 uguale( 'Slug', 'eventi,corsi-e-laboratori', vv_sanitize_slugs( 'Eventi, Corsi e laboratori,,' ) );
+
+// Etichette degli eventi su più giorni: i giorni fino a un mese, poi i mesi
+$vv_giorni = static fn( $da, $a ) => vv_date_range_label( strtotime( $da ), strtotime( $a . ' 23:59:59' ) );
+uguale( 'Evento di tre giorni', '3–5 ottobre 2026', $vv_giorni( '2026-10-03', '2026-10-05' ) );
+uguale( 'Evento a cavallo di due mesi', '28 settembre – 3 ottobre 2026', $vv_giorni( '2026-09-28', '2026-10-03' ) );
+uguale( 'Evento a cavallo dell\'anno', '30 dicembre 2026 – 2 gennaio 2027', $vv_giorni( '2026-12-30', '2027-01-02' ) );
+uguale( 'Mese intero', '1–31 ottobre 2026', $vv_giorni( '2026-10-01', '2026-10-31' ) );
+uguale( 'Corso di una stagione', 'ott–dic 2026', $vv_giorni( '2026-10-01', '2026-12-15' ) );
+uguale( 'Corso su due anni', 'ott 2026 – mag 2027', $vv_giorni( '2026-10-01', '2027-05-31' ) );
 
 // meta_query: le condizioni si sommano, nessuna va persa
 $date = array( array( 'key' => 'vv_data', 'value' => '2026-10-06', 'compare' => '>=' ) );

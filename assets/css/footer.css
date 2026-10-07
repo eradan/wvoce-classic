@@ -1,4 +1,4 @@
-/* VivaVoce 0.4 "classico": footer.
+/* VivaVoce: footer.
  * Le colonne dei widget riprendono l'aspetto della vecchia sidebar dei contatti (riquadro grigio,
  * testo piccolo, icona sopra il testo); la fascia turchese del copyright è quella originale
  * (regole in style.css). */
@@ -127,9 +127,11 @@
 /* Fascia turchese: due faccine del logo ai lati che si guardano, "© anno" e la scritta in mezzo.
  * La faccina è turchese: su un cerchio giallo, come il logo sul giallo dell'header, altrimenti sparisce. */
 .site-footer .site-info {
+	--vv-disco: 64px;
 	display: flex;
 	align-items: center;
 	gap: var(--vv-s-3);
+	width: 100% !important; /* style.css (CSS del Customizer) la stringe al 90% */
 	padding-top: var(--vv-s-2);
 	padding-bottom: var(--vv-s-2);
 }
@@ -141,9 +143,6 @@
 	height: var(--vv-disco);
 	border-radius: 50%;
 	background: var(--vv-giallo) url("../img/faccina.png") center / 68% auto no-repeat;
-}
-.site-footer .site-info {
-	--vv-disco: 64px;
 }
 .site-footer .site-info::after {
 	transform: scaleX(-1);
@@ -174,17 +173,12 @@
 }
 @media (max-width: 599px) {
 	.site-footer .site-info {
+		--vv-disco: 48px;
 		gap: var(--vv-s-2);
 	}
-	.site-footer .site-info {
-		--vv-disco: 48px;
-	}
 }
-/* Il vecchio CSS del Customizer (style.css) dà width: 90% alla fascia e ai suoi link e stringe
+/* Il vecchio CSS del Customizer (style.css) dà width: 90% anche ai link della fascia e stringe
  * l'icona social a 16px mentre l'SVG ne occupa 48: con le faccine ai lati si sovrapponevano */
-.site-footer .site-info {
-	width: 100% !important;
-}
 .site-footer .site-info a {
 	width: auto !important;
 }

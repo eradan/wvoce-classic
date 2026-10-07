@@ -128,7 +128,7 @@ if ( ! vv_mods_migrated() ) {
  * Salva la copia e segna la migrazione (all'attivazione o alla prima visita dell'amministrazione).
  */
 function vv_persist_parent_mods() {
-	if ( vv_mods_migrated() || ! current_user_can( 'edit_theme_options' ) && ! doing_action( 'after_switch_theme' ) ) {
+	if ( vv_mods_migrated() || ( ! current_user_can( 'edit_theme_options' ) && ! doing_action( 'after_switch_theme' ) ) ) {
 		return;
 	}
 	$option = 'theme_mods_' . get_stylesheet();
