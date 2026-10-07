@@ -11,6 +11,13 @@ Tema child di **Sydney 2.71** per wvoce.it, aspetto "classico" vicino al sito or
 - **Hero.** Altezza in `svh` sui telefoni (i pulsanti restano sopra la barra degli indirizzi); priorità di caricamento solo per testa e mano dell'illustrazione; un'illustrazione diversa presa dalla libreria dei media esce con larghezza, altezza e `srcset`. Occhiello e testo, mai visibili, lasciano il Customizer insieme alla pennellata SVG.
 - **Caroselli** con frecce disegnate in SVG; il pulsante "Copia" seleziona il valore se il browser nega gli appunti.
 - **`[vv_cards numero="-1" periodo="…"]`** mostra tutti gli eventi del periodo, non più uno solo.
+- **Invio delle iscrizioni ai fogli Google: quattro correzioni.**
+  - *Modulo cambiato nel pannello* (per esempio quello dei corsi del nuovo anno): l'invio riparte davvero dalla prima iscrizione del modulo nuovo. Prima il collegamento dei corsi fissava come partenza l'iscrizione più recente al momento del cambio, e quelle arrivate nel frattempo non partivano mai.
+  - *Bozze completate e iscrizioni tolte dallo spam*: restano annotate (`vv_soci_sospese`, `vv_corsi_sospese`) e partono quando tornano valide, anche se nel frattempo il punto raggiunto le ha superate. Il punto raggiunto non torna mai indietro.
+  - *Più corsi nello stesso tab* di "configurazioni": il tab riceve la colonna "Corso" e chi sceglie due di quei corsi ha due righe. Prima la seconda veniva scartata come doppione, pur risultando confermata.
+  - *Colonne della segreteria riempite in anticipo* (caselle, formule): le righe nuove vanno sotto l'ultima con dati del sito, non in fondo alle caselle; lo script dei soci scrive solo nelle colonne del sito e lascia intatte le altre, come già quello dei corsi.
+  - **Entrambi gli script vanno incollati di nuovo e ripubblicati** (tab *Script Apps Script* → Copia lo script → editor → Gestisci deployment → matita → Nuova versione). URL, codice e foglio restano gli stessi.
+  - Test nuovi: `node tests/apps-script.js` fa girare i due script su un foglio finto in memoria (anche in GitHub Actions).
 - **Immagine in testa spegnibile, articolo per articolo e pagina per pagina.** La casella *Senza immagine in testa* (riquadro "VivaVoce: date e luogo" degli articoli, riquadro "VivaVoce" delle pagine) toglie l'immagine in evidenza da sopra il testo; card, "Da non perdere" e anteprime dei social continuano a usarla (`vv_senza_immagine`, `vv_senza_immagine_in_testa()`).
 - **Codice tolto:** la classe automatica `vv-cta` per la voce "Diventa socio" (mai stilata nel tema classico), `vv_svg()` e `assets/svg/`, la classe `vv-design`, il CSS di `.vv-timeline`. Regole duplicate riunite in `components.css`, `home.css`, `layout.css`, `footer.css`.
 - **Struttura:** le correzioni dei contenuti passano in `inc/contenuti.php`, gli schemi di pagina (`vv_two_column_template()`, `vv_page_with_extra()`) in `inc/page.php`; i collegamenti ai fogli elencano solo le voci che non si ricavano dall'id.
@@ -121,10 +128,10 @@ I fogli di `assets/css/` e `vv.js` escono con `?ver=` uguale alla data di modifi
 
 ## Sviluppo
 
-- **Test:** `php tests/run.php` controlla senza WordPress le funzioni pure: codice fiscale, righe e tab dei fogli dei soci e dei corsi, impostazioni e chiamate all'app web, date, slug, `meta_query`, lettere decorative. Senza PHP sulla macchina: `docker run --rm -v "$PWD":/app -w /app php:8.3-cli php tests/run.php`.
+- **Test:** `php tests/run.php` controlla senza WordPress le funzioni pure: codice fiscale, righe e tab dei fogli dei soci e dei corsi, impostazioni e chiamate all'app web, date, slug, `meta_query`, lettere decorative. Senza PHP sulla macchina: `docker run --rm -v "$PWD":/app -w /app php:8.3-cli php tests/run.php`. Gli script Apps Script si provano con `node tests/apps-script.js`, su un foglio Google finto in memoria.
 - **Regole di scrittura:** `composer install`, poi `composer lint` (phpcs con WordPress-Extra e compatibilità PHP 7.4, regole in `phpcs.xml.dist`; il prefisso `vv_` è più corto dei tre caratteri che WPCS richiede, quindi quella regola è spenta). Nel codice le eccezioni motivate sono segnate con `phpcs:ignore`.
 - **Zip del tema:** `bin/build-zip.sh` crea `build/wvoce-classic.zip` con dentro la cartella `wvoce-classic`, il nome che il tema ha sul server. Contiene l'ultimo commit; test, documenti e file di sviluppo restano fuori (`.gitattributes`).
-- **GitHub Actions** (`.github/workflows/ci.yml`): a ogni push sintassi PHP e test, con PHP 7.4 e 8.3, e phpcs.
+- **GitHub Actions** (`.github/workflows/ci.yml`): a ogni push sintassi PHP e test, con PHP 7.4 e 8.3, test degli script Apps Script e phpcs.
 
 ## Struttura
 
@@ -157,6 +164,6 @@ assets/fonts/             Poppins (self-hosted, licenza OFL)
 assets/img/               livelli dell'hero, faccine e scritta del footer, mano del "torna su"
 CHANGELOG.md              note di versione
 docs/                     bozza di informativa privacy, piani di lavoro
-tests/                    test senza WordPress
+tests/                    test senza WordPress (run.php) e senza Google (apps-script.js)
 bin/build-zip.sh          zip del tema
 ```

@@ -105,6 +105,13 @@ function sanitize_title( $title ) {
 }
 
 define( 'DAY_IN_SECONDS', 86400 );
+function wp_list_pluck( $list, $field ) {
+	return array_map( static fn( $x ) => is_object( $x ) ? $x->$field : $x[ $field ], $list );
+}
+function wp_mail() {}
+function admin_url( $path = '' ) {
+	return 'https://wvoce.it/wp-admin/' . $path;
+}
 /**
  * Date in italiano come wp_date(), per i soli formati del tema (j, n, Y, F, M).
  */
@@ -276,6 +283,7 @@ uguale( 'Mappa: scritto in altro modo', 'gioco-del-teatro-2026', vv_corsi_tab( s
 uguale( 'Mappa: corso assente', 'Da smistare', vv_corsi_tab( $vv_opzioni_1617[1], $vv_mappa ) );
 uguale( 'Mappa: tab inesistente', 'Da smistare', vv_corsi_tab( 'Dizione', $vv_mappa ) );
 uguale( 'Mappa: corso vuoto', 'Da smistare', vv_corsi_tab( '', $vv_mappa ) );
+uguale( 'Mappa: tab "configurazioni" non è di un corso', 'Da smistare', vv_corsi_tab( 'Canto', array( 'mappa' => array( 'Canto' => 'configurazioni' ), 'tab' => array( 'configurazioni' ) ) ) );
 
 $vv_filtri['vv_corsi_campo'] = static fn() => '';
 uguale( 'Senza campo del corso: fermo', 'manca il campo del corso (filtro vv_corsi_campo)', vv_corsi_requisito() );
@@ -380,6 +388,36 @@ uguale( 'Partenza dalle nuove: parte solo la nuova', array( 32 ), array_map( sta
 $vv_opzioni['vv_corsi_ultimo'] = 32;
 uguale( 'Dopo un invio conta l\'ultima confermata', 32, vv_sheets_ultimo( 'corsi' ) );
 uguale( 'Soci: si parte da zero', 0, vv_sheets_ultimo( 'soci' ) );
+
+// Modulo dei corsi cambiato (anno nuovo): si parte dalla prima iscrizione del modulo nuovo, comprese
+// quelle arrivate prima del cambio nel pannello
+$vv_opzioni = array( 'vv_corsi_ultimo' => 32, 'vv_corsi_inizio' => 31 );
+vv_sheets_salva_impostazioni( 'corsi', array( 'url' => 'https://script.google.com/macros/s/abc/exec', 'token' => 't', 'form' => '1800' ) );
+Forminator_API::$entries = array( (object) array( 'entry_id' => 3, 'date_created_sql' => '2026-08-20 10:00:00' ), (object) array( 'entry_id' => 5, 'date_created_sql' => '2026-08-21 10:00:00' ) );
+uguale( 'Modulo cambiato: partono tutte le iscrizioni del nuovo', array( 3, 5 ), array_map( static fn( $e ) => $e->entry_id, vv_sheets_da_inviare( 'corsi' ) ) );
+
+// Iscrizioni passate oltre perché bozze o spam: ripartono quando tornano valide
+$vv_opzioni = array( 'vv_soci_ultimo' => 10 );
+Forminator_API::$entries = array(
+	(object) array( 'form_id' => 274, 'entry_id' => 8, 'date_created_sql' => '2026-09-10 10:00:00', 'draft_id' => 'abc' ),
+	(object) array( 'form_id' => 274, 'entry_id' => 11, 'date_created_sql' => '2026-09-12 10:00:00' ),
+);
+uguale( 'Bozza sotto il punto raggiunto: in attesa', array( 11 ), array_map( static fn( $e ) => $e->entry_id, vv_sheets_da_inviare( 'soci' ) ) );
+uguale( 'Bozza sotto il punto raggiunto: annotata', array( 8 ), vv_sheets_iscrizioni( 'soci' )['sospese'] );
+$vv_opzioni['vv_soci_sospese'] = array( 8 );
+Forminator_API::$entries[0]->draft_id = '';
+uguale( 'Bozza completata: parte', array( 8, 11 ), array_map( static fn( $e ) => $e->entry_id, vv_sheets_da_inviare( 'soci' ) ) );
+// Invio: la ripresa non fa tornare indietro il punto raggiunto; se il foglio non risponde resta annotata
+$vv_opzioni['vv_soci_impostazioni'] = array( 'url' => 'https://script.google.com/macros/s/abc/exec', 'token' => 't' );
+$vv_risposta = array( 'ok' => false, 'errore' => 'foglio occupato' );
+vv_sheets_sync( 'soci' );
+uguale( 'Invio non riuscito: la ripresa resta annotata', array( 8 ), $vv_opzioni['vv_soci_sospese'] );
+uguale( 'Invio non riuscito: punto raggiunto fermo', 10, $vv_opzioni['vv_soci_ultimo'] );
+$vv_risposta = array( 'ok' => true, 'rif' => array( 'F274-8', 'F274-11' ) );
+uguale( 'Invio riuscito: due iscrizioni', 2, vv_sheets_sync( 'soci' )['inviate'] );
+uguale( 'Invio riuscito: punto raggiunto avanti, mai indietro', 11, $vv_opzioni['vv_soci_ultimo'] );
+uguale( 'Invio riuscito: nessuna sospesa', array(), $vv_opzioni['vv_soci_sospese'] );
+Forminator_API::$entries = array();
 
 // ID del foglio dal pannello, mandato allo script a ogni chiamata
 $vv_id = '1TvSREeUfoeAcA1uI3Hx9qpytOVUOMQQc5664DqwxUOw';

@@ -9,7 +9,11 @@
  * - Ogni valore va nella colonna con la stessa intestazione (riga 1). Le altre colonne sono della
  *   segreteria, che le organizza come crede: lo script le lascia intatte e scrive solo dove ha un
  *   valore.
- * - Un tab del corso ancora vuoto riceve le intestazioni del sito: Rif., poi i campi del modulo.
+ * - Un tab del corso ancora vuoto riceve le intestazioni del sito: Rif., poi i campi del modulo. Un tab
+ *   indicato per più corsi riceve anche la colonna "Corso", così chi ne sceglie due ha due righe.
+ * - Le righe nuove vanno sotto l'ultima con dati del sito: le colonne che la segreteria riempie in
+ *   anticipo (caselle, formule) non spingono le iscrizioni in fondo, e le righe scritte a mano
+ *   restano intatte.
  * - Un corso assente da "configurazioni", o con un tab inesistente, va in "Da smistare", creato con
  *   le stesse intestazioni più "Corso". Lo script non crea altri tab.
  * - La colonna "Rif." (numero dell'iscrizione sul sito, prima colonna, nascondibile) evita i
@@ -91,7 +95,7 @@ function doPost(e) {
  * in "Da smistare".
  */
 function leggiConfigurazioni_(ss, crea) {
-  var conf = { mappa: {}, originale: {} };
+  var conf = { mappa: {}, originale: {}, corsi: {} };
   var tab = ss.getSheetByName(CONFIGURAZIONI);
   if (!tab && !crea) {
     return conf;
@@ -113,6 +117,7 @@ function leggiConfigurazioni_(ss, crea) {
     }
     conf.mappa[normalizza_(corso)] = nome;
     conf.originale[corso] = nome;
+    conf.corsi[nome] = (conf.corsi[nome] || 0) + 1;
   });
   return conf;
 }
@@ -126,28 +131,24 @@ function nomiTab_(ss) {
 
 /**
  * Il tab del corso secondo "configurazioni". Se esiste ma è vuoto riceve le intestazioni del sito;
- * se il corso manca o il tab non esiste la riga va in "Da smistare", creato la prima volta con le
- * intestazioni del sito e la colonna "Corso".
+ * se il corso manca o il tab non esiste la riga va in "Da smistare", creato la prima volta. "Da
+ * smistare" e i tab indicati per più corsi hanno anche la colonna "Corso": senza, la seconda riga
+ * della stessa iscrizione sembrerebbe un doppione.
  */
 function tabCorso_(ss, conf, riga) {
   var nome = conf.mappa[normalizza_(String(riga[CORSO] || ''))];
   var tab = nome && nome !== DA_SMISTARE && nome !== CONFIGURAZIONI ? ss.getSheetByName(nome) : null;
-  if (tab) {
-    if (tab.getLastColumn() === 0) {
-      scriviIntestazioni_(tab, riga, false);
-    }
-    return tab;
-  }
-  tab = ss.getSheetByName(DA_SMISTARE);
+  var conCorso = !tab || conf.corsi[nome] > 1;
   if (!tab) {
-    tab = ss.insertSheet(DA_SMISTARE, ss.getNumSheets());
+    tab = ss.getSheetByName(DA_SMISTARE) || ss.insertSheet(DA_SMISTARE, ss.getNumSheets());
   }
   if (tab.getLastColumn() === 0) {
-    scriviIntestazioni_(tab, riga, true);
-  }
-  var intestazioni = leggiIntestazioni_(tab);
-  if (indice_(intestazioni, CORSO) < 0) {
-    tab.getRange(1, primaLibera_(intestazioni) + 1).setValue(CORSO);
+    scriviIntestazioni_(tab, riga, conCorso);
+  } else if (conCorso) {
+    var intestazioni = leggiIntestazioni_(tab);
+    if (indice_(intestazioni, CORSO) < 0) {
+      tab.getRange(1, primaLibera_(intestazioni) + 1).setValue(CORSO).setFontWeight('bold');
+    }
   }
   return tab;
 }
@@ -166,10 +167,10 @@ function scriviIntestazioni_(tab, riga, conCorso) {
 
 /**
  * Intestazioni e righe già scritte di un tab, lette una volta per chiamata e tenute in "stati"
- * (per id del tab). Se manca la colonna "Rif." la inserisce in colonna A. Per i doppioni si
- * leggono solo le colonne Rif. e Corso.
+ * (per id del tab). Se manca la colonna "Rif." la inserisce in colonna A. Chiavi contro i doppioni
+ * da Rif. e Corso; prima riga libera dopo l'ultima con dati nelle colonne del sito.
  */
-function statoTab_(tab, stati) {
+function statoTab_(tab, stati, riga) {
   var id = tab.getSheetId();
   if (stati[id]) {
     return stati[id];
@@ -183,16 +184,19 @@ function statoTab_(tab, stati) {
     colRif = 0;
   }
   var colCorso = indice_(intestazioni, CORSO);
+  var dati = righeTab_(tab, intestazioni.length);
   var chiavi = {};
-  var ultima = tab.getLastRow();
-  if (ultima > 1) {
-    var rif = tab.getRange(2, colRif + 1, ultima - 1, 1).getValues();
-    var corsi = colCorso < 0 ? null : tab.getRange(2, colCorso + 1, ultima - 1, 1).getValues();
-    for (var i = 0; i < rif.length; i++) {
-      chiavi[chiave_(rif[i][0], corsi ? corsi[i][0] : '', colCorso)] = true;
+  dati.forEach(function (r) {
+    if (r[colRif] !== '') {
+      chiavi[chiave_(r[colRif], colCorso < 0 ? '' : r[colCorso], colCorso)] = true;
     }
-  }
-  stati[id] = { intestazioni: intestazioni, colCorso: colCorso, chiavi: chiavi };
+  });
+  stati[id] = {
+    intestazioni: intestazioni,
+    colCorso: colCorso,
+    chiavi: chiavi,
+    prossima: prossimaRiga_(dati, colonneSito_(intestazioni, riga))
+  };
   return stati[id];
 }
 
@@ -208,7 +212,7 @@ function chiave_(rif, corso, colCorso) {
  * altrove lo stesso Rif.
  */
 function scriviRiga_(tab, riga, stati) {
-  var stato = statoTab_(tab, stati);
+  var stato = statoTab_(tab, stati, riga);
   var chiave = chiave_(riga[RIF], riga[CORSO], stato.colCorso);
   if (stato.chiavi[chiave]) {
     return;
@@ -224,7 +228,7 @@ function scriviRiga_(tab, riga, stati) {
       valori[col] = valore;
     }
   });
-  var nuova = Math.max(tab.getLastRow(), 1) + 1;
+  var nuova = stato.prossima++;
   for (var inizio = 0; inizio < valori.length; inizio++) {
     if (valori[inizio] === undefined) {
       continue;
@@ -239,6 +243,41 @@ function scriviRiga_(tab, riga, stati) {
     inizio = fine;
   }
   stato.chiavi[chiave] = true;
+}
+
+/** Valori delle righe sotto le intestazioni (vuoto se il tab ha solo la riga 1). */
+function righeTab_(tab, colonne) {
+  var ultima = tab.getLastRow();
+  return ultima > 1 ? tab.getRange(2, 1, ultima - 1, colonne).getValues() : [];
+}
+
+/** Indici delle colonne che il sito scrive: le intestazioni che corrispondono alle voci della riga. */
+function colonneSito_(intestazioni, riga) {
+  var colonne = [];
+  Object.keys(riga).forEach(function (k) {
+    var col = k === '_tab' ? -1 : indice_(intestazioni, k);
+    if (col >= 0) {
+      colonne.push(col);
+    }
+  });
+  return colonne;
+}
+
+/**
+ * Numero della riga in cui scrivere: sotto l'ultima con un valore in una colonna del sito. Le colonne
+ * della segreteria riempite in anticipo (caselle, formule) non contano; le righe scritte a mano nelle
+ * colonne del sito sì, e restano intatte.
+ */
+function prossimaRiga_(dati, colonne) {
+  for (var i = dati.length - 1; i >= 0; i--) {
+    for (var j = 0; j < colonne.length; j++) {
+      var v = dati[i][colonne[j]];
+      if (v !== '' && v !== null && v !== undefined) {
+        return i + 3;
+      }
+    }
+  }
+  return 2;
 }
 
 /** Intestazioni della riga 1, ripulite dagli spazi. */

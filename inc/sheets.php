@@ -74,6 +74,7 @@ function vv_sheets_config( $id = 'soci' ) {
 			'impostazioni' => "vv_{$id}_impostazioni",
 			'ultimo'       => "vv_{$id}_ultimo",
 			'stato'        => "vv_{$id}_stato",
+			'sospese'      => "vv_{$id}_sospese",
 			'inizio'       => '',
 			'righe'        => '',
 			'colonne'      => '',
@@ -143,8 +144,11 @@ function vv_sheets_salva_impostazioni( $id, $dati ) {
 	);
 	if ( $nuove['form'] !== (int) $c['form'] ) {
 		delete_option( $c['ultimo'] );
+		delete_option( $c['sospese'] );
+		// Da capo davvero: anche le iscrizioni arrivate al modulo nuovo prima del cambio nel pannello.
+		// Il punto di partenza "dalle nuove" vale solo per la prima attivazione del collegamento.
 		if ( $c['inizio'] ) {
-			delete_option( $c['inizio'] );
+			update_option( $c['inizio'], 0, false );
 		}
 		$avvisi[] = "Modulo cambiato: l'invio riparte da capo per il modulo n. {$nuove['form']}.";
 	}
@@ -592,7 +596,9 @@ function vv_corsi_tab( $corso, $mappa ) {
 	$chiave = vv_corsi_normalizza( $corso );
 	foreach ( (array) ( $mappa['mappa'] ?? array() ) as $nome => $tab ) {
 		if ( '' !== $chiave && vv_corsi_normalizza( $nome ) === $chiave ) {
-			return in_array( $tab, (array) ( $mappa['tab'] ?? array() ), true ) ? $tab : vv_corsi_da_smistare();
+			// Come lo script: "configurazioni" e "Da smistare" non sono tab di un corso.
+			$valido = ! in_array( $tab, array( 'configurazioni', vv_corsi_da_smistare() ), true ) && in_array( $tab, (array) ( $mappa['tab'] ?? array() ), true );
+			return $valido ? $tab : vv_corsi_da_smistare();
 		}
 	}
 	return vv_corsi_da_smistare();
@@ -684,30 +690,51 @@ function vv_sheets_ultimo( $id = 'soci' ) {
 }
 
 /**
- * Iscrizioni da mandare: dopo l'ultima confermata, dalla data di partenza (se c'è) in poi, niente
- * spam né bozze salvate, dalla più vecchia.
+ * Iscrizioni di un collegamento, lette una volta:
+ * - "da_inviare": dopo l'ultima confermata, dalla data di partenza (se c'è) in poi, niente spam né
+ *   bozze salvate, dalla più vecchia; più quelle annotate fra le sospese che ora sono valide;
+ * - "sospese": bozze e spam dopo il punto di partenza. Una bozza completata, o un'iscrizione tolta
+ *   dallo spam, può avere un numero già superato dall'ultima confermata: senza questo elenco non
+ *   partirebbe più.
+ *
+ * @param string $id Collegamento.
+ * @return array{da_inviare:object[],sospese:int[]}
+ */
+function vv_sheets_iscrizioni( $id = 'soci' ) {
+	$c        = vv_sheets_config( $id );
+	$ultimo   = vv_sheets_ultimo( $id );
+	$base     = $c['inizio'] ? (int) get_option( $c['inizio'], 0 ) : 0;
+	$annotate = array_flip( array_map( 'intval', (array) get_option( $c['sospese'], array() ) ) );
+	$entries  = Forminator_API::get_entries( $c['form'] );
+	$out      = array(
+		'da_inviare' => array(),
+		'sospese'    => array(),
+	);
+	foreach ( is_array( $entries ) ? $entries : array() as $e ) {
+		if ( ! is_object( $e ) || ( '' !== $c['dal'] && substr( (string) $e->date_created_sql, 0, 10 ) < $c['dal'] ) ) {
+			continue;
+		}
+		$n = (int) $e->entry_id;
+		if ( ! empty( $e->is_spam ) || ! empty( $e->draft_id ) ) {
+			if ( $n > $base ) {
+				$out['sospese'][] = $n;
+			}
+		} elseif ( $n > $ultimo || isset( $annotate[ $n ] ) ) {
+			$out['da_inviare'][] = $e;
+		}
+	}
+	usort( $out['da_inviare'], static fn( $a, $b ) => (int) $a->entry_id <=> (int) $b->entry_id );
+	sort( $out['sospese'] );
+	return $out;
+}
+
+/**
+ * Iscrizioni da mandare (vedi vv_sheets_iscrizioni()).
  *
  * @param string $id Collegamento.
  */
 function vv_sheets_da_inviare( $id = 'soci' ) {
-	$c       = vv_sheets_config( $id );
-	$ultimo  = vv_sheets_ultimo( $id );
-	$entries = Forminator_API::get_entries( $c['form'] );
-	if ( ! is_array( $entries ) ) {
-		return array();
-	}
-	$entries = array_filter(
-		$entries,
-		static function ( $e ) use ( $ultimo, $c ) {
-			return is_object( $e )
-				&& (int) $e->entry_id > $ultimo
-				&& empty( $e->is_spam )
-				&& empty( $e->draft_id )
-				&& ( '' === $c['dal'] || substr( (string) $e->date_created_sql, 0, 10 ) >= $c['dal'] );
-		}
-	);
-	usort( $entries, static fn( $a, $b ) => (int) $a->entry_id <=> (int) $b->entry_id );
-	return array_values( $entries );
+	return vv_sheets_iscrizioni( $id )['da_inviare'];
 }
 
 /**
@@ -814,7 +841,16 @@ function vv_sheets_sync( $id = 'soci' ) {
 	$stato   = (array) get_option( $c['stato'], array() );
 	$inviate = 0;
 	$errore  = '';
-	foreach ( array_chunk( vv_sheets_da_inviare( $id ), 20 ) as $blocco ) {
+	$lista   = vv_sheets_iscrizioni( $id );
+	$ultimo  = vv_sheets_ultimo( $id );
+	// Iscrizioni sospese tornate valide: restano annotate finché il foglio non le conferma.
+	$riprese = array();
+	foreach ( $lista['da_inviare'] as $e ) {
+		if ( (int) $e->entry_id <= $ultimo ) {
+			$riprese[ (int) $e->entry_id ] = true;
+		}
+	}
+	foreach ( array_chunk( $lista['da_inviare'], 20 ) as $blocco ) {
 		$righe = vv_sheets_righe( $blocco, $id );
 		$esito = $righe ? vv_sheets_post( $righe, $id ) : array();
 		if ( is_wp_error( $esito ) ) {
@@ -825,9 +861,17 @@ function vv_sheets_sync( $id = 'soci' ) {
 			$errore = 'Il foglio non ha confermato tutte le righe del blocco.';
 			break;
 		}
-		update_option( $c['ultimo'], max( array_map( static fn( $e ) => (int) $e->entry_id, $blocco ) ), false );
+		$numeri = array_map( static fn( $e ) => (int) $e->entry_id, $blocco );
+		// Mai indietro: un blocco può contenere solo iscrizioni riprese, con numeri già superati.
+		$ultimo = max( $ultimo, ...$numeri );
+		update_option( $c['ultimo'], $ultimo, false );
+		$riprese  = array_diff_key( $riprese, array_flip( $numeri ) );
 		$inviate += count( $blocco );
 	}
+
+	$sospese = array_merge( $lista['sospese'], array_keys( $riprese ) );
+	sort( $sospese );
+	update_option( $c['sospese'], $sospese, false );
 
 	$adesso = time();
 	if ( $errore ) {
