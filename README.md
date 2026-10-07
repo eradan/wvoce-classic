@@ -11,6 +11,7 @@ Tema child di **Sydney 2.71** per wvoce.it, aspetto "classico" vicino al sito or
 - **Hero.** Altezza in `svh` sui telefoni (i pulsanti restano sopra la barra degli indirizzi); priorità di caricamento solo per testa e mano dell'illustrazione; un'illustrazione diversa presa dalla libreria dei media esce con larghezza, altezza e `srcset`. Occhiello e testo, mai visibili, lasciano il Customizer insieme alla pennellata SVG.
 - **Caroselli** con frecce disegnate in SVG; il pulsante "Copia" seleziona il valore se il browser nega gli appunti.
 - **`[vv_cards numero="-1" periodo="…"]`** mostra tutti gli eventi del periodo, non più uno solo.
+- **Immagine in testa all'articolo spegnibile.** Nel riquadro "VivaVoce: date e luogo" la casella *Senza immagine in testa* toglie l'immagine in evidenza da sopra il testo di quell'articolo; card, "Da non perdere" e anteprime dei social continuano a usarla (`vv_senza_immagine`, `vv_single_senza_immagine()`).
 - **Codice tolto:** la classe automatica `vv-cta` per la voce "Diventa socio" (mai stilata nel tema classico), `vv_svg()` e `assets/svg/`, la classe `vv-design`, il CSS di `.vv-timeline`. Regole duplicate riunite in `components.css`, `home.css`, `layout.css`, `footer.css`.
 - **Struttura:** le correzioni dei contenuti passano in `inc/contenuti.php`, gli schemi di pagina (`vv_two_column_template()`, `vv_page_with_extra()`) in `inc/page.php`; i collegamenti ai fogli elencano solo le voci che non si ricavano dall'id.
 - **phpcs in GitHub Actions**, con le regole adattate alle convenzioni del tema (`phpcs.xml.dist`).
@@ -86,7 +87,7 @@ Automatiche su tutte le pagine tranne la home ("Home › Chi siamo › Statuto e
 
 ## Articoli e pagine dei soci
 
-- Articolo: testo a sinistra, a destra la scheda **In breve** (quando, dove, categorie) e **Da non perdere** (articoli in evidenza); in fondo precedente/successivo come due card.
+- Articolo: immagine in evidenza in testa (spegnibile articolo per articolo: riquadro "VivaVoce: date e luogo" → *Senza immagine in testa*), testo a sinistra, a destra la scheda **In breve** (quando, dove, categorie) e **Da non perdere** (articoli in evidenza); in fondo precedente/successivo come due card.
 - Soci fondatori (modello "Page builder ready"): il child aggiunge breadcrumb e titolo e, in fondo, **Gli altri soci fondatori**.
 
 ## Shortcode

@@ -33,6 +33,13 @@ function vv_register_meta() {
 		'sanitize_callback' => 'sanitize_text_field',
 		'auth_callback'     => static fn() => current_user_can( 'edit_posts' ),
 	) );
+	register_post_meta( 'post', 'vv_senza_immagine', array(
+		'type'              => 'boolean',
+		'single'            => true,
+		'show_in_rest'      => true,
+		'sanitize_callback' => 'rest_sanitize_boolean',
+		'auth_callback'     => static fn() => current_user_can( 'edit_posts' ),
+	) );
 	register_post_meta( 'page', 'vv_nascondi', array(
 		'type'              => 'boolean',
 		'single'            => true,
@@ -93,6 +100,10 @@ function vv_render_evento_box( $post ) {
 		'<p><label><input type="checkbox" name="vv_in_evidenza" value="1" %s> <strong>In evidenza</strong> (riserva: compare in home e in "Da non perdere" solo quando non ci sono eventi in calendario)</label></p>',
 		checked( (string) get_post_meta( $post->ID, VV_FEATURED_KEY, true ), '1', false )
 	);
+	printf(
+		'<p><input type="hidden" name="vv_senza_immagine" value="0"><label><input type="checkbox" name="vv_senza_immagine" value="1" %s> <strong>Senza immagine in testa</strong> (l\'immagine in evidenza resta per card, anteprime e condivisioni)</label></p>',
+		checked( (bool) get_post_meta( $post->ID, 'vv_senza_immagine', true ), true, false )
+	);
 	foreach ( $fields as $key => list( $label, $type ) ) {
 		printf(
 			'<p><label for="%1$s"><strong>%2$s</strong></label><br><input type="%3$s" id="%1$s" name="%1$s" value="%4$s" class="widefat"></p>',
@@ -140,14 +151,15 @@ function vv_save_meta( $post_id ) {
 	if ( 'post' === get_post_type( $post_id ) ) {
 		update_post_meta( $post_id, VV_FEATURED_KEY, empty( $_POST['vv_in_evidenza'] ) ? 0 : 1 );
 	}
-	$keys = 'page' === get_post_type( $post_id ) ? array( 'vv_categoria', 'vv_nascondi' ) : array( 'vv_data', 'vv_data_fine', 'vv_luogo' );
+	$keys = 'page' === get_post_type( $post_id ) ? array( 'vv_categoria', 'vv_nascondi' ) : array( 'vv_data', 'vv_data_fine', 'vv_luogo', 'vv_senza_immagine' );
 	foreach ( $keys as $key ) {
 		if ( ! isset( $_POST[ $key ] ) ) {
 			continue;
 		}
 		// La sanificazione è quella registrata in register_post_meta().
 		$value = wp_unslash( $_POST[ $key ] ); // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
-		if ( '' === trim( (string) $value ) || ( 'vv_nascondi' === $key && '1' !== $value ) ) {
+		// Caselle: salvate solo se spuntate, altrimenti il campo si toglie.
+		if ( '' === trim( (string) $value ) || ( in_array( $key, array( 'vv_nascondi', 'vv_senza_immagine' ), true ) && '1' !== $value ) ) {
 			delete_post_meta( $post_id, $key );
 		} else {
 			update_post_meta( $post_id, $key, $value );

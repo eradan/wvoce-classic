@@ -20,6 +20,35 @@ function vv_swap_single_template() {
 add_action( 'wp', 'vv_swap_single_template' );
 
 /**
+ * "Senza immagine in testa" (riquadro VivaVoce dell'articolo): nella pagina dell'articolo Sydney non
+ * trova l'immagine in evidenza e non la stampa sopra il testo. Altrove (card, "Da non perdere",
+ * anteprime dei social) l'immagine resta.
+ *
+ * @param bool             $has  L'articolo ha un'immagine in evidenza.
+ * @param int|WP_Post|null $post Articolo.
+ * @return bool
+ */
+function vv_single_senza_immagine( $has, $post = null ) {
+	if ( ! $has || is_admin() || ! is_singular( 'post' ) || ! in_the_loop() || ! is_main_query() ) {
+		return $has;
+	}
+	$post = get_post( $post );
+	return ! ( $post && get_queried_object_id() === $post->ID && get_post_meta( $post->ID, 'vv_senza_immagine', true ) );
+}
+add_filter( 'has_post_thumbnail', 'vv_single_senza_immagine', 10, 2 );
+
+/**
+ * Stessa regola per chi stampa l'immagine senza chiedere prima has_post_thumbnail().
+ *
+ * @param string $html    Immagine.
+ * @param int    $post_id Articolo.
+ */
+function vv_single_senza_immagine_html( $html, $post_id ) {
+	return vv_single_senza_immagine( true, $post_id ) ? $html : '';
+}
+add_filter( 'post_thumbnail_html', 'vv_single_senza_immagine_html', 10, 2 );
+
+/**
  * Due colonne: articolo (colonna di lettura) e scheda laterale.
  */
 function vv_single_template() {
