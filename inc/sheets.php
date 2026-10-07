@@ -6,8 +6,8 @@
  *   ("DomandeAmmissione 2026-2027"), script inc/apps-script/albo-soci.gs. "Assicurazione" resta vuota.
  * - corsi: modulo "Iscrizione ai corsi 2026-2027" → foglio "Iscrizione Corsi", script
  *   inc/apps-script/iscrizione-corsi.gs. Il sito manda una riga per ogni corso scelto, con il testo
- *   del corso; il foglio sceglie il tab secondo il suo tab "configurazioni". Le colonne della
- *   segreteria (dovuto, quota, pagamento) restano vuote.
+ *   del corso; il foglio sceglie il tab secondo il suo tab "configurazioni". Le altre colonne del
+ *   foglio sono della segreteria: il sito le ignora.
  *
  * Ogni 15 minuti le iscrizioni nuove partono verso l'app web, che le scrive colonna per colonna
  * secondo le intestazioni. Si avanza solo sulle righe che il foglio conferma; il campo "Rif." evita
@@ -341,17 +341,61 @@ function vv_soci_colonne() {
 }
 
 /**
- * Tab dell'anno sociale (da settembre ad agosto) di una data "Y-m-d H:i:s".
+ * Primo anno dell'anno sociale (da settembre ad agosto) di una data "Y-m-d H:i:s": 2026 per il
+ * 2026-2027.
+ *
+ * @param string $data Data.
+ */
+function vv_anno_sociale( $data ) {
+	$t    = strtotime( $data );
+	$anno = (int) gmdate( 'Y', $t );
+	return (int) gmdate( 'n', $t ) < 9 ? $anno - 1 : $anno;
+}
+
+/**
+ * Tab dell'anno sociale di una data "Y-m-d H:i:s".
  *
  * @param string $data Data dell'iscrizione.
  */
 function vv_soci_tab( $data ) {
-	$t    = strtotime( $data );
-	$anno = (int) gmdate( 'Y', $t );
-	if ( (int) gmdate( 'n', $t ) < 9 ) {
-		--$anno;
-	}
+	$anno = vv_anno_sociale( $data );
 	return sprintf( 'DomandeAmmissione %d-%d', $anno, $anno + 1 );
+}
+
+/**
+ * Codice fiscale ridotto per il confronto: maiuscolo, senza spazi.
+ *
+ * @param string $cf Codice fiscale.
+ */
+function vv_cf_normalizza( $cf ) {
+	return strtoupper( (string) preg_replace( '/\s+/', '', (string) $cf ) );
+}
+
+/**
+ * La persona ha un'iscrizione a socio, sul modulo dei soci, nell'anno sociale di $adesso? Contano
+ * le iscrizioni dal 1° settembre in poi, niente spam né bozze.
+ *
+ * @param string $cf     Codice fiscale.
+ * @param string $adesso Data di riferimento, "Y-m-d H:i:s" (ora del sito, come Forminator).
+ */
+function vv_socio_iscritto( $cf, $adesso ) {
+	$cf = vv_cf_normalizza( $cf );
+	if ( '' === $cf || ! class_exists( 'Forminator_API' ) ) {
+		return false;
+	}
+	$dal     = vv_anno_sociale( $adesso ) . '-09-01';
+	$campo   = (string) ( vv_soci_colonne()['CODICE FISCALE'] ?? 'text-1' );
+	$entries = Forminator_API::get_entries( vv_sheets_config( 'soci' )['form'] );
+	foreach ( is_array( $entries ) ? $entries : array() as $e ) {
+		if ( ! is_object( $e ) || ! empty( $e->is_spam ) || ! empty( $e->draft_id ) || substr( (string) ( $e->date_created_sql ?? '' ), 0, 10 ) < $dal ) {
+			continue;
+		}
+		$v = $e->meta_data[ $campo ]['value'] ?? '';
+		if ( is_scalar( $v ) && vv_cf_normalizza( $v ) === $cf ) {
+			return true;
+		}
+	}
+	return false;
 }
 
 /**

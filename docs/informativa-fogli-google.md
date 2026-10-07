@@ -26,7 +26,7 @@ Dalla corrispondenza in `vv_corsi_colonne()` e `vv_corsi_campo()`:
 - **Scelte e consensi:** presa visione del regolamento, iscrizione all'associazione (socio o no), consenso privacy, note libere.
 - **Dati tecnici:** il numero dell'iscrizione sul sito (colonna "Rif.").
 
-Le colonne della segreteria (dovuto, quota associativa, pagamento) si compilano a mano e non arrivano dal sito.
+Le colonne aggiunte dalla segreteria si compilano a mano e restano fuori dal collegamento con il sito.
 
 **Da verificare per i corsi con minori** (Gioco del teatro, 3-6 anni): se il modulo raccoglie i dati del bambino e del genitore, quali passano nel foglio e in quali colonne. L'informativa va rivolta a chi esercita la responsabilità genitoriale, e il consenso lo dà il genitore.
 
