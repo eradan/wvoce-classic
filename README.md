@@ -2,6 +2,13 @@
 
 Tema child di **Sydney 2.71** per wvoce.it, aspetto "classico" vicino al sito originale. Le note di versione vengono prima; da *Messa in produzione* in poi la guida d'uso.
 
+## Versione 0.9.4: corsi riservati ai soci, Rif. in prima colonna
+
+- **Iscrizione ai corsi solo per i soci dell'anno.** Il modulo dei corsi (n. 1617) cerca il codice fiscale fra le iscrizioni del modulo dei soci (n. 274) arrivate dal 1° settembre dell'anno sociale in corso (settembre–agosto, `vv_anno_sociale()`, la stessa regola dei tab "DomandeAmmissione"). Se manca, il modulo si ferma con un messaggio accanto al campo e il link al modulo di iscrizione a socio (Customizer → VivaVoce, `vv_url_socio`). Spam e bozze restano esclusi. Moduli soggetti al controllo: filtro `vv_forminator_soci_richiesti` (un array vuoto lo spegne). Funzione di ricerca: `vv_socio_iscritto()`.
+- **Rif. in colonna A.** Nei tab nuovi lo script scrive Rif. per prima; in un tab già intestato che ne è privo inserisce una colonna A. Dove Rif. c'è già, lo trova per intestazione in qualunque colonna.
+- **Colonne della segreteria fuori dal codice.** Sparisce il tab modello: un tab vuoto riceve solo le intestazioni del sito, e le altre colonne restano alla segreteria, che le organizza come preferisce.
+- **Lo script dei corsi va incollato di nuovo e ripubblicato** (Gestisci deployment → matita → Nuova versione). Nei tab già popolati conviene spostare a mano la colonna Rif. in A: valori e protezione dai doppioni la seguono.
+
 ## Versione 0.9.3: correzioni e pulizia
 
 - **Script Apps Script più veloci: vanno incollati di nuovo e ripubblicati.** Lo script dei corsi scriveva cella per cella e rileggeva l'intero tab a ogni riga per cercare i doppioni: con blocchi da 20 iscrizioni poteva superare i 30 secondi di attesa del sito, che segnalava errore anche a righe già scritte. Ora legge intestazioni, Rif. e Corso una volta per tab e scrive a tratti di celle contigue; le colonne senza valore (segreteria) restano intatte. Lo script dei soci tiene anch'esso i Rif. già presenti in memoria. Per entrambi: tab *Script Apps Script* → Copia lo script → incollare nell'editor → Gestisci deployment → matita → Nuova versione. URL, codice e foglio restano gli stessi; gli script della 0.9.2 continuano comunque a funzionare.
@@ -48,7 +55,7 @@ Per convenzione il foglio "Iscrizione Corsi" contiene un tab chiamato `configura
 | 5 | `gioco-del-teatro-2026` | Bambini (elementari): Il gioco del teatro, ottobre-dicembre 2026 |
 
 - Colonna A: nome del tab; colonna B: nome esteso del corso, cioè il testo dell'opzione del modulo. Maiuscole, accenti e spazi doppi contano poco (`normalizza_()` nello script, `vv_corsi_normalizza()` nel sito); il resto deve coincidere. Più opzioni possono puntare allo stesso tab.
-- Il primo tab elencato con la riga 1 compilata fa da modello: le sue intestazioni passano ai tab nuovi ancora vuoti e a "Da smistare".
+- Dalla 0.9.4 un tab vuoto riceve le intestazioni del sito (Rif. in A, poi i campi del modulo; in "Da smistare" anche "Corso"). Il tab modello è sparito.
 - Corso assente da `configurazioni`, o tab inesistente: la riga va in "Da smistare", con il testo nella colonna "Corso". Se `configurazioni` manca, lo script lo crea vuoto al primo invio e tutto va in "Da smistare": nessuna iscrizione persa.
 - **Nuovo corso o opzione riscritta:** un tab nel foglio e una riga in `configurazioni`, senza toccare il sito. Il tab *Iscrizioni corsi* elenca le opzioni del modulo con il tab in cui finiscono e segnala in grassetto quelle dirette a "Da smistare"; lo script espone la mappa con l'azione di sola lettura `mappa`, che il sito tiene in copia per 5 minuti (pulsante "Rileggi il tab configurazioni").
 

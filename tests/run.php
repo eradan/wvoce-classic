@@ -86,6 +86,17 @@ function wp_remote_retrieve_header( $res, $name ) {
 function wp_remote_retrieve_body( $res ) {
 	return $res['body'];
 }
+$vv_adesso = '2026-10-07 10:00:00';
+function current_time( $type ) {
+	global $vv_adesso;
+	return $vv_adesso;
+}
+function esc_url( $url ) {
+	return (string) $url;
+}
+function home_url( $path = '' ) {
+	return 'https://wvoce.it' . $path;
+}
 function sanitize_title( $title ) {
 	return trim( preg_replace( '/[^a-z0-9]+/', '-', strtolower( (string) $title ) ), '-' );
 }
@@ -124,13 +135,13 @@ uguale( 'Partita IVA al posto del CF', false, vv_codice_fiscale_valido( '0244119
 
 $errori = vv_forminator_check_cf( array(), 1617, array( array( 'name' => 'text-1', 'value' => 'RSSMRA85T10A562T' ) ) );
 uguale( 'Modulo 1617: CF sbagliato segnalato', array( array( 'text-1' => 'Controlla il codice fiscale: sono 16 lettere e numeri, come sulla tessera sanitaria.' ) ), $errori );
-uguale( 'Modulo 1617: CF giusto passa', array(), vv_forminator_check_cf( array(), 1617, array( array( 'name' => 'text-1', 'value' => 'RSSMRA85T10A562S' ) ) ) );
 uguale( 'Altro modulo: nessun controllo', array(), vv_forminator_check_cf( array(), 274, array( array( 'name' => 'text-1', 'value' => 'xxx' ) ) ) );
 
 // Foglio dei soci: tab dell'anno sociale (settembre-agosto) e data
 uguale( 'Tab di settembre', 'DomandeAmmissione 2026-2027', vv_soci_tab( '2026-09-01 00:00:00' ) );
 uguale( 'Tab di agosto', 'DomandeAmmissione 2025-2026', vv_soci_tab( '2026-08-31 23:59:59' ) );
 uguale( 'Tab di gennaio', 'DomandeAmmissione 2026-2027', vv_soci_tab( '2027-01-15 10:00:00' ) );
+uguale( 'Anno sociale: 31 agosto, 1° settembre, gennaio', array( 2025, 2026, 2026 ), array( vv_anno_sociale( '2026-08-31 23:59:59' ), vv_anno_sociale( '2026-09-01 00:00:00' ), vv_anno_sociale( '2027-01-15 10:00:00' ) ) );
 uguale( 'Data come l\'export di Forminator', 'Ott 5, 2026 @ 10:08 AM', vv_soci_data( '2026-10-05 10:08:00' ) );
 
 // Foglio dei soci: valori dei campi
@@ -252,6 +263,30 @@ $vv_filtri['vv_corsi_campo'] = static fn() => '';
 uguale( 'Senza campo del corso: fermo', 'manca il campo del corso (filtro vv_corsi_campo)', vv_corsi_requisito() );
 uguale( 'Senza campo del corso: Corso vuoto', '', vv_corsi_righe( $vv_corsi_entry( 'Tecnica attoriale' ) )[0]['Corso'] );
 unset( $vv_filtri['vv_corsi_campo'] );
+
+// Corsi riservati ai soci dell'anno: codice fiscale fra le iscrizioni del modulo dei soci
+$vv_socio = static function ( $id, $data, $cf, $extra = array() ) {
+	return (object) ( array( 'entry_id' => $id, 'date_created_sql' => $data, 'meta_data' => array( 'text-1' => array( 'value' => $cf ) ) ) + $extra );
+};
+$vv_cf_corso = static fn( $cf ) => vv_forminator_check_cf( array(), 1617, array( array( 'name' => 'text-1', 'value' => $cf ) ) );
+$vv_msg_socio = 'Questo codice fiscale manca ancora fra i soci 2026-2027: i corsi sono riservati ai soci. Prima occorre iscriversi all\'associazione con il <a href="https://wvoce.it/cosa-puoi-fare/diventa-socio/" target="_blank" rel="noopener">modulo di iscrizione a socio</a>, poi si torna a questa pagina.';
+Forminator_API::$entries = array(
+	$vv_socio( 1, '2026-09-03 18:00:00', ' rssmra85t10a562s ' ),
+	$vv_socio( 2, '2026-06-10 18:00:00', 'BNCLRA90A41G702N' ),
+	$vv_socio( 3, '2026-09-20 18:00:00', 'VRDGPP80A01H501U', array( 'is_spam' => 1 ) ),
+);
+uguale( 'Socio dell\'anno: iscrizione al corso accettata', array(), $vv_cf_corso( 'RSSMRA85T10A562S' ) );
+uguale( 'Socio dell\'anno precedente: errore con il link', array( array( 'text-1' => $vv_msg_socio ) ), $vv_cf_corso( 'BNCLRA90A41G702N' ) );
+uguale( 'Iscrizione a socio nello spam: errore', array( array( 'text-1' => $vv_msg_socio ) ), $vv_cf_corso( 'VRDGPP80A01H501U' ) );
+uguale( 'CF sbagliato: solo il messaggio sul formato', 1, count( $vv_cf_corso( 'RSSMRA85T10A562T' ) ) );
+uguale( 'Altro modulo: niente controllo del socio', array(), vv_forminator_check_cf( array(), 274, array( array( 'name' => 'text-1', 'value' => 'BNCLRA90A41G702N' ) ) ) );
+$vv_adesso = '2026-08-20 10:00:00';
+uguale( 'Agosto: vale ancora l\'anno precedente', array(), $vv_cf_corso( 'BNCLRA90A41G702N' ) );
+$vv_adesso = '2026-10-07 10:00:00';
+$vv_filtri['vv_forminator_soci_richiesti'] = static fn() => array();
+uguale( 'Controllo del socio spento dal filtro', array(), $vv_cf_corso( 'BNCLRA90A41G702N' ) );
+unset( $vv_filtri['vv_forminator_soci_richiesti'] );
+Forminator_API::$entries = array();
 
 // Impostazioni dal pannello, non da wp-config.php
 $vv_opzioni = array();

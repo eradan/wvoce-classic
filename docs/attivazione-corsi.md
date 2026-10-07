@@ -8,13 +8,13 @@ Il percorso ha tre tempi: collaudo su una copia del foglio, passaggio al foglio 
 
 1. **Copia di sicurezza.** Dal pannello dell'hosting, backup di file e database.
 2. **Tab dei corsi.** Nel foglio vero, un tab per corso:
-   - `lettura-ad-alta-voce-2026` (con le intestazioni A–N, fa da modello)
+   - `lettura-ad-alta-voce-2026`
    - `tecnica-attoriale-2026`
    - `messa-in-scena-2027`
    - `gioco-del-teatro-2026`
 
    I nomi sono liberi: conta che coincidano con la colonna A di `configurazioni`.
-3. **Intestazioni del modello.** Nella riga 1 di `lettura-ad-alta-voce-2026`: Nome, Cognome, Codice Fiscale, Email, Cellulare, Ricevuta, Regolamento, Socio, Privacy, Note (A–J), poi le colonne della segreteria (K–N). Lo script scrive per intestazione: maiuscole e spazi contano poco, la parola invece deve coincidere.
+3. **Intestazioni.** Un tab vuoto riceve dallo script, alla prima iscrizione, le intestazioni del sito: Rif., Nome, Cognome, Codice Fiscale, Email, Cellulare, Ricevuta, Regolamento, Socio, Privacy, Note (A–K). In un tab già intestato a mano lo script scrive per intestazione: maiuscole e spazi contano poco, la parola invece deve coincidere. Tutte le altre colonne sono della segreteria, libera di aggiungerle, chiamarle e ordinarle come preferisce, tab per tab: lo script le lascia intatte. Unica attenzione: evitare per queste colonne i nomi usati dal sito.
 4. **Tab `configurazioni`.** Un tab con questo nome esatto. Riga 1: `Tab` in A, `Corso` in B. Dalla riga 2 una riga per corso: in A il nome del tab, in B il testo completo dell'opzione del modulo.
 
    | Tab | Corso |
@@ -24,7 +24,7 @@ Il percorso ha tre tempi: collaudo su una copia del foglio, passaggio al foglio 
    | `messa-in-scena-2027` | Adulti: Laboratorio di messa in scena, gennaio-giugno 2027 (giovedì 18.30-20.30) |
    | `gioco-del-teatro-2026` | Bambini (elementari): Il gioco del teatro, ottobre-dicembre 2026 |
 
-   Il primo tab elencato fa da modello per le intestazioni. Il testo esatto delle opzioni si copia dal sito, Strumenti → Esporta iscrizioni → Iscrizioni corsi, tabella *Corsi e tab del foglio*.
+   Il testo esatto delle opzioni si copia dal sito, Strumenti → Esporta iscrizioni → Iscrizioni corsi, tabella *Corsi e tab del foglio*.
 5. **Chi aggiorna dalla 0.8.** Annotare da `wp-config.php` i valori di `VV_SHEETS_URL`, `VV_SHEETS_TOKEN`, `VV_CORSI_URL`, `VV_CORSI_TOKEN`: dalla 0.9.0 il tema li ignora e vanno riscritti nel pannello.
 
 ## 1. Aggiornamento del tema sul sito
@@ -72,12 +72,12 @@ Lo script è un **progetto autonomo nel Drive condiviso "VivaVoce - Archivio Dig
 
 ### 2.4 Iscrizioni di prova
 
-Dal sito, in una finestra anonima, compilare il modulo `/iscrizione-corso/` quattro volte. Usare dati riconoscibili (cognome "Prova1", "Prova2"…) e un codice fiscale valido, anche il proprio: il modulo lo controlla.
+Dal sito, in una finestra anonima, compilare il modulo `/iscrizione-corso/` quattro volte. Usare dati riconoscibili (cognome "Prova1", "Prova2"…) e un codice fiscale valido e già iscritto fra i soci dell'anno, anche il proprio: il modulo controlla il formato e la presenza fra le iscrizioni del modulo dei soci dal 1° settembre. Una quinta prova con un codice valido ma assente fra i soci deve fermarsi con il messaggio e il link al modulo di iscrizione a socio.
 
 | Prova | Cosa compilare | Risultato atteso nella copia |
 |---|---|---|
-| 1 | Un solo corso: lettura ad alta voce. Cellulare con zero iniziale (es. 0612345678). Ricevuta allegata. Una nota | Una riga in `lettura-ad-alta-voce-2026`, A–J compilate, cellulare con lo zero, link alla ricevuta in F, TRUE in G–I, K–N vuote, "Rif." in O (`F1617-…`) |
-| 2 | Due corsi: tecniche attoriali e messa in scena | Una riga in `tecnica-attoriale-2026` e una in `messa-in-scena-2027`, con lo stesso Rif. I due tab, vuoti, ricevono prima le intestazioni del modello |
+| 1 | Un solo corso: lettura ad alta voce. Cellulare con zero iniziale (es. 0612345678). Ricevuta allegata. Una nota | Una riga in `lettura-ad-alta-voce-2026`: "Rif." in A (`F1617-…`), dati in B–K, cellulare con lo zero, link alla ricevuta in G, TRUE in H–J; le colonne della segreteria restano vuote |
+| 2 | Due corsi: tecniche attoriali e messa in scena | Una riga in `tecnica-attoriale-2026` e una in `messa-in-scena-2027`, con lo stesso Rif. I due tab, vuoti, ricevono prima le intestazioni del sito, con Rif. in A |
 | 3 | Il gioco del teatro | Una riga in `gioco-del-teatro-2026` |
 | 4 | Nome `=1+1`, un corso qualsiasi | Nella cella del nome si legge `=1+1` come testo, il calcolo resta fuori |
 
@@ -90,7 +90,7 @@ Dopo le quattro prove:
 ### 2.5 Doppioni, errori, Da smistare
 
 1. **Reinvio:** premere **Ricomincia dal punto di partenza**, confermare, poi **Invia adesso**. Il messaggio dice di nuovo "Inviate 4 iscrizioni", ma nel foglio le righe restano quelle: lo script riconosce il Rif. e salta le righe già scritte.
-2. **Da smistare:** nella copia, in `configurazioni`, cancellare per un momento la riga del gioco del teatro, compilare un'altra iscrizione a quel corso e premere Invia adesso. Compare il tab **Da smistare**, con le intestazioni del modello, la colonna "Corso" con il testo dell'opzione e la riga della prova. Poi ripristinare la riga in `configurazioni` e cancellare "Da smistare".
+2. **Da smistare:** nella copia, in `configurazioni`, cancellare per un momento la riga del gioco del teatro, compilare un'altra iscrizione a quel corso e premere Invia adesso. Compare il tab **Da smistare**, con le intestazioni del sito (Rif. in A), la colonna "Corso" con il testo dell'opzione e la riga della prova. Poi ripristinare la riga in `configurazioni` e cancellare "Da smistare".
 3. **Errore di collegamento:** nel tab Configurazione scrivere un codice sbagliato in `VV_CORSI_TOKEN` e premere Salva e verifica. Atteso: "verifica non riuscita: Il foglio ha risposto: codice segreto sbagliato". Compilare un'iscrizione e premere Invia adesso: "Inviate 0 iscrizioni. Errore: …" e riga Errore valorizzata nella tabella di stato; nessuna riga nel foglio. Rimettere il codice giusto e premere Invia adesso: la riga arriva, l'errore sparisce.
 4. **Invio automatico:** compilare un'ultima iscrizione e attendere senza premere nulla. Entro 15–20 minuti la riga arriva da sola (il controllo gira ogni 15 minuti con wp-cron, che parte con le visite al sito: su un sito poco visitato può tardare). "Prossimo controllo" nella tabella di stato indica l'orario previsto.
 
@@ -107,14 +107,14 @@ Dopo le quattro prove:
 ## 4. Riservatezza e chiusura
 
 1. **Condivisione del foglio.** Pulsante Condividi del foglio vero → Accesso generale → **Con limitazioni**. Lo script scrive con l'account che lo ha pubblicato, quindi il link pubblico in modifica serve più a nulla. Restano gli account nominativi della segreteria.
-2. **Colonna Rif.** Si può nascondere (clic destro sull'intestazione della colonna O → Nascondi colonna). Va lasciata al suo posto: è il riferimento contro i doppioni.
+2. **Colonna Rif.** Si può nascondere (clic destro sull'intestazione della colonna A → Nascondi colonna). Va lasciata nel foglio: è il riferimento contro i doppioni.
 3. **Tab `configurazioni`.** Si può proteggere (Dati → Proteggi fogli e intervalli) lasciando la modifica a chi gestisce i corsi.
 4. **Informativa privacy.** Riportare nel modulo 1617 e nella pagina privacy il testo di `docs/informativa-fogli-google.md`, dopo la verifica di chi cura la privacy. Da decidere a parte: i dati del genitore per le iscrizioni dei bambini, che il modulo oggi raccoglie solo per l'iscritto.
 5. **Avvisi d'errore.** Se il collegamento resta in errore per 24 ore, il sito scrive all'email dell'amministratore (Impostazioni → Generali → Indirizzo email di amministrazione): conviene che sia una casella letta.
 
 ## 5. Manutenzione
 
-- **Nuovo corso:** tab nuovo nel foglio, vuoto o con le intestazioni; in `configurazioni` una riga con il nome del tab in A e il testo esatto dell'opzione del modulo in B. Il sito resta com'è. Il tab vuoto riceve le intestazioni del modello alla prima riga.
+- **Nuovo corso:** tab nuovo nel foglio, vuoto o con le intestazioni; in `configurazioni` una riga con il nome del tab in A e il testo esatto dell'opzione del modulo in B. Il sito resta com'è. Il tab vuoto riceve le intestazioni del sito alla prima riga; le colonne della segreteria si aggiungono dopo, a piacere.
 - **Opzione del modulo riscritta** (un orario, una data): aggiornare il testo in colonna B di `configurazioni`. Il tab Iscrizioni corsi mostra le opzioni dirette a "Da smistare"; le righe già finite lì si spostano a mano.
 - **Script modificato** (nuova versione del tema): copiarlo dal tab Script Apps Script, incollarlo così com'è, poi Esegui il deployment → Gestisci deployment → matita → Versione: **Nuova versione** → Esegui il deployment. URL, codice e foglio restano gli stessi.
 - **Sospendere il collegamento:** svuotare `VV_CORSI_URL` nel tab Configurazione. Alla ripresa, le iscrizioni arrivate nel frattempo partono al primo controllo.
@@ -134,4 +134,5 @@ Dopo le quattro prove:
 | Corso assente da `configurazioni` | Riga in "Da smistare" con la colonna "Corso" |
 | Nome `=1+1` | Testo |
 | Codice sbagliato | Errore visibile, nessuna riga |
-| Colonne K–N | Sempre intatte |
+| Colonne della segreteria | Sempre intatte |
+| Codice fiscale assente fra i soci dell'anno | Errore nel modulo, con il link al modulo di iscrizione a socio |

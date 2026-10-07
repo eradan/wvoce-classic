@@ -6,15 +6,16 @@
  *   Corso), dalla riga 2 in colonna A il nome del tab e in colonna B il nome esteso del corso, cioè
  *   il testo dell'opzione del modulo. Maiuscole, accenti e spazi doppi contano poco. Per un corso
  *   nuovo basta un tab e una riga in "configurazioni": lo script resta com'è.
- * - Ogni valore va nella colonna con la stessa intestazione (riga 1). Le colonne della segreteria
- *   (dovuto, quota associativa, pagamento) restano vuote: lo script scrive solo dove ha un valore.
- * - Un tab del corso ancora vuoto riceve prima le intestazioni del modello: il primo tab elencato in
- *   "configurazioni" con la riga 1 compilata.
+ * - Ogni valore va nella colonna con la stessa intestazione (riga 1). Le altre colonne sono della
+ *   segreteria, che le organizza come crede: lo script le lascia intatte e scrive solo dove ha un
+ *   valore.
+ * - Un tab del corso ancora vuoto riceve le intestazioni del sito: Rif., poi i campi del modulo.
  * - Un corso assente da "configurazioni", o con un tab inesistente, va in "Da smistare", creato con
- *   le intestazioni del modello più "Corso". Lo script non crea altri tab.
- * - La colonna "Rif." (numero dell'iscrizione sul sito, nascondibile) evita i doppioni: una riga
- *   già scritta nel tab non viene ripetuta, anche se il sito la rimanda. Chi sceglie due corsi ha
- *   una riga in ciascun tab, con lo stesso Rif.
+ *   le stesse intestazioni più "Corso". Lo script non crea altri tab.
+ * - La colonna "Rif." (numero dell'iscrizione sul sito, prima colonna, nascondibile) evita i
+ *   doppioni: una riga già scritta nel tab non viene ripetuta, anche se il sito la rimanda. Chi
+ *   sceglie due corsi ha una riga in ciascun tab, con lo stesso Rif. In un tab che ne è privo lo
+ *   script la inserisce in colonna A; dove c'è già la trova per intestazione, in qualunque colonna.
  *
  * Installazione (una volta), istruzioni complete nel sito: Strumenti → Esporta iscrizioni.
  * 1. In Google Drive: Nuovo → Altro → Google Apps Script (progetto autonomo), oppure dal foglio:
@@ -70,7 +71,7 @@ function doPost(e) {
       if (!riga[RIF]) {
         return;
       }
-      scriviRiga_(tabCorso_(ss, conf, String(riga[CORSO] || '')), riga, stati);
+      scriviRiga_(tabCorso_(ss, conf, riga), riga, stati);
       if (fatti.indexOf(String(riga[RIF])) < 0) {
         fatti.push(String(riga[RIF]));
       }
@@ -85,12 +86,12 @@ function doPost(e) {
 }
 
 /**
- * Il tab "configurazioni": corso (normalizzato) → tab, più l'elenco dei tab nell'ordine in cui
- * compaiono. Se manca e ci sono righe da scrivere lo crea con le intestazioni: finché resta vuoto
- * le righe vanno in "Da smistare".
+ * Il tab "configurazioni": corso (normalizzato) → tab, più la stessa mappa con i nomi originali. Se
+ * manca e ci sono righe da scrivere lo crea con le intestazioni: finché resta vuoto le righe vanno
+ * in "Da smistare".
  */
 function leggiConfigurazioni_(ss, crea) {
-  var conf = { mappa: {}, originale: {}, ordine: [] };
+  var conf = { mappa: {}, originale: {} };
   var tab = ss.getSheetByName(CONFIGURAZIONI);
   if (!tab && !crea) {
     return conf;
@@ -112,9 +113,6 @@ function leggiConfigurazioni_(ss, crea) {
     }
     conf.mappa[normalizza_(corso)] = nome;
     conf.originale[corso] = nome;
-    if (conf.ordine.indexOf(nome) < 0) {
-      conf.ordine.push(nome);
-    }
   });
   return conf;
 }
@@ -126,34 +124,17 @@ function nomiTab_(ss) {
   });
 }
 
-/** Il tab da cui copiare le intestazioni: il primo di "configurazioni" con la riga 1 compilata. */
-function tabModello_(ss, conf) {
-  for (var i = 0; i < conf.ordine.length; i++) {
-    var tab = ss.getSheetByName(conf.ordine[i]);
-    if (tab && tab.getLastColumn() > 0) {
-      return tab;
-    }
-  }
-  var altri = ss.getSheets().filter(function (s) {
-    return s.getName() !== DA_SMISTARE && s.getName() !== CONFIGURAZIONI && s.getLastColumn() > 0;
-  });
-  if (!altri.length) {
-    throw new Error('nessun tab con le intestazioni da copiare');
-  }
-  return altri[0];
-}
-
 /**
- * Il tab del corso secondo "configurazioni". Se esiste ma è vuoto riceve le intestazioni del
- * modello; se il corso manca o il tab non esiste la riga va in "Da smistare", creato la prima volta
- * con le intestazioni del modello e la colonna "Corso".
+ * Il tab del corso secondo "configurazioni". Se esiste ma è vuoto riceve le intestazioni del sito;
+ * se il corso manca o il tab non esiste la riga va in "Da smistare", creato la prima volta con le
+ * intestazioni del sito e la colonna "Corso".
  */
-function tabCorso_(ss, conf, corso) {
-  var nome = conf.mappa[normalizza_(corso)];
+function tabCorso_(ss, conf, riga) {
+  var nome = conf.mappa[normalizza_(String(riga[CORSO] || ''))];
   var tab = nome && nome !== DA_SMISTARE && nome !== CONFIGURAZIONI ? ss.getSheetByName(nome) : null;
   if (tab) {
     if (tab.getLastColumn() === 0) {
-      copiaIntestazioni_(tabModello_(ss, conf), tab);
+      scriviIntestazioni_(tab, riga, false);
     }
     return tab;
   }
@@ -162,7 +143,7 @@ function tabCorso_(ss, conf, corso) {
     tab = ss.insertSheet(DA_SMISTARE, ss.getNumSheets());
   }
   if (tab.getLastColumn() === 0) {
-    copiaIntestazioni_(tabModello_(ss, conf), tab);
+    scriviIntestazioni_(tab, riga, true);
   }
   var intestazioni = leggiIntestazioni_(tab);
   if (indice_(intestazioni, CORSO) < 0) {
@@ -171,20 +152,22 @@ function tabCorso_(ss, conf, corso) {
   return tab;
 }
 
-/** Copia la riga delle intestazioni del modello, senza "Rif." (lo script la aggiunge da sé). */
-function copiaIntestazioni_(modello, tab) {
-  var intestazioni = leggiIntestazioni_(modello);
-  var fino = indice_(intestazioni, RIF) >= 0 ? indice_(intestazioni, RIF) : primaLibera_(intestazioni);
-  if (fino > 0) {
-    modello.getRange(1, 1, 1, fino).copyTo(tab.getRange(1, 1, 1, fino));
-  }
+/**
+ * Intestazioni di un tab vuoto dalle voci della riga, nell'ordine del sito (Rif. per prima); "Corso"
+ * solo in "Da smistare".
+ */
+function scriviIntestazioni_(tab, riga, conCorso) {
+  var nomi = Object.keys(riga).filter(function (k) {
+    return k !== '_tab' && (conCorso || k !== CORSO);
+  });
+  tab.getRange(1, 1, 1, nomi.length).setValues([nomi]).setFontWeight('bold');
   tab.setFrozenRows(1);
 }
 
 /**
  * Intestazioni e righe già scritte di un tab, lette una volta per chiamata e tenute in "stati"
- * (per id del tab). Se manca la colonna "Rif." la aggiunge. Per i doppioni si leggono solo le
- * colonne Rif. e Corso.
+ * (per id del tab). Se manca la colonna "Rif." la inserisce in colonna A. Per i doppioni si
+ * leggono solo le colonne Rif. e Corso.
  */
 function statoTab_(tab, stati) {
   var id = tab.getSheetId();
@@ -194,9 +177,10 @@ function statoTab_(tab, stati) {
   var intestazioni = leggiIntestazioni_(tab);
   var colRif = indice_(intestazioni, RIF);
   if (colRif < 0) {
-    colRif = primaLibera_(intestazioni);
-    tab.getRange(1, colRif + 1).setValue(RIF);
-    intestazioni[colRif] = RIF;
+    tab.insertColumnBefore(1);
+    tab.getRange(1, 1).setValue(RIF).setFontWeight('bold');
+    intestazioni.unshift(RIF);
+    colRif = 0;
   }
   var colCorso = indice_(intestazioni, CORSO);
   var chiavi = {};
