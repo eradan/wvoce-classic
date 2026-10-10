@@ -17,12 +17,7 @@ function add_action() {}
 function add_filter() {}
 function add_shortcode() {}
 function register_post_meta() {}
-$vv_filtri  = array();
 $vv_opzioni = array();
-function apply_filters( $hook, $value ) {
-	global $vv_filtri;
-	return isset( $vv_filtri[ $hook ] ) ? call_user_func( $vv_filtri[ $hook ], $value ) : $value;
-}
 function get_option( $name, $default = false ) {
 	global $vv_opzioni;
 	return array_key_exists( $name, $vv_opzioni ) ? $vv_opzioni[ $name ] : $default;
@@ -103,6 +98,9 @@ function esc_url( $url ) {
 function home_url( $path = '' ) {
 	return 'https://wvoce.it' . $path;
 }
+function get_theme_mod( $name, $default = false ) {
+	return $default;
+}
 function sanitize_title( $title ) {
 	return trim( preg_replace( '/[^a-z0-9]+/', '-', strtolower( (string) $title ) ), '-' );
 }
@@ -128,6 +126,7 @@ function wp_date( $format, $ts ) {
 	return $out;
 }
 
+require dirname( __DIR__ ) . '/inc/customizer.php';
 require dirname( __DIR__ ) . '/inc/meta.php';
 require dirname( __DIR__ ) . '/inc/cards.php';
 require dirname( __DIR__ ) . '/inc/contenuti.php';
@@ -263,7 +262,6 @@ uguale(
 );
 uguale( 'Testo unito senza opzioni note: un corso', array( 'Dizione, Canto' ), vv_corsi_scelti( 'Dizione, Canto', array() ) );
 uguale( 'Nessun corso: una riga con Corso vuoto', array( '' ), array_column( vv_corsi_righe( $vv_corsi_entry( '' ) ), 'Corso' ) );
-uguale( 'Campo del corso indicato: requisito soddisfatto', '', vv_corsi_requisito() );
 uguale(
 	'Modulo 1617: colonne',
 	array( 'name-1', 'name-2', 'text-1', 'email-1', 'phone-2', 'upload-1', 'consent-1', 'consent-2', 'consent-3', 'textarea-1' ),
@@ -289,11 +287,6 @@ uguale( 'Mappa: tab inesistente', 'Da smistare', vv_corsi_tab( 'Dizione', $vv_ma
 uguale( 'Mappa: corso vuoto', 'Da smistare', vv_corsi_tab( '', $vv_mappa ) );
 uguale( 'Mappa: tab "configurazioni" non è di un corso', 'Da smistare', vv_corsi_tab( 'Canto', array( 'mappa' => array( 'Canto' => 'configurazioni' ), 'tab' => array( 'configurazioni' ) ) ) );
 
-$vv_filtri['vv_corsi_campo'] = static fn() => '';
-uguale( 'Senza campo del corso: fermo', 'manca il campo del corso (filtro vv_corsi_campo)', vv_corsi_requisito() );
-uguale( 'Senza campo del corso: Corso vuoto', '', vv_corsi_righe( $vv_corsi_entry( 'Tecnica attoriale' ) )[0]['Corso'] );
-unset( $vv_filtri['vv_corsi_campo'] );
-
 // Corsi riservati ai soci dell'anno: codice fiscale fra le iscrizioni del modulo dei soci
 $vv_socio = static function ( $id, $data, $cf, $extra = array() ) {
 	return (object) ( array( 'entry_id' => $id, 'date_created_sql' => $data, 'meta_data' => array( 'text-1' => array( 'value' => $cf ) ) ) + $extra );
@@ -315,33 +308,23 @@ $vv_cf_socio   = static fn( $cf ) => vv_forminator_check_cf( array(), 274, array
 uguale( 'Modulo soci: già iscritto quest\'anno, errore con l\'email', array( array( 'text-1' => $vv_msg_doppio ) ), $vv_cf_socio( 'RSSMRA85T10A562S' ) );
 uguale( 'Modulo soci: CF minuscolo con spazi riconosciuto', array( array( 'text-1' => $vv_msg_doppio ) ), $vv_cf_socio( 'rssmra85t10a562s ' ) );
 uguale( 'Modulo soci: iscrizione nello spam, si iscrive', array(), $vv_cf_socio( 'VRDGPP80A01H501U' ) );
-$vv_filtri['vv_forminator_soci_unici'] = static fn() => array();
-uguale( 'Modulo soci: controllo spento dal filtro', array(), $vv_cf_socio( 'RSSMRA85T10A562S' ) );
-unset( $vv_filtri['vv_forminator_soci_unici'] );
 $vv_adesso = '2026-08-20 10:00:00';
 uguale( 'Agosto: vale ancora l\'anno precedente', array(), $vv_cf_corso( 'BNCLRA90A41G702N' ) );
 $vv_adesso = '2026-10-07 10:00:00';
-$vv_filtri['vv_forminator_soci_richiesti'] = static fn() => array();
-uguale( 'Controllo del socio spento dal filtro', array(), $vv_cf_corso( 'BNCLRA90A41G702N' ) );
-unset( $vv_filtri['vv_forminator_soci_richiesti'] );
 Forminator_API::$entries = array();
 
 // Controlli dei moduli: seguono il modulo scelto nel pannello, non un numero scritto nel codice
-uguale( 'Moduli predefiniti: corsi e soci', array( 1617 => 'text-1', 274 => 'text-1' ), vv_forminator_cf_fields() );
+uguale( 'Moduli predefiniti: corsi e soci', array( 1617 => 'richiesto', 274 => 'unico' ), vv_forminator_moduli() );
 $vv_opzioni['vv_corsi_impostazioni'] = array( 'form' => 1800 );
 uguale( 'Modulo dei corsi cambiato: CF controllato sul nuovo', 1, count( vv_forminator_check_cf( array(), 1800, array( array( 'name' => 'text-1', 'value' => 'RSSMRA85T10A562T' ) ) ) ) );
-uguale( 'Modulo dei corsi cambiato: socio richiesto sul nuovo', array( 1800 => 'text-1' ), vv_forminator_soci_richiesti() );
+uguale( 'Modulo dei corsi cambiato: socio richiesto sul nuovo', array( 1800 => 'richiesto', 274 => 'unico' ), vv_forminator_moduli() );
 uguale( 'Modulo dei corsi cambiato: il vecchio non si controlla più', array(), vv_forminator_check_cf( array(), 1617, array( array( 'name' => 'text-1', 'value' => 'xxx' ) ) ) );
 unset( $vv_opzioni['vv_corsi_impostazioni'] );
 
-// Impostazioni dal pannello, non da wp-config.php
+// Impostazioni dal pannello
 $vv_opzioni = array();
-define( 'VV_SHEETS_URL', 'https://script.google.com/macros/s/vecchio/exec' );
-define( 'VV_CORSI_TOKEN', 'vecchio' );
 $c = vv_sheets_config( 'soci' );
 uguale( 'Soci: predefiniti', array( '', '', 274, '2026-09-01', 'VV_SOCI' ), array( $c['url'], $c['token'], $c['form'], $c['dal'], $c['prefisso'] ) );
-uguale( 'Costanti di wp-config.php ignorate', '', vv_sheets_config( 'corsi' )['token'] );
-uguale( 'Costanti rimaste segnalate', array( 'VV_SHEETS_URL', 'VV_CORSI_TOKEN' ), vv_sheets_costanti_rimaste() );
 uguale( 'Soci: opzioni con i nomi nuovi', array( 'vv_soci_impostazioni', 'vv_soci_ultimo', 'vv_soci_stato', '' ), array( $c['impostazioni'], $c['ultimo'], $c['stato'], $c['inizio'] ) );
 $c = vv_sheets_config( 'corsi' );
 uguale( 'Corsi: modulo, opzioni, partenza dalle nuove', array( 1617, 'vv_corsi_ultimo', 'vv_corsi_stato', 'vv_corsi_inizio', '' ), array( $c['form'], $c['ultimo'], $c['stato'], $c['inizio'], $c['dal'] ) );
@@ -364,23 +347,6 @@ uguale( 'Salvataggio: modulo cambiato, si riparte', false, isset( $vv_opzioni['v
 uguale( 'Salvataggio: indirizzo vuoto, collegamento spento', false, vv_sheets_configurato( 'soci' ) );
 uguale( 'Salvataggio: data tolta', '', $c['dal'] );
 
-// Migrazione delle opzioni della 0.8
-$vv_opzioni = array(
-	'vv_sheets_ultimo'       => 120,
-	'vv_sheets_stato'        => array( 'controllo' => 1 ),
-	'vv_sheets_corsi_inizio' => 31,
-	'vv_corsi_ultimo'        => 40,
-	'vv_sheets_corsi_ultimo' => 35,
-);
-vv_sheets_migra_opzioni();
-uguale( 'Migrazione: soci', array( 120, array( 'controllo' => 1 ) ), array( $vv_opzioni['vv_soci_ultimo'], $vv_opzioni['vv_soci_stato'] ) );
-uguale( 'Migrazione: corsi, punto di partenza', 31, $vv_opzioni['vv_corsi_inizio'] );
-uguale( 'Migrazione: valore nuovo già presente non sovrascritto', 40, $vv_opzioni['vv_corsi_ultimo'] );
-uguale( 'Migrazione: nomi vecchi tolti', array(), array_values( array_filter( array_keys( $vv_opzioni ), static fn( $k ) => 0 === strpos( $k, 'vv_sheets_' ) && 'vv_sheets_versione' !== $k ) ) );
-$vv_opzioni['vv_sheets_ultimo'] = 999;
-vv_sheets_migra_opzioni();
-uguale( 'Migrazione: una volta sola', 120, $vv_opzioni['vv_soci_ultimo'] );
-
 // Partenza dalle nuove: la prima volta si fissa l'iscrizione più recente
 $vv_opzioni = array();
 Forminator_API::$entries = array( (object) array( 'entry_id' => 7 ), (object) array( 'entry_id' => 31, 'is_spam' => 1 ), (object) array( 'entry_id' => 12 ) );
@@ -388,7 +354,7 @@ uguale( 'Partenza dalle nuove: iscrizione più recente', 31, vv_sheets_ultimo( '
 uguale( 'Partenza dalle nuove: salvata', 31, $vv_opzioni['vv_corsi_inizio'] );
 Forminator_API::$entries[] = (object) array( 'entry_id' => 32, 'date_created_sql' => '2026-10-06 09:00:00' );
 uguale( 'Partenza dalle nuove: resta fissa', 31, vv_sheets_ultimo( 'corsi' ) );
-uguale( 'Partenza dalle nuove: parte solo la nuova', array( 32 ), array_map( static fn( $e ) => $e->entry_id, vv_sheets_da_inviare( 'corsi' ) ) );
+uguale( 'Partenza dalle nuove: parte solo la nuova', array( 32 ), array_map( static fn( $e ) => $e->entry_id, vv_sheets_iscrizioni( 'corsi' )['da_inviare'] ) );
 $vv_opzioni['vv_corsi_ultimo'] = 32;
 uguale( 'Dopo un invio conta l\'ultima confermata', 32, vv_sheets_ultimo( 'corsi' ) );
 uguale( 'Soci: si parte da zero', 0, vv_sheets_ultimo( 'soci' ) );
@@ -398,7 +364,7 @@ uguale( 'Soci: si parte da zero', 0, vv_sheets_ultimo( 'soci' ) );
 $vv_opzioni = array( 'vv_corsi_ultimo' => 32, 'vv_corsi_inizio' => 31 );
 vv_sheets_salva_impostazioni( 'corsi', array( 'url' => 'https://script.google.com/macros/s/abc/exec', 'token' => 't', 'form' => '1800' ) );
 Forminator_API::$entries = array( (object) array( 'entry_id' => 3, 'date_created_sql' => '2026-08-20 10:00:00' ), (object) array( 'entry_id' => 5, 'date_created_sql' => '2026-08-21 10:00:00' ) );
-uguale( 'Modulo cambiato: partono tutte le iscrizioni del nuovo', array( 3, 5 ), array_map( static fn( $e ) => $e->entry_id, vv_sheets_da_inviare( 'corsi' ) ) );
+uguale( 'Modulo cambiato: partono tutte le iscrizioni del nuovo', array( 3, 5 ), array_map( static fn( $e ) => $e->entry_id, vv_sheets_iscrizioni( 'corsi' )['da_inviare'] ) );
 
 // Iscrizioni passate oltre perché bozze o spam: ripartono quando tornano valide
 $vv_opzioni = array( 'vv_soci_ultimo' => 10 );
@@ -406,11 +372,11 @@ Forminator_API::$entries = array(
 	(object) array( 'form_id' => 274, 'entry_id' => 8, 'date_created_sql' => '2026-09-10 10:00:00', 'draft_id' => 'abc' ),
 	(object) array( 'form_id' => 274, 'entry_id' => 11, 'date_created_sql' => '2026-09-12 10:00:00' ),
 );
-uguale( 'Bozza sotto il punto raggiunto: in attesa', array( 11 ), array_map( static fn( $e ) => $e->entry_id, vv_sheets_da_inviare( 'soci' ) ) );
+uguale( 'Bozza sotto il punto raggiunto: in attesa', array( 11 ), array_map( static fn( $e ) => $e->entry_id, vv_sheets_iscrizioni( 'soci' )['da_inviare'] ) );
 uguale( 'Bozza sotto il punto raggiunto: annotata', array( 8 ), vv_sheets_iscrizioni( 'soci' )['sospese'] );
 $vv_opzioni['vv_soci_sospese'] = array( 8 );
 Forminator_API::$entries[0]->draft_id = '';
-uguale( 'Bozza completata: parte', array( 8, 11 ), array_map( static fn( $e ) => $e->entry_id, vv_sheets_da_inviare( 'soci' ) ) );
+uguale( 'Bozza completata: parte', array( 8, 11 ), array_map( static fn( $e ) => $e->entry_id, vv_sheets_iscrizioni( 'soci' )['da_inviare'] ) );
 // Invio: la ripresa non fa tornare indietro il punto raggiunto; se il foglio non risponde resta annotata
 $vv_opzioni['vv_soci_impostazioni'] = array( 'url' => 'https://script.google.com/macros/s/abc/exec', 'token' => 't' );
 $vv_risposta = array( 'ok' => false, 'errore' => 'foglio occupato' );

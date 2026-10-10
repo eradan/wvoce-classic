@@ -10,7 +10,6 @@ defined( 'ABSPATH' ) || exit;
 define( 'VV_DIR', get_stylesheet_directory() );
 define( 'VV_URI', get_stylesheet_directory_uri() );
 
-require VV_DIR . '/inc/migrate.php';
 require VV_DIR . '/inc/setup.php';
 require VV_DIR . '/inc/contenuti.php';
 require VV_DIR . '/inc/condivisione.php';

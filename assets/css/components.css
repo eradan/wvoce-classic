@@ -38,9 +38,6 @@
 	background: var(--vv-riquadro);
 }
 .vv-card__media {
-	background: var(--vv-riquadro);
-}
-.vv-card__media {
 	position: relative;
 	aspect-ratio: 3 / 2;
 	margin-bottom: 0;
@@ -359,17 +356,8 @@
 .vv-carousel__nav[hidden] .vv-carousel__btn {
 	display: none;
 }
-/* Contatore "1–3 di 18" sotto il carosello, al posto dei pallini: nel flusso della pagina,
- * così non finisce addosso al titolo che segue */
-.vv-carousel__count {
-	order: 1;
-	display: block;
-	margin-top: var(--vv-s-2);
-	font-size: var(--vv-fs-meta);
-	text-align: center;
-	color: var(--vv-testo-2);
-}
-/* Riga sotto il carosello: frecce (su telefono), pausa e contatore */
+/* Riga sotto il carosello, nel flusso della pagina (così non finisce addosso al titolo che segue):
+ * frecce (su telefono), pausa e contatore "1–3 di 18" al posto dei pallini */
 .vv-carousel__bar {
 	order: 1;
 	display: flex;
@@ -378,9 +366,11 @@
 	gap: 12px;
 	margin-top: var(--vv-s-2);
 }
-.vv-carousel__bar .vv-carousel__count {
-	order: 0;
-	margin-top: 0;
+.vv-carousel__count {
+	display: block;
+	font-size: var(--vv-fs-meta);
+	text-align: center;
+	color: var(--vv-testo-2);
 }
 .vv-carousel__btn.vv-carousel__play {
 	position: static;

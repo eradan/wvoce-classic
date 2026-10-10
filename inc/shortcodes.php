@@ -1,6 +1,6 @@
 <?php
 /**
- * Shortcode da usare nei widget SiteOrigin, nei widget del footer e nelle pagine.
+ * Shortcode da usare nelle pagine e nei widget del footer.
  *
  *   [vv_cards categoria="appuntamenti" numero="3" variante="evento" colonne="3"]
  *                                        (non ripete articoli già mostrati sopra; doppioni="si" per permetterlo)
@@ -160,7 +160,7 @@ function vv_render_elenco( $slugs ) {
 		return '<section class="vv-elenco vv-elenco--schede">' . vv_render_cards( $posts, 'evento' ) . '</section>';
 	}
 
-	$min      = (int) apply_filters( 'vv_elenco_grandi', 9 );
+	$min      = 9; // Card grandi in alto, almeno.
 	$now      = time();
 	$upcoming = array_values( array_filter( $items, static fn( $i ) => $i['dates']['has_meta'] && $i['dates']['end'] >= $now ) );
 	$past     = array_values( array_filter( $items, static fn( $i ) => ! ( $i['dates']['has_meta'] && $i['dates']['end'] >= $now ) ) );

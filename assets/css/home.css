@@ -183,9 +183,8 @@
 }
 
 /* Titoli delle sezioni: maiuscolo, centrati, con la barretta gialla (come i widget originali).
- * Valgono sia per l'istantanea SiteOrigin (h3.widget-title) sia per la home a blocchi. */
-.home .so-panel .widget-title,
-.home .panel-grid .widget-title,
+ * Le regole di layout.css (.vv-section-title) qui con !important: nella home i titoli dei blocchi
+ * hanno stili di Sydney più specifici. */
 .vv-has-hero .entry-content > .vv-section-title {
 	position: relative;
 	display: block;
@@ -198,58 +197,15 @@
 	text-transform: uppercase !important;
 	color: var(--vv-titoli-sezione) !important;
 }
-.home .panel-grid + .panel-grid {
-	margin-top: var(--vv-spazio);
-}
 .vv-has-hero .entry-content > .vv-section-title:not(:first-child) {
 	margin-top: var(--vv-spazio) !important;
 }
-#appuntamenti {
-	scroll-margin-top: 140px;
-}
-
-/* "Da non perdere": card con immagine piena e testo su fondo scuro, come il vecchio "Featured Post" */
-.home .vv-grid--evento:not(.vv-grid--carosello) .vv-card {
-	min-height: 420px;
-	background: var(--vv-placeholder);
-	border-top: 0;
-}
-.home .vv-grid--evento:not(.vv-grid--carosello) .vv-card__media {
-	position: absolute;
-	inset: 0;
-	aspect-ratio: auto;
-	margin: 0;
-}
-.home .vv-grid--evento:not(.vv-grid--carosello) .vv-card__body {
-	position: relative;
-	z-index: 1;
-	justify-content: flex-end;
-	padding: 60px 20px 20px;
-	flex: none;
-	margin-top: auto;
-	background: linear-gradient(to bottom, transparent 0, rgb(var(--vv-velo) / 0.6) 35%, rgb(var(--vv-velo) / 0.85) 100%);
-}
-.home .vv-grid--evento:not(.vv-grid--carosello) .vv-card__link,
-.home .vv-grid--evento:not(.vv-grid--carosello) .vv-card__meta {
-	color: var(--vv-testo-su-scuro) !important;
-}
-.home .vv-grid--evento:not(.vv-grid--carosello) .vv-card__text {
-	display: none;
-}
-.home .vv-grid--evento:not(.vv-grid--carosello) .vv-badge {
-	top: 15px;
-	bottom: auto;
-	left: 15px;
-	background: var(--vv-badge-3);
-}
-.home .vv-grid--evento:not(.vv-grid--carosello) .vv-card:nth-child(2) .vv-badge {
-	background: var(--vv-badge-4);
-}
 @media (max-width: 599px) {
-	.home .so-panel .widget-title,
-	.home .panel-grid .widget-title,
 	.vv-has-hero .entry-content > .vv-section-title {
 		margin-bottom: var(--vv-s-3) !important;
 		padding-bottom: var(--vv-s-2);
 	}
+}
+#appuntamenti {
+	scroll-margin-top: 140px;
 }

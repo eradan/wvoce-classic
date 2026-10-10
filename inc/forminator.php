@@ -9,56 +9,24 @@
 defined( 'ABSPATH' ) || exit;
 
 /**
- * Modulo di un collegamento (Strumenti → Esporta iscrizioni → Configurazione) con il campo del codice
- * fiscale: array( id del modulo => id del campo ). Così il controllo segue il modulo scelto nel pannello,
- * anche quando ogni anno ne arriva uno nuovo.
+ * Moduli controllati: id del modulo => regola sul socio dell'anno. I moduli sono quelli scelti in
+ * Strumenti → Esporta iscrizioni → Configurazione (oggi 274 "Iscrizione Socio" e 1617 "Iscrizione ai
+ * corsi 2026-2027"), così il controllo segue anche il modulo nuovo di ogni anno.
+ * - "richiesto" (corsi): il codice fiscale deve comparire fra le iscrizioni del modulo dei soci dal
+ *   1° settembre dell'anno sociale in corso;
+ * - "unico" (soci): se compare già, il modulo si ferma.
  *
- * @param string $id Collegamento (soci, corsi).
+ * @return array<int,string>
  */
-function vv_forminator_modulo( $id ) {
-	$form = function_exists( 'vv_sheets_config' ) ? (int) vv_sheets_config( $id )['form'] : 0;
-	return $form > 0 ? array( $form => 'text-1' ) : array();
-}
-
-/**
- * Campi "codice fiscale" da controllare: id del modulo => id del campo. Predefiniti: i moduli dei soci
- * e dei corsi del pannello (274 "Iscrizione Socio", 1617 "Iscrizione ai corsi 2026-2027").
- */
-function vv_forminator_cf_fields() {
-	return apply_filters( 'vv_forminator_cf_fields', vv_forminator_modulo( 'corsi' ) + vv_forminator_modulo( 'soci' ) );
-}
-
-/**
- * Moduli riservati ai soci dell'anno: id del modulo => id del campo con il codice fiscale. Il codice
- * deve comparire fra le iscrizioni del modulo dei soci dal 1° settembre dell'anno sociale in corso.
- * Predefinito: il modulo dei corsi. Un filtro che restituisce un array vuoto spegne il controllo.
- */
-function vv_forminator_soci_richiesti() {
-	return apply_filters( 'vv_forminator_soci_richiesti', vv_forminator_modulo( 'corsi' ) );
-}
-
-/**
- * Moduli in cui un socio si iscrive una volta per anno sociale: id del modulo => id del campo con il
- * codice fiscale. Se il codice compare già fra le iscrizioni del modulo dei soci dal 1° settembre,
- * il modulo si ferma. Predefinito: il modulo dei soci. Un filtro che restituisce un array vuoto spegne
- * il controllo.
- */
-function vv_forminator_soci_unici() {
-	return apply_filters( 'vv_forminator_soci_unici', vv_forminator_modulo( 'soci' ) );
-}
-
-/**
- * Indirizzo email della segreteria, per domande e rettifiche.
- */
-function vv_email_segreteria() {
-	return (string) apply_filters( 'vv_email_segreteria', 'info@wvoce.it' );
-}
-
-/**
- * Indirizzo del modulo di iscrizione a socio (Customizer → VivaVoce, "Diventa socio").
- */
-function vv_forminator_url_socio() {
-	return function_exists( 'vv_mod' ) ? (string) vv_mod( 'vv_url_socio' ) : home_url( '/cosa-puoi-fare/diventa-socio/' );
+function vv_forminator_moduli() {
+	$moduli = array();
+	foreach ( array( 'corsi' => 'richiesto', 'soci' => 'unico' ) as $id => $regola ) {
+		$form = (int) vv_sheets_config( $id )['form'];
+		if ( $form > 0 ) {
+			$moduli[ $form ] = $regola;
+		}
+	}
+	return $moduli;
 }
 
 /**
@@ -72,7 +40,7 @@ function vv_forminator_msg_socio( $adesso ) {
 		'Questo codice fiscale manca ancora fra i soci %1$d-%2$d: i corsi sono riservati ai soci. Prima occorre iscriversi all\'associazione con il <a href="%3$s" target="_blank" rel="noopener">modulo di iscrizione a socio</a>, poi si torna a questa pagina.',
 		$anno,
 		$anno + 1,
-		esc_url( vv_forminator_url_socio() )
+		esc_url( vv_mod( 'vv_url_socio' ) )
 	);
 }
 
@@ -82,13 +50,12 @@ function vv_forminator_msg_socio( $adesso ) {
  * @param string $adesso Data di riferimento, "Y-m-d H:i:s".
  */
 function vv_forminator_msg_doppio( $adesso ) {
-	$anno  = vv_anno_sociale( $adesso );
-	$email = vv_email_segreteria();
+	$anno = vv_anno_sociale( $adesso );
 	return sprintf(
 		'Questo codice fiscale risulta già fra i soci %1$d-%2$d: l\'iscrizione di quest\'anno è già registrata in anagrafica. Per domande o per correggere i dati scrivi a <a href="mailto:%3$s">%3$s</a>.',
 		$anno,
 		$anno + 1,
-		esc_attr( $email )
+		'info@wvoce.it'
 	);
 }
 
@@ -114,45 +81,34 @@ function vv_codice_fiscale_valido( $cf ) {
 }
 
 /**
- * Errore accanto al campo quando il codice fiscale non torna; nei moduli riservati ai soci quando
- * manca fra i soci dell'anno, nel modulo dei soci quando c'è già (il modulo non viene inviato).
+ * Errore accanto al campo quando il codice fiscale non torna; nel modulo dei corsi quando manca fra i
+ * soci dell'anno, in quello dei soci quando c'è già (il modulo non viene inviato).
  *
  * @param array $submit_errors    Errori già trovati da Forminator.
  * @param int   $form_id          Id del modulo.
  * @param array $field_data_array Campi inviati: array( 'name' => id del campo, 'value' => valore ).
  */
 function vv_forminator_check_cf( $submit_errors, $form_id, $field_data_array ) {
-	$fields = vv_forminator_cf_fields();
-	$soci   = vv_forminator_soci_richiesti();
-	$unici  = vv_forminator_soci_unici();
-	$field  = $fields[ (int) $form_id ] ?? '';
-	$socio  = $soci[ (int) $form_id ] ?? '';
-	$unico  = $unici[ (int) $form_id ] ?? '';
-	if ( ( ! $field && ! $socio && ! $unico ) || ! is_array( $field_data_array ) ) {
+	$regola = vv_forminator_moduli()[ (int) $form_id ] ?? '';
+	if ( '' === $regola || ! is_array( $field_data_array ) ) {
 		return $submit_errors;
 	}
 	if ( ! is_array( $submit_errors ) ) {
 		$submit_errors = array();
 	}
 	foreach ( $field_data_array as $item ) {
-		$name = is_array( $item ) ? (string) ( $item['name'] ?? '' ) : '';
-		if ( '' === $name || ! in_array( $name, array( $field, $socio, $unico ), true ) ) {
-			continue;
-		}
-		$value = trim( (string) ( $item['value'] ?? '' ) );
+		$value = is_array( $item ) && VV_CAMPO_CF === ( $item['name'] ?? '' ) ? trim( (string) ( $item['value'] ?? '' ) ) : '';
 		if ( '' === $value ) {
 			continue;
 		}
-		if ( $name === $field && ! vv_codice_fiscale_valido( $value ) ) {
-			$submit_errors[][ $name ] = 'Controlla il codice fiscale: sono 16 lettere e numeri, come sulla tessera sanitaria.';
-			continue;
-		}
 		$adesso = current_time( 'mysql' );
-		if ( $name === $socio && ! vv_socio_iscritto( $value, $adesso ) ) {
-			$submit_errors[][ $name ] = vv_forminator_msg_socio( $adesso );
-		} elseif ( $name === $unico && vv_socio_iscritto( $value, $adesso ) ) {
+		if ( ! vv_codice_fiscale_valido( $value ) ) {
+			$submit_errors[][ VV_CAMPO_CF ] = 'Controlla il codice fiscale: sono 16 lettere e numeri, come sulla tessera sanitaria.';
+		} elseif ( 'richiesto' === $regola && ! vv_socio_iscritto( $value, $adesso ) ) {
+			$submit_errors[][ VV_CAMPO_CF ] = vv_forminator_msg_socio( $adesso );
+		} elseif ( 'unico' === $regola && vv_socio_iscritto( $value, $adesso ) ) {
 			// L'iscrizione in corso entra nel database dopo questo controllo: si trovano solo le precedenti.
-			$submit_errors[][ $name ] = vv_forminator_msg_doppio( $adesso );
+			$submit_errors[][ VV_CAMPO_CF ] = vv_forminator_msg_doppio( $adesso );
 		}
 	}
 	return $submit_errors;
@@ -164,8 +120,8 @@ add_filter( 'forminator_custom_form_submit_errors', 'vv_forminator_check_cf', 15
  */
 function vv_forminator_cf_style() {
 	$rules = array();
-	foreach ( vv_forminator_cf_fields() as $form_id => $field ) {
-		$rules[] = sprintf( '#forminator-module-%d input[name="%s"]', (int) $form_id, sanitize_key( $field ) );
+	foreach ( array_keys( vv_forminator_moduli() ) as $form_id ) {
+		$rules[] = sprintf( '#forminator-module-%d input[name="%s"]', (int) $form_id, VV_CAMPO_CF );
 	}
 	if ( $rules ) {
 		wp_add_inline_style( 'vv-plugins', implode( ",\n", $rules ) . " {\n\ttext-transform: uppercase;\n}" );

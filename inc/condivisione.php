@@ -1,8 +1,7 @@
 <?php
 /**
  * Descrizione per i motori di ricerca e anteprima per i social (Open Graph, Twitter): titolo,
- * riassunto e immagine in evidenza di articoli e pagine. Si spegne con un plugin SEO attivo o con
- * il filtro vv_condivisione.
+ * riassunto e immagine in evidenza di articoli e pagine. Con un plugin SEO attivo lascia fare al plugin.
  *
  * @package VivaVoce
  */
@@ -99,7 +98,7 @@ function vv_condivisione_dati() {
 			'alt'    => get_bloginfo( 'name' ),
 		);
 	}
-	return apply_filters( 'vv_condivisione_dati', $dati );
+	return $dati;
 }
 
 /**
@@ -126,7 +125,7 @@ function vv_condivisione_immagine( $id, $alt ) {
  * Stampa i tag nell'<head>.
  */
 function vv_condivisione_head() {
-	if ( ! apply_filters( 'vv_condivisione', ! vv_condivisione_plugin_seo() ) || is_404() || is_search() ) {
+	if ( vv_condivisione_plugin_seo() || is_404() || is_search() ) {
 		return;
 	}
 	$d    = vv_condivisione_dati();

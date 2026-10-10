@@ -46,19 +46,6 @@ function vv_sheets_menu() {
 add_action( 'admin_menu', 'vv_sheets_menu' );
 
 /**
- * Il vecchio indirizzo Strumenti → Fogli Google (page=vv-sheets, anche nelle email d'avviso già
- * spedite) porta alla pagina nuova.
- */
-function vv_sheets_vecchio_indirizzo() {
-	$page = isset( $_GET['page'] ) ? sanitize_key( wp_unslash( $_GET['page'] ) ) : ''; // phpcs:ignore WordPress.Security.NonceVerification.Recommended
-	if ( 'vv-sheets' === $page && current_user_can( 'manage_options' ) ) {
-		wp_safe_redirect( vv_sheets_url() );
-		exit;
-	}
-}
-add_action( 'admin_page_access_denied', 'vv_sheets_vecchio_indirizzo' );
-
-/**
  * Messaggio da mostrare dopo il reindirizzamento che segue un'azione.
  *
  * @param string $tipo  success, warning, error.
@@ -110,13 +97,13 @@ function vv_sheets_azioni() {
 						: "{$c['titolo']}: il foglio risponde, indirizzo e codice sono giusti. Lo script pubblicato è di una versione precedente: per usare {$c['prefisso']}_FOGLIO va incollata e pubblicata la versione nuova." )
 			);
 		}
-	} elseif ( 'invia' === $azione && vv_sheets_ready( $id ) ) {
+	} elseif ( 'invia' === $azione && vv_sheets_configurato( $id ) ) {
 		$esito = vv_sheets_sync( $id );
 		vv_sheets_avviso(
 			$esito['errore'] ? 'error' : 'success',
 			sprintf( 'Inviate %d iscrizioni.', $esito['inviate'] ) . ( $esito['errore'] ? ' Errore: ' . $esito['errore'] : '' )
 		);
-	} elseif ( 'riparti' === $azione && vv_sheets_ready( $id ) ) {
+	} elseif ( 'riparti' === $azione && vv_sheets_configurato( $id ) ) {
 		delete_option( $c['ultimo'] );
 		vv_sheets_avviso( 'success', 'Si riparte dal punto di partenza: le righe già nel foglio restano senza doppioni.' );
 	} elseif ( 'mappa' === $azione && 'corsi' === $id ) {
@@ -162,11 +149,6 @@ function vv_sheets_page() {
 		<?php foreach ( array_filter( $avvisi ) as $avviso ) : ?>
 			<div class="notice notice-<?php echo esc_attr( $avviso[0] ); ?> is-dismissible"><p><?php echo esc_html( $avviso[1] ); ?></p></div>
 		<?php endforeach; ?>
-		<?php if ( vv_sheets_costanti_rimaste() ) : ?>
-			<div class="notice notice-info"><p>
-				In <code>wp-config.php</code> restano <?php echo wp_kses( '<code>' . implode( '</code>, <code>', array_map( 'esc_html', vv_sheets_costanti_rimaste() ) ) . '</code>', array( 'code' => array() ) ); ?>: il tema le ignora, i valori validi sono quelli del tab Configurazione. Si possono togliere.
-			</p></div>
-		<?php endif; ?>
 		<?php
 		if ( 'configurazione' === $attivo ) {
 			vv_sheets_tab_configurazione();
@@ -354,12 +336,10 @@ function vv_sheets_sezione( $id ) {
 	$c        = vv_sheets_config( $id );
 	$quando   = static fn( $t ) => $t ? wp_date( 'j F Y, H:i', (int) $t ) : '—';
 	$attivo   = vv_sheets_configurato( $id );
-	$manca    = vv_sheets_manca( $id );
-	$pronto   = $attivo && '' === $manca;
 	$ultimo   = $attivo ? vv_sheets_ultimo( $id ) : 0;
 	$inizio   = $c['inizio'] ? (int) get_option( $c['inizio'], 0 ) : 0;
 	$stato    = (array) get_option( $c['stato'], array() );
-	$colonne  = $c['colonne'] ? (array) call_user_func( $c['colonne'] ) : array();
+	$colonne  = (array) call_user_func( $c['colonne'] );
 	$mappa    = null;
 	$gruppo   = null;
 	$partenza = $c['inizio']
@@ -372,14 +352,12 @@ function vv_sheets_sezione( $id ) {
 			? static fn( $riga ) => 'corso: ' . ( '' !== $riga['Corso'] ? $riga['Corso'] : '(nessuno)' )
 			: static fn( $riga ) => vv_corsi_tab( $riga['Corso'], $mappa );
 	}
-	$prova = $pronto ? vv_sheets_prova( $id, $gruppo ) : null;
+	$prova = $attivo ? vv_sheets_prova( $id, $gruppo ) : null;
 	?>
 	<h2><?php echo esc_html( $c['titolo'] ); ?></h2>
 	<p>Modulo Forminator n. <?php echo (int) $c['form']; ?> → foglio "<?php echo esc_html( $c['foglio'] ); ?>"<?php echo $attivo ? esc_html( ', iscrizioni ' . $partenza ) : ''; ?>.</p>
 	<?php if ( ! $attivo ) : ?>
 		<div class="notice notice-warning inline"><p>Spento: servono <code><?php echo esc_html( $c['prefisso'] ); ?>_URL</code> e <code><?php echo esc_html( $c['prefisso'] ); ?>_TOKEN</code> nel tab <a href="<?php echo esc_url( vv_sheets_url() ); ?>">Configurazione</a> e Forminator attivo.</p></div>
-	<?php elseif ( $manca ) : ?>
-		<div class="notice notice-warning inline"><p>Fermo: <?php echo esc_html( $manca ); ?>. Le iscrizioni arrivate nel frattempo partiranno appena il collegamento è pronto.</p></div>
 	<?php endif; ?>
 	<?php if ( is_wp_error( $mappa ) ) : ?>
 		<div class="notice notice-warning inline"><p>Tab "configurazioni" del foglio non letto: <?php echo esc_html( $mappa->get_error_message() ); ?> La prova a secco raggruppa le righe per corso.</p></div>
@@ -406,32 +384,30 @@ function vv_sheets_sezione( $id ) {
 		</p>
 	<?php endif; ?>
 
-	<?php if ( $c['campi'] || ( $prova && $prova['righe'] ) ) : ?>
-		<h3>Colonne</h3>
-		<table class="widefat striped" style="max-width:720px">
-			<thead><tr><th>Colonna del foglio</th><th>Campo del modulo</th><?php echo $prova ? '<th>Righe con la colonna piena</th>' : ''; ?></tr></thead>
-			<tbody>
-				<?php foreach ( $colonne as $col => $campo ) : ?>
-					<tr>
-						<td><?php echo esc_html( $col ); ?></td>
-						<td><?php echo $campo ? '<code>' . esc_html( implode( ' → ', (array) $campo ) ) . '</code>' : '<em>da indicare</em>'; ?></td>
-						<?php if ( $prova ) : ?>
-							<td><?php echo (int) ( $prova['piene'][ $col ] ?? 0 ); ?> su <?php echo (int) $prova['righe']; ?></td>
-						<?php endif; ?>
-					</tr>
-				<?php endforeach; ?>
-			</tbody>
-		</table>
-	<?php endif; ?>
+	<h3>Colonne</h3>
+	<table class="widefat striped" style="max-width:720px">
+		<thead><tr><th>Colonna del foglio</th><th>Campo del modulo</th><?php echo $prova ? '<th>Righe con la colonna piena</th>' : ''; ?></tr></thead>
+		<tbody>
+			<?php foreach ( $colonne as $col => $campo ) : ?>
+				<tr>
+					<td><?php echo esc_html( $col ); ?></td>
+					<td><code><?php echo esc_html( implode( ' → ', (array) $campo ) ); ?></code></td>
+					<?php if ( $prova ) : ?>
+						<td><?php echo (int) ( $prova['piene'][ $col ] ?? 0 ); ?> su <?php echo (int) $prova['righe']; ?></td>
+					<?php endif; ?>
+				</tr>
+			<?php endforeach; ?>
+		</tbody>
+	</table>
 
 	<?php if ( 'corsi' === $id && $attivo ) : ?>
 		<?php vv_corsi_sezione_mappa( $mappa ); ?>
 	<?php endif; ?>
 
-	<?php if ( $c['campi'] && class_exists( 'Forminator_API' ) ) : ?>
+	<?php if ( class_exists( 'Forminator_API' ) ) : ?>
 		<details style="margin-top:1em;max-width:720px">
 			<summary>Campi del modulo n. <?php echo (int) $c['form']; ?></summary>
-			<p>Per controllare la corrispondenza delle colonne (filtri <code>vv_corsi_colonne</code> e <code>vv_corsi_campo</code>). Solo la struttura del modulo, nessun dato delle iscrizioni.</p>
+			<p>Per controllare la corrispondenza delle colonne (<code>vv_<?php echo esc_html( $id ); ?>_colonne()</code> in <code>inc/sheets.php</code>). Solo la struttura del modulo, nessun dato delle iscrizioni.</p>
 			<table class="widefat striped">
 				<thead><tr><th>Id</th><th>Etichetta</th><th>Tipo</th><th>Opzioni</th></tr></thead>
 				<tbody>
@@ -452,7 +428,7 @@ function vv_sheets_sezione( $id ) {
 		</details>
 	<?php endif; ?>
 
-	<?php if ( $pronto ) : ?>
+	<?php if ( $attivo ) : ?>
 		<?php vv_sheets_form_apri( $id, $id ); ?>
 			<p style="margin-top:1.5em">
 				<button class="button button-primary" name="vv_azione" value="invia">Invia adesso</button>
@@ -473,7 +449,7 @@ function vv_corsi_sezione_mappa( $mappa ) {
 	$ok      = ! is_wp_error( $mappa );
 	?>
 	<h3>Corsi e tab del foglio</h3>
-	<p style="max-width:720px">Opzioni del campo <code><?php echo esc_html( vv_corsi_campo() ); ?></code> del modulo e tab in cui il foglio le scrive, secondo il suo tab <code>configurazioni</code> (colonna A: tab, colonna B: testo del corso). Per spostare un corso in un altro tab, o aggiungerne uno, basta modificare <code>configurazioni</code> nel foglio.</p>
+	<p style="max-width:720px">Opzioni del campo <code><?php echo esc_html( VV_CORSI_CAMPO ); ?></code> del modulo e tab in cui il foglio le scrive, secondo il suo tab <code>configurazioni</code> (colonna A: tab, colonna B: testo del corso). Per spostare un corso in un altro tab, o aggiungerne uno, basta modificare <code>configurazioni</code> nel foglio.</p>
 	<table class="widefat striped" style="max-width:720px">
 		<thead><tr><th>Corso (testo dell'opzione, da copiare in colonna B)</th><th>Tab</th></tr></thead>
 		<tbody>
@@ -485,7 +461,7 @@ function vv_corsi_sezione_mappa( $mappa ) {
 						<?php
 						if ( ! $ok ) {
 							echo '—';
-						} elseif ( vv_corsi_da_smistare() === $tab ) {
+						} elseif ( VV_CORSI_DA_SMISTARE === $tab ) {
 							echo '<strong>' . esc_html( $tab ) . '</strong>';
 						} else {
 							echo '<code>' . esc_html( $tab ) . '</code>';
