@@ -86,23 +86,48 @@ function vv_posts_by_period( $slugs, $periodo, $number, $extra = array() ) {
 		array( 'key' => 'vv_data', 'value' => $day, 'compare' => '>=' ),
 	) ) );
 
-	$next = array();
-	$past = array();
+	$eventi = array();
 	foreach ( $posts as $post ) {
 		$dates = vv_event_dates( $post );
-		if ( ! $dates['has_meta'] || $dates['end'] < $from ) {
-			continue;
-		}
-		if ( $dates['end'] >= $now ) {
-			$next[] = array( $post, $dates['start'] );
-		} else {
-			$past[] = array( $post, $dates['end'] );
+		if ( $dates['has_meta'] && $dates['end'] >= $from ) {
+			$eventi[] = array( $post, $dates['start'], $dates['end'] );
 		}
 	}
-	usort( $next, static fn( $a, $b ) => $a[1] <=> $b[1] );
-	usort( $past, static fn( $a, $b ) => $b[1] <=> $a[1] );
-	$posts = array_column( array_merge( $next, $past ), 0 );
+	$posts = array_column( vv_ordina_eventi( $eventi, $now ), 0 );
 	return (int) $number > 0 ? array_slice( $posts, 0, (int) $number ) : $posts;
+}
+
+/**
+ * Ordine degli eventi in calendario:
+ * 1. gli appuntamenti da non perdere: quelli che devono ancora cominciare e quelli brevi (fino a un
+ *    mese) in corso, dal più vicino;
+ * 2. corsi e rassegne lunghi già cominciati, dal più recente inizio: restano visibili, ma un evento
+ *    di domani non finisce dietro un corso partito una settimana fa;
+ * 3. quelli già finiti, dal più recente.
+ *
+ * @param array $eventi array( contenuto, inizio, fine ) con i timestamp di vv_event_dates().
+ * @param int   $now    Adesso.
+ * @return array Gli stessi elementi, ordinati.
+ */
+function vv_ordina_eventi( $eventi, $now ) {
+	$prossimi = array();
+	$in_corso = array();
+	$passati  = array();
+	foreach ( $eventi as $e ) {
+		list( , $start, $end ) = $e;
+		if ( $end < $now ) {
+			$passati[] = $e;
+		} elseif ( $start > $now || $end - $start <= 31 * DAY_IN_SECONDS ) {
+			$prossimi[] = $e;
+		} else {
+			$in_corso[] = $e;
+		}
+	}
+	// Un evento breve già cominciato conta da adesso: davanti a quelli che cominciano dopo.
+	usort( $prossimi, static fn( $a, $b ) => array( max( $a[1], $now ), $a[2] ) <=> array( max( $b[1], $now ), $b[2] ) );
+	usort( $in_corso, static fn( $a, $b ) => $b[1] <=> $a[1] );
+	usort( $passati, static fn( $a, $b ) => $b[2] <=> $a[2] );
+	return array_merge( $prossimi, $in_corso, $passati );
 }
 
 /**

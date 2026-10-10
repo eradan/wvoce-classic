@@ -13,6 +13,8 @@ define( 'VV_URI', get_stylesheet_directory_uri() );
 require VV_DIR . '/inc/migrate.php';
 require VV_DIR . '/inc/setup.php';
 require VV_DIR . '/inc/contenuti.php';
+require VV_DIR . '/inc/condivisione.php';
+require VV_DIR . '/inc/sicurezza.php';
 require VV_DIR . '/inc/customizer.php';
 require VV_DIR . '/inc/meta.php';
 require VV_DIR . '/inc/cards.php';
@@ -38,6 +40,13 @@ function vv_enqueue_assets() {
 		$rel = "/assets/css/{$name}.css";
 		wp_enqueue_style( "vv-{$name}", VV_URI . $rel, array( $dep ), (string) filemtime( VV_DIR . $rel ) );
 		$dep = "vv-{$name}";
+	}
+
+	// style.css del child lo carica Sydney ("sydney-style") con una versione fissa: dopo un
+	// aggiornamento i browser terrebbero la copia vecchia.
+	$style = wp_styles()->query( 'sydney-style' );
+	if ( $style && false !== strpos( (string) $style->src, get_stylesheet_directory_uri() ) ) {
+		$style->ver = (string) filemtime( VV_DIR . '/style.css' );
 	}
 
 	wp_enqueue_script( 'vv-main', VV_URI . '/assets/js/vv.js', array(), (string) filemtime( VV_DIR . '/assets/js/vv.js' ), array(
