@@ -2,6 +2,22 @@
 
 Storia del tema VivaVoce Classic, dalla versione più recente. La guida d'uso è nel README.
 
+## Versione 0.9.6: ordine degli appuntamenti, anteprime social, sito più riservato
+
+- **Ordine degli appuntamenti.** In home e in "In programma" un evento di domani passava dietro ai corsi cominciati da una settimana, perché l'elenco seguiva la sola data d'inizio. Ora vengono prima gli appuntamenti che devono ancora cominciare e quelli brevi in corso (fino a un mese), dal più vicino; poi corsi e rassegne lunghi già avviati; infine gli eventi conclusi. Funzione: `vv_ordina_eventi()` in `inc/cards.php`.
+- **Anteprime per motori di ricerca e social** (`inc/condivisione.php`). Ogni pagina riceve `meta description` e i tag Open Graph e Twitter: titolo, riassunto (l'estratto, altrimenti l'inizio del testo), immagine in evidenza in formato grande, anche con *Senza immagine in testa*. In home il titolo dell'hero fa da descrizione, finché manca il motto del sito (Impostazioni → Generali). Con Yoast, Rank Math, AIOSEO o SEOPress attivi il tema lascia fare al plugin; filtri `vv_condivisione` e `vv_condivisione_dati`.
+- **Emoji incollate da Facebook e Gmail** come immagini 16×16 dei server di Meta e Google (dodici articoli): diventano testo. Niente più richieste esterne a ogni visita, fuori dal consenso cookie, e niente immagini rotte quando quegli indirizzi scadono (`vv_emoji_esterne()`).
+- **Gallerie dell'editor classico.** Le miniature aprono l'immagine, non la pagina dell'allegato, che dava 404 (galleria della *Bicicletta gialla*).
+- **Contact Form 7 e reCAPTCHA** solo nelle pagine con un modulo (oggi Contatti), non più su tutte; filtro `vv_cf7_ovunque` per tornare indietro.
+- **Nomi utente meno esposti** (`inc/sicurezza.php`): fuori dalla sitemap (`wp-sitemap-users-1.xml`) e dall'API pubblica (`/wp-json/wp/v2/users`, che resta per chi è collegato); XML-RPC spento, versione di WordPress tolta dall'HTML. Filtro `vv_sicurezza` per spegnere tutto.
+- **`style.css` con la data del file** come versione: prima Sydney lo caricava sempre con `?ver=20230821` e i browser potevano tenere la copia vecchia.
+
+Da sistemare nel pannello (contenuti, non tema):
+- *Da La Nazione, Pisa, 10 settembre 2021*: i due indirizzi email sono linkati senza `mailto:` e portano a una pagina 404.
+- *Regolamento*: "Regolamento Soci" e "Codice di Comportamento" sono Titolo 1; vanno portati a Titolo 2 (il Titolo 1 è il nome della pagina).
+- Plugin *Font Awesome*: le icone arrivano due volte, dal sito e da `use.fontawesome.com`. Nelle impostazioni del plugin conviene scegliere un solo metodo e il caricamento dal sito (self-hosted).
+- Motto del sito (Impostazioni → Generali): vuoto; una frase breve diventa la descrizione della home nei risultati di ricerca.
+
 ## Versione 0.9.5: correzioni, codice più snello
 
 - **Controlli dei moduli legati al pannello.** Codice fiscale, requisito di socio per i corsi e iscrizione unica per anno seguono i moduli scelti in Strumenti → Esporta iscrizioni (`vv_forminator_modulo()`), non più i numeri 274 e 1617 scritti nel codice: con il modulo dei corsi dell'anno nuovo basta cambiarlo nel pannello. I filtri `vv_forminator_cf_fields`, `vv_forminator_soci_richiesti` e `vv_forminator_soci_unici` restano.

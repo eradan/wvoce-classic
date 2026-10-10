@@ -136,3 +136,32 @@ function vv_excerpt_more() {
 	return '…';
 }
 add_filter( 'excerpt_more', 'vv_excerpt_more', 20 );
+
+/**
+ * La pagina corrente contiene un modulo di Contact Form 7 (shortcode o blocco, anche dentro un
+ * layout di SiteOrigin)?
+ */
+function vv_cf7_in_pagina() {
+	if ( ! is_singular() ) {
+		return false;
+	}
+	$post  = get_queried_object();
+	$testo = $post->post_content . wp_json_encode( get_post_meta( $post->ID, 'panels_data', true ) );
+	return false !== strpos( $testo, 'contact-form-7' );
+}
+
+/**
+ * Contact Form 7 e reCAPTCHA solo nelle pagine con un modulo (oggi Contatti): nelle altre sono peso
+ * inutile e una richiesta ai server di Google prima del consenso. Il filtro vv_cf7_ovunque li
+ * rimette su tutte le pagine.
+ */
+function vv_cf7_solo_dove_serve() {
+	if ( ! defined( 'WPCF7_VERSION' ) || apply_filters( 'vv_cf7_ovunque', false ) || vv_cf7_in_pagina() ) {
+		return;
+	}
+	foreach ( array( 'contact-form-7', 'swv', 'wpcf7-recaptcha', 'google-recaptcha' ) as $handle ) {
+		wp_dequeue_script( $handle );
+	}
+	wp_dequeue_style( 'contact-form-7' );
+}
+add_action( 'wp_enqueue_scripts', 'vv_cf7_solo_dove_serve', 100 );

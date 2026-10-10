@@ -2,26 +2,21 @@
 
 Tema child di **Sydney 2.71** per wvoce.it, aspetto "classico" vicino al sito originale. Qui la guida d'uso; la storia delle versioni è in `CHANGELOG.md`.
 
-## Versione 0.9.5: correzioni, codice più snello
+## Versione 0.9.6: ordine degli appuntamenti, anteprime social, sito più riservato
 
-- **Controlli dei moduli legati al pannello.** Codice fiscale, requisito di socio per i corsi e iscrizione unica per anno seguono i moduli scelti in Strumenti → Esporta iscrizioni (`vv_forminator_modulo()`), non più i numeri 274 e 1617 scritti nel codice: con il modulo dei corsi dell'anno nuovo basta cambiarlo nel pannello. I filtri `vv_forminator_cf_fields`, `vv_forminator_soci_richiesti` e `vv_forminator_soci_unici` restano.
-- **Date degli eventi brevi con i giorni.** Fino a un mese l'etichetta riporta i giorni ("3–5 ottobre 2026", "28 settembre – 3 ottobre 2026"); oltre, i mesi come prima ("ott–dic 2026"). Funzione: `vv_date_range_label()`.
-- **Card.** Il badge non mostra più "Nessuna categoria" e lascia passare il clic al link della card; il focus da tastiera disegna il contorno attorno alla card intera. "In breve" e "In questa sezione" tornano sul grigio del riquadro, come il footer: una regola delle card li copriva con il grigio più chiaro.
-- **Messaggio "niente in programma"** in un riquadro come le card. Nelle liste "Da non perdere" un articolo senza immagine ha un riquadro grigio al posto della miniatura, così i titoli restano in colonna.
-- **Hero.** Altezza in `svh` sui telefoni (i pulsanti restano sopra la barra degli indirizzi); priorità di caricamento solo per testa e mano dell'illustrazione; un'illustrazione diversa presa dalla libreria dei media esce con larghezza, altezza e `srcset`. Occhiello e testo, mai visibili, lasciano il Customizer insieme alla pennellata SVG.
-- **Caroselli** con frecce disegnate in SVG; il pulsante "Copia" seleziona il valore se il browser nega gli appunti.
-- **`[vv_cards numero="-1" periodo="…"]`** mostra tutti gli eventi del periodo, non più uno solo.
-- **Invio delle iscrizioni ai fogli Google: quattro correzioni.**
-  - *Modulo cambiato nel pannello* (per esempio quello dei corsi del nuovo anno): l'invio riparte davvero dalla prima iscrizione del modulo nuovo. Prima il collegamento dei corsi fissava come partenza l'iscrizione più recente al momento del cambio, e quelle arrivate nel frattempo non partivano mai.
-  - *Bozze completate e iscrizioni tolte dallo spam*: restano annotate (`vv_soci_sospese`, `vv_corsi_sospese`) e partono quando tornano valide, anche se nel frattempo il punto raggiunto le ha superate. Il punto raggiunto non torna mai indietro.
-  - *Più corsi nello stesso tab* di "configurazioni": il tab riceve la colonna "Corso" e chi sceglie due di quei corsi ha due righe. Prima la seconda veniva scartata come doppione, pur risultando confermata.
-  - *Colonne della segreteria riempite in anticipo* (caselle, formule): le righe nuove vanno sotto l'ultima con dati del sito, non in fondo alle caselle; lo script dei soci scrive solo nelle colonne del sito e lascia intatte le altre, come già quello dei corsi.
-  - **Entrambi gli script vanno incollati di nuovo e ripubblicati** (tab *Script Apps Script* → Copia lo script → editor → Gestisci deployment → matita → Nuova versione). URL, codice e foglio restano gli stessi.
-  - Test nuovi: `node tests/apps-script.js` fa girare i due script su un foglio finto in memoria (anche in GitHub Actions).
-- **Immagine in testa spegnibile, articolo per articolo e pagina per pagina.** La casella *Senza immagine in testa* (riquadro "VivaVoce: date e luogo" degli articoli, riquadro "VivaVoce" delle pagine) toglie l'immagine in evidenza da sopra il testo; card, "Da non perdere" e anteprime dei social continuano a usarla (`vv_senza_immagine`, `vv_senza_immagine_in_testa()`).
-- **Codice tolto:** la classe automatica `vv-cta` per la voce "Diventa socio" (mai stilata nel tema classico), `vv_svg()` e `assets/svg/`, la classe `vv-design`, il CSS di `.vv-timeline`. Regole duplicate riunite in `components.css`, `home.css`, `layout.css`, `footer.css`.
-- **Struttura:** le correzioni dei contenuti passano in `inc/contenuti.php`, gli schemi di pagina (`vv_two_column_template()`, `vv_page_with_extra()`) in `inc/page.php`; i collegamenti ai fogli elencano solo le voci che non si ricavano dall'id.
-- **phpcs in GitHub Actions**, con le regole adattate alle convenzioni del tema (`phpcs.xml.dist`).
+- **Ordine degli appuntamenti.** In home e in "In programma" un evento di domani passava dietro ai corsi cominciati da una settimana, perché l'elenco seguiva la sola data d'inizio. Ora vengono prima gli appuntamenti che devono ancora cominciare e quelli brevi in corso (fino a un mese), dal più vicino; poi corsi e rassegne lunghi già avviati; infine gli eventi conclusi. Funzione: `vv_ordina_eventi()` in `inc/cards.php`.
+- **Anteprime per motori di ricerca e social** (`inc/condivisione.php`). Ogni pagina riceve `meta description` e i tag Open Graph e Twitter: titolo, riassunto (l'estratto, altrimenti l'inizio del testo), immagine in evidenza in formato grande, anche con *Senza immagine in testa*. In home il titolo dell'hero fa da descrizione, finché manca il motto del sito (Impostazioni → Generali). Con Yoast, Rank Math, AIOSEO o SEOPress attivi il tema lascia fare al plugin; filtri `vv_condivisione` e `vv_condivisione_dati`.
+- **Emoji incollate da Facebook e Gmail** come immagini 16×16 dei server di Meta e Google (dodici articoli): diventano testo. Niente più richieste esterne a ogni visita, fuori dal consenso cookie, e niente immagini rotte quando quegli indirizzi scadono (`vv_emoji_esterne()`).
+- **Gallerie dell'editor classico.** Le miniature aprono l'immagine, non la pagina dell'allegato, che dava 404 (galleria della *Bicicletta gialla*).
+- **Contact Form 7 e reCAPTCHA** solo nelle pagine con un modulo (oggi Contatti), non più su tutte; filtro `vv_cf7_ovunque` per tornare indietro.
+- **Nomi utente meno esposti** (`inc/sicurezza.php`): fuori dalla sitemap (`wp-sitemap-users-1.xml`) e dall'API pubblica (`/wp-json/wp/v2/users`, che resta per chi è collegato); XML-RPC spento, versione di WordPress tolta dall'HTML. Filtro `vv_sicurezza` per spegnere tutto.
+- **`style.css` con la data del file** come versione: prima Sydney lo caricava sempre con `?ver=20230821` e i browser potevano tenere la copia vecchia.
+
+Da sistemare nel pannello (contenuti, non tema):
+- *Da La Nazione, Pisa, 10 settembre 2021*: i due indirizzi email sono linkati senza `mailto:` e portano a una pagina 404.
+- *Regolamento*: "Regolamento Soci" e "Codice di Comportamento" sono Titolo 1; vanno portati a Titolo 2 (il Titolo 1 è il nome della pagina).
+- Plugin *Font Awesome*: le icone arrivano due volte, dal sito e da `use.fontawesome.com`. Nelle impostazioni del plugin conviene scegliere un solo metodo e il caricamento dal sito (self-hosted).
+- Motto del sito (Impostazioni → Generali): vuoto; una frase breve diventa la descrizione della home nei risultati di ricerca.
 
 ## Messa in produzione
 
@@ -139,8 +134,10 @@ I fogli di `assets/css/` e `vv.js` escono con `?ver=` uguale alla data di modifi
 style.css                 intestazione + CSS aggiuntivo ereditato da Sydney
 functions.php             caricamento di CSS e JS, preload dei font, script del tema chiaro/scuro
 inc/migrate.php           copia delle impostazioni del Customizer, costruttore header/footer spento
-inc/setup.php             filtri su Sydney, traduzioni mancanti, credits del footer
-inc/contenuti.php         correzioni dei contenuti (trattini, lettere decorative, elenchi rotti)
+inc/setup.php             filtri su Sydney, traduzioni mancanti, credits del footer, Contact Form 7 dove serve
+inc/contenuti.php         correzioni dei contenuti (trattini, lettere decorative, elenchi rotti, emoji esterne, gallerie)
+inc/condivisione.php      meta description e anteprime Open Graph e Twitter
+inc/sicurezza.php         nomi utente fuori da sitemap e API pubblica, XML-RPC spento
 inc/customizer.php        pannello VivaVoce (hero, dati dell'associazione)
 inc/meta.php              date e luogo degli eventi, "In evidenza", opzioni delle pagine
 inc/cards.php             card, griglie, date degli eventi, eventi per periodo

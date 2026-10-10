@@ -1,7 +1,8 @@
 <?php
 /**
  * Correzioni dei contenuti al momento di mostrarli (il testo salvato non cambia): separatori fatti
- * di trattini bassi, lettere "decorative" incollate dai social, voci di elenco rimaste fuori dall'elenco.
+ * di trattini bassi, lettere "decorative" incollate dai social, voci di elenco rimaste fuori dall'elenco,
+ * emoji incollate da Facebook come immagini, link delle gallerie.
  *
  * @package VivaVoce
  */
@@ -114,3 +115,45 @@ function vv_wrap_orphan_list_items( $content ) {
 	);
 }
 add_filter( 'the_content', 'vv_wrap_orphan_list_items', 19 );
+
+/**
+ * Emoji incollate da Facebook o da Gmail: arrivano come immagini 16×16 dai server di Meta
+ * (static.xx.fbcdn.net) o dal proxy di Gmail (ci*.googleusercontent.com), con l'emoji vera nell'alt.
+ * Diventano testo: niente richieste a server esterni a ogni visita e niente immagini rotte quando
+ * quegli indirizzi scadono. Le immagini esterne più grandi restano come sono.
+ *
+ * @param string $content Contenuto.
+ */
+function vv_emoji_esterne( $content ) {
+	if ( false === strpos( $content, 'fbcdn.net' ) && false === strpos( $content, 'googleusercontent.com' ) ) {
+		return $content;
+	}
+	return (string) preg_replace_callback(
+		'#<img\b[^>]*>#i',
+		static function ( $m ) {
+			$img = $m[0];
+			if ( ! preg_match( '#\s(?:data-)?src=["\']https?://[^"\']*(?:fbcdn\.net|googleusercontent\.com)/#i', $img )
+				|| ! preg_match( '#\salt=(["\'])([^"\']{1,8})\1#u', $img, $alt )
+				|| ( preg_match( '#\swidth=["\']?(\d+)#i', $img, $w ) && (int) $w[1] > 32 ) ) {
+				return $img;
+			}
+			return $alt[2];
+		},
+		$content
+	);
+}
+add_filter( 'the_content', 'vv_emoji_esterne', 18 );
+
+/**
+ * Gallerie [gallery] dell'editor classico: le miniature aprono l'immagine, non la pagina
+ * dell'allegato, che il sito non usa e che per gli allegati di un contenuto non pubblicato dà 404.
+ *
+ * @param array $out Attributi della galleria.
+ */
+function vv_gallery_link_file( $out ) {
+	if ( isset( $out['link'] ) && 'none' !== $out['link'] ) {
+		$out['link'] = 'file';
+	}
+	return $out;
+}
+add_filter( 'shortcode_atts_gallery', 'vv_gallery_link_file' );

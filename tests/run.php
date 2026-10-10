@@ -34,6 +34,9 @@ function update_option( $name, $value ) {
 function remove_accents( $text ) {
 	return strtr( (string) $text, array( 'à' => 'a', 'á' => 'a', 'è' => 'e', 'é' => 'e', 'ì' => 'i', 'í' => 'i', 'ò' => 'o', 'ó' => 'o', 'ù' => 'u', 'ú' => 'u', 'À' => 'A', 'È' => 'E', 'É' => 'E', 'Ì' => 'I', 'Ò' => 'O', 'Ù' => 'U' ) );
 }
+function strip_shortcodes( $text ) {
+	return preg_replace( '/\[[^\]]*\]/', '', (string) $text );
+}
 function wp_strip_all_tags( $text ) {
 	return trim( strip_tags( (string) $text ) );
 }
@@ -128,6 +131,7 @@ function wp_date( $format, $ts ) {
 require dirname( __DIR__ ) . '/inc/meta.php';
 require dirname( __DIR__ ) . '/inc/cards.php';
 require dirname( __DIR__ ) . '/inc/contenuti.php';
+require dirname( __DIR__ ) . '/inc/condivisione.php';
 require dirname( __DIR__ ) . '/inc/forminator.php';
 require dirname( __DIR__ ) . '/inc/sheets.php';
 
@@ -476,6 +480,42 @@ uguale(
 	),
 	vv_add_meta_query( array( 'post__not_in' => array( 3 ), 'meta_query' => vv_featured_clause() ), $date )
 );
+
+// Ordine degli eventi: il caso della home del 10 ottobre 2026
+$vv_ev   = static fn( $nome, $da, $a ) => array( $nome, strtotime( $da ), strtotime( $a . ' 23:59:59' ) );
+$vv_oggi = strtotime( '2026-10-10 12:00' );
+uguale(
+	'Appuntamento di domani davanti ai corsi già cominciati',
+	array( 'Festival in corso', 'Internet Festival', 'Laboratorio di gennaio', 'Abitare la scena', 'Ti darò voce', 'Corsi 2026-2027', 'Pinocchio' ),
+	array_column(
+		vv_ordina_eventi(
+			array(
+				$vv_ev( 'Corsi 2026-2027', '2026-10-01', '2027-06-30' ),
+				$vv_ev( 'Ti darò voce', '2026-10-06', '2026-12-15' ),
+				$vv_ev( 'Abitare la scena', '2026-10-08', '2026-12-15' ),
+				$vv_ev( 'Laboratorio di gennaio', '2027-01-10', '2027-04-30' ),
+				$vv_ev( 'Internet Festival', '2026-10-11', '2026-10-11' ),
+				$vv_ev( 'Festival in corso', '2026-10-09', '2026-10-12' ),
+				$vv_ev( 'Pinocchio', '2026-06-01', '2026-09-30' ),
+			),
+			$vv_oggi
+		),
+		0
+	)
+);
+
+// Emoji incollate da Facebook e Gmail, immagini delle gallerie
+uguale( 'Emoji di Facebook diventa testo', 'Prenota 👉 qui', vv_emoji_esterne( 'Prenota <img decoding="async" data-src="https://static.xx.fbcdn.net/images/emoji.php/v9/t51/1/16/1f449.png" alt="👉" width="16" height="16" src="data:image/svg+xml;base64,AAA" class="lazyload" /> qui' ) );
+uguale( 'Emoji dal proxy di Gmail diventa testo', 'Teatro 🎭', vv_emoji_esterne( 'Teatro <img class="CToWUd" src="https://ci3.googleusercontent.com/meips/ADKq=s0-d-e1-ft#https://static.xx.fbcdn.net/images/emoji.php/v9/t4d/2/16/1f3ad.png" alt="🎭" width="16" height="16">' ) );
+$vv_grande = '<img src="https://scontent.xx.fbcdn.net/v/foto.jpg" alt="Foto" width="800" height="600">';
+uguale( 'Foto esterna grande intatta', $vv_grande, vv_emoji_esterne( $vv_grande ) );
+uguale( 'Contenuto senza immagini esterne invariato', '<p>Ciao <img src="/a.png" alt="a"></p>', vv_emoji_esterne( '<p>Ciao <img src="/a.png" alt="a"></p>' ) );
+uguale( 'Galleria: link alla pagina dell\'allegato diventa link al file', 'file', vv_gallery_link_file( array( 'link' => '' ) )['link'] );
+uguale( 'Galleria senza link resta senza', 'none', vv_gallery_link_file( array( 'link' => 'none' ) )['link'] );
+
+// Descrizione per motori di ricerca e social
+uguale( 'Descrizione corta ripulita', 'Laboratorio di lettura & teatro.', vv_condivisione_taglia( "<p>Laboratorio  di lettura &amp; teatro.</p>\n[vv_cards]" ) );
+uguale( 'Descrizione lunga tagliata sulla parola', 'Uno due tre quattro…', vv_condivisione_taglia( 'Uno due tre quattro cinque sei', 22 ) );
 
 // Lettere decorative incollate dai social
 uguale( 'Lettere decorative', '<strong class="vv-plain">Voce</strong> e testo', vv_plain_letters( '𝕍𝕠𝕔𝕖 e testo' ) );
