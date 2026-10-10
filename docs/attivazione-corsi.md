@@ -102,7 +102,7 @@ Dopo le quattro prove:
 4. **Iscrizioni arrivate durante il collaudo.** Eventuali iscrizioni vere compilate mentre il sito puntava alla copia sono finite lì. Per recuperarle: tab Iscrizioni corsi → **Ricomincia dal punto di partenza**, poi **Invia adesso**. Riparte tutto dal punto fissato al primo avvio; le prove, già eliminate, restano fuori.
 5. **Controllo.** Una sola iscrizione di prova sul sito, verifica della riga nel tab giusto del foglio vero, poi cancellazione della riga nel foglio e dell'iscrizione in Forminator.
 6. **Copia di prova.** Lo script ormai scrive nel foglio vero: la copia si può eliminare.
-7. **Costanti vecchie.** Se la pagina segnala costanti ancora presenti in `wp-config.php`, toglierle: il tema le ignora.
+7. **Costanti vecchie.** Se in `wp-config.php` restano `VV_SHEETS_*` o `VV_CORSI_*` delle versioni 0.7–0.8, toglierle: il tema le ignora.
 
 ## 4. Riservatezza e chiusura
 

@@ -2,6 +2,24 @@
 
 Storia del tema VivaVoce Classic, dalla versione più recente. La guida d'uso è nel README.
 
+## Versione 0.9.7: codice più snello, stesso sito
+
+Revisione per la manutenzione: circa 460 righe di codice in meno, aspetto e funzioni invariati. Verifica a vista su 13 pagine del sito (desktop e telefono, tema chiaro e scuro, menu aperti): 56 schermate identiche al pixel prima e dopo.
+
+- **Codice di transizione rimosso.**
+  - Copia delle impostazioni del Customizer da un altro tema (`inc/migrate.php`), già eseguita sul sito. Del file resta il filtro che tiene spento il costruttore header/footer di Sydney, ora in `inc/setup.php`.
+  - Passaggio delle opzioni dai nomi della 0.8 (`vv_sheets_migra_opzioni()`), avviso sulle costanti di `wp-config.php`, rinvio dal vecchio indirizzo `page=vv-sheets`.
+  - Controlli su SiteOrigin (`panels_data`) per la colonna laterale e per Contact Form 7, selettori `.so-panel` e `.panel-grid` nei CSS: pagine e articoli del sito sono ormai tutti a blocchi.
+- **Sedici filtri `vv_*` in meno.** Punti di aggancio senza consumatori, usati solo dai test: `vv_sicurezza`, `vv_condivisione`, `vv_condivisione_dati`, `vv_cf7_ovunque`, `vv_page_has_aside`, `vv_elenco_grandi`, `vv_generic_tags`, `vv_redirects`, `vv_sheets_collegamenti`, `vv_soci_colonne`, `vv_corsi_colonne`, `vv_corsi_campo`, `vv_forminator_cf_fields`, `vv_forminator_soci_richiesti`, `vv_forminator_soci_unici`, `vv_email_segreteria`. I valori restano nel codice, dove già stavano: per cambiarli si modifica la riga corrispondente.
+- **Moduli Forminator in una tabella sola.** `vv_forminator_moduli()` associa a ogni modulo scelto nel pannello la sua regola (`richiesto` per i corsi, `unico` per i soci); il campo del codice fiscale è la costante `VV_CAMPO_CF`. Escono tre funzioni con i rispettivi filtri.
+- **Fogli Google con meno stati.** Con il campo del corso fisso (`VV_CORSI_CAMPO`) cade il ramo "requisito" (`vv_corsi_requisito()`, `vv_sheets_manca()`): un collegamento è attivo appena ha indirizzo, codice e modulo, e `vv_sheets_configurato()` prende il posto di `vv_sheets_ready()`. Nel tab di ogni collegamento la tabella delle colonne e l'elenco dei campi del modulo compaiono sempre, anche per i soci.
+- **CSS.** Via le regole copiate dal vecchio Customizer e poi annullate in `footer.css` (larghezza della fascia turchese, contatti all'85%, icone social assenti dalla fascia, `.button-slider` dello slider spento, `<span>` nelle voci di menu), il fondo delle card dichiarato due volte, le proprietà inattive del contatore dei caroselli e la variante "Da non perdere" a card piene della home, oggi senza contenuti che la usino: la home presenta solo caroselli.
+- **Meno ripetizioni nel PHP.** I sette campi aggiuntivi di articoli e pagine si registrano da una tabella (`vv_register_meta()`); i titoli nella colonna laterale e nella navigazione fra articoli passano una volta sola dalla conversione delle lettere decorative.
+- **Documenti.** Via `docs/piano-iscrizione-corsi.md`, già dichiarato documento storico della 0.8.0.
+- **Test:** 132 controlli; tolti quelli delle funzioni eliminate.
+
+Dopo il caricamento basta un controllo a vista: header e footer con logo e colori di sempre, Strumenti → Esporta iscrizioni con stato e prova a secco come prima.
+
 ## Versione 0.9.6: ordine degli appuntamenti, anteprime social, sito più riservato
 
 - **Ordine degli appuntamenti.** In home e in "In programma" un evento di domani passava dietro ai corsi cominciati da una settimana, perché l'elenco seguiva la sola data d'inizio. Ora vengono prima gli appuntamenti che devono ancora cominciare e quelli brevi in corso (fino a un mese), dal più vicino; poi corsi e rassegne lunghi già avviati; infine gli eventi conclusi. Funzione: `vv_ordina_eventi()` in `inc/cards.php`.

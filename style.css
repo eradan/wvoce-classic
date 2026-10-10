@@ -4,7 +4,7 @@ Theme URI: https://wvoce.it
 Template: sydney
 Author: Ivan Ricotti
 Description: Tema child di Sydney per il sito dell'associazione VivaVoce. Aspetto "classico" vicino al sito originale.
-Version: 0.9.6
+Version: 0.9.7
 Requires at least: 6.0
 Requires PHP: 7.4
 Text Domain: vivavoce
@@ -13,18 +13,10 @@ License: GNU General Public License v2 or later
 
 /*
  * Regole ereditate dal "CSS aggiuntivo" del Customizer di Sydney, copiate qui
- * perché il CSS aggiuntivo è legato al tema e non passa al child. I colori sono i token di
- * assets/css/tokens.css (caricato dopo questo file: le variabili valgono lo stesso).
+ * perché il CSS aggiuntivo è legato al tema e non passa al child; restano solo quelle che hanno
+ * ancora effetto. I colori sono i token di assets/css/tokens.css (caricato dopo questo file: le
+ * variabili valgono lo stesso).
  */
-
-#mainnav ul li a {
-	font-weight: bold;
-	color: var(--vv-header-testo);
-}
-
-#mainnav ul li.current-menu-item a span {
-	font-weight: bold;
-}
 
 .site-footer {
 	background-color: var(--vv-turchese);
@@ -33,26 +25,11 @@ License: GNU General Public License v2 or later
 /* Testo inchiostro sulla fascia turchese: il bianco originale era 2,6:1 */
 .site-info, .site-info a {
 	color: var(--vv-inchiostro) !important;
-	width: 90% !important;
-}
-
-div#side-contacts {
-	font-size: 85%;
 }
 
 div .sydney-credits {
 	font-weight: bold;
 	color: var(--vv-inchiostro);
-}
-
-.button-slider {
-	font-weight: bold;
-	color: var(--vv-testo-su-giallo);
-}
-
-.social-profile .sydney-svg-icon svg {
-	margin-top: -1em;
-	height: 3em;
 }
 
 .mobile-header-item .site-branding {

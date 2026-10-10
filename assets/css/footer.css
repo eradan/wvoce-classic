@@ -48,14 +48,10 @@
 #sidebar-footer .widget a:hover {
 	color: var(--vv-testo) !important;
 }
-/* Widget del footer scritti a mano (blocco "side-contacts", con le icone di Font Awesome):
- * icona accanto al testo invece che sopra, testo alla dimensione del footer (style.css lo
- * rimpiccioliva all'85%, 12,75px) */
-.footer-widgets #side-contacts {
-	font-size: inherit;
-}
-/* Niente gap: nei widget c'è un "&nbsp;" prima del testo, che davanti a un link diventerebbe un
- * elemento a sé e sposterebbe il link di qualche pixel rispetto al testo semplice */
+/* Widget del footer scritti a mano (blocco "side-contacts", con le icone di Font Awesome): icona
+ * accanto al testo invece che sopra. Niente gap: nei widget c'è un "&nbsp;" prima del testo, che
+ * davanti a un link diventerebbe un elemento a sé e sposterebbe il link di qualche pixel rispetto al
+ * testo semplice */
 #side-contacts p {
 	display: flex;
 	align-items: center;
@@ -131,7 +127,6 @@
 	display: flex;
 	align-items: center;
 	gap: var(--vv-s-3);
-	width: 100% !important; /* style.css (CSS del Customizer) la stringe al 90% */
 	padding-top: var(--vv-s-2);
 	padding-bottom: var(--vv-s-2);
 }
@@ -176,22 +171,6 @@
 		--vv-disco: 48px;
 		gap: var(--vv-s-2);
 	}
-}
-/* Il vecchio CSS del Customizer (style.css) dà width: 90% anche ai link della fascia e stringe
- * l'icona social a 16px mentre l'SVG ne occupa 48: con le faccine ai lati si sovrapponevano */
-.site-footer .site-info a {
-	width: auto !important;
-}
-.site-footer .social-profile a,
-.site-footer .social-profile .sydney-svg-icon {
-	display: inline-flex;
-	width: auto;
-	height: auto;
-}
-.site-footer .social-profile .sydney-svg-icon svg {
-	width: 40px;
-	height: 40px;
-	margin-top: 0;
 }
 /* "© 2026" e la scritta del logo */
 .site-footer .sydney-credits {

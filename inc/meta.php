@@ -17,45 +17,25 @@ const VV_FEATURED_KEY = '_wpfp_featured_post';
  * Registrazione dei campi (visibili anche via REST).
  */
 function vv_register_meta() {
-	$date = array(
-		'type'              => 'string',
-		'single'            => true,
-		'show_in_rest'      => true,
-		'sanitize_callback' => 'vv_sanitize_date',
-		'auth_callback'     => static fn() => current_user_can( 'edit_posts' ),
+	$campi = array(
+		// Tipo di contenuto, campo, tipo del valore, sanificazione, permesso per modificarlo.
+		array( 'post', 'vv_data', 'string', 'vv_sanitize_date', 'edit_posts' ),
+		array( 'post', 'vv_data_fine', 'string', 'vv_sanitize_date', 'edit_posts' ),
+		array( 'post', 'vv_luogo', 'string', 'sanitize_text_field', 'edit_posts' ),
+		array( 'post', 'vv_senza_immagine', 'boolean', 'rest_sanitize_boolean', 'edit_posts' ),
+		array( 'page', 'vv_senza_immagine', 'boolean', 'rest_sanitize_boolean', 'edit_posts' ),
+		array( 'page', 'vv_nascondi', 'boolean', 'rest_sanitize_boolean', 'edit_pages' ),
+		array( 'page', 'vv_categoria', 'string', 'vv_sanitize_slugs', 'edit_pages' ),
 	);
-	register_post_meta( 'post', 'vv_data', $date );
-	register_post_meta( 'post', 'vv_data_fine', $date );
-	register_post_meta( 'post', 'vv_luogo', array(
-		'type'              => 'string',
-		'single'            => true,
-		'show_in_rest'      => true,
-		'sanitize_callback' => 'sanitize_text_field',
-		'auth_callback'     => static fn() => current_user_can( 'edit_posts' ),
-	) );
-	foreach ( array( 'post', 'page' ) as $type ) {
-		register_post_meta( $type, 'vv_senza_immagine', array(
-			'type'              => 'boolean',
+	foreach ( $campi as list( $post_type, $key, $type, $sanitize, $cap ) ) {
+		register_post_meta( $post_type, $key, array(
+			'type'              => $type,
 			'single'            => true,
 			'show_in_rest'      => true,
-			'sanitize_callback' => 'rest_sanitize_boolean',
-			'auth_callback'     => static fn() => current_user_can( 'edit_posts' ),
+			'sanitize_callback' => $sanitize,
+			'auth_callback'     => static fn() => current_user_can( $cap ),
 		) );
 	}
-	register_post_meta( 'page', 'vv_nascondi', array(
-		'type'              => 'boolean',
-		'single'            => true,
-		'show_in_rest'      => true,
-		'sanitize_callback' => 'rest_sanitize_boolean',
-		'auth_callback'     => static fn() => current_user_can( 'edit_pages' ),
-	) );
-	register_post_meta( 'page', 'vv_categoria', array(
-		'type'              => 'string',
-		'single'            => true,
-		'show_in_rest'      => true,
-		'sanitize_callback' => 'vv_sanitize_slugs',
-		'auth_callback'     => static fn() => current_user_can( 'edit_pages' ),
-	) );
 }
 add_action( 'init', 'vv_register_meta' );
 

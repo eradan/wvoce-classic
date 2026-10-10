@@ -20,39 +20,38 @@
 
 defined( 'ABSPATH' ) || exit;
 
+/*
+ * Campo del codice fiscale, lo stesso nel modulo dei soci e in quello dei corsi.
+ */
+const VV_CAMPO_CF = 'text-1';
+
 /**
  * Collegamenti modulo → foglio. Per ciascuno: modulo e data di partenza predefiniti, funzione che fa
  * le righe di un'iscrizione, colonne del foglio, script Apps Script da incollare. "inizio": opzione
  * del punto di partenza fissato al primo giro (si parte dalle iscrizioni nuove); vuoto per partire
- * dalla data. "requisito": funzione che dice cosa manca per attivarlo. Prefisso delle proprietà del
- * pannello (VV_SOCI_URL…) e opzioni di impostazioni, punto raggiunto e stato (vv_soci_ultimo…)
- * vengono dall'id, in vv_sheets_config().
+ * dalla data. Prefisso delle proprietà del pannello (VV_SOCI_URL…) e opzioni di impostazioni, punto
+ * raggiunto e stato (vv_soci_ultimo…) vengono dall'id, in vv_sheets_config().
  */
 function vv_sheets_collegamenti() {
-	return apply_filters(
-		'vv_sheets_collegamenti',
-		array(
-			'soci'  => array(
-				'titolo'  => 'Foglio soci',
-				'foglio'  => 'Albo Soci',
-				'form'    => 274,
-				'dal'     => '2026-09-01',
-				'righe'   => 'vv_soci_righe',
-				'colonne' => 'vv_soci_colonne',
-				'script'  => 'albo-soci.gs',
-			),
-			'corsi' => array(
-				'titolo'    => 'Foglio corsi',
-				'foglio'    => 'Iscrizione Corsi',
-				'form'      => 1617,
-				'inizio'    => 'vv_corsi_inizio',
-				'righe'     => 'vv_corsi_righe',
-				'colonne'   => 'vv_corsi_colonne',
-				'requisito' => 'vv_corsi_requisito',
-				'campi'     => true,
-				'script'    => 'iscrizione-corsi.gs',
-			),
-		)
+	return array(
+		'soci'  => array(
+			'titolo'  => 'Foglio soci',
+			'foglio'  => 'Albo Soci',
+			'form'    => 274,
+			'dal'     => '2026-09-01',
+			'righe'   => 'vv_soci_righe',
+			'colonne' => 'vv_soci_colonne',
+			'script'  => 'albo-soci.gs',
+		),
+		'corsi' => array(
+			'titolo'  => 'Foglio corsi',
+			'foglio'  => 'Iscrizione Corsi',
+			'form'    => 1617,
+			'inizio'  => 'vv_corsi_inizio',
+			'righe'   => 'vv_corsi_righe',
+			'colonne' => 'vv_corsi_colonne',
+			'script'  => 'iscrizione-corsi.gs',
+		),
 	);
 }
 
@@ -78,8 +77,6 @@ function vv_sheets_config( $id = 'soci' ) {
 			'inizio'       => '',
 			'righe'        => '',
 			'colonne'      => '',
-			'requisito'    => '',
-			'campi'        => false,
 			'script'       => '',
 		),
 		(array) ( $tutti[ $id ] ?? array() )
@@ -171,76 +168,13 @@ function vv_sheets_id_foglio( $testo ) {
 }
 
 /**
- * Costanti di wp-config.php delle versioni precedenti ancora definite: il tema le ignora.
- */
-function vv_sheets_costanti_rimaste() {
-	$rimaste = array();
-	foreach ( array( 'VV_SHEETS', 'VV_SOCI', 'VV_CORSI' ) as $prefisso ) {
-		foreach ( array( 'URL', 'TOKEN', 'FORM', 'DAL' ) as $nome ) {
-			if ( defined( "{$prefisso}_{$nome}" ) ) {
-				$rimaste[] = "{$prefisso}_{$nome}";
-			}
-		}
-	}
-	return $rimaste;
-}
-
-/**
- * Opzioni con i nomi della 0.8 (vv_sheets_ultimo…) portate ai nomi nuovi (vv_soci_ultimo…), una
- * volta sola: il punto raggiunto resta quello, nessun reinvio.
- */
-function vv_sheets_migra_opzioni() {
-	if ( (int) get_option( 'vv_sheets_versione', 0 ) >= 2 ) {
-		return;
-	}
-	$nomi = array(
-		'vv_sheets_ultimo'       => 'vv_soci_ultimo',
-		'vv_sheets_stato'        => 'vv_soci_stato',
-		'vv_sheets_corsi_ultimo' => 'vv_corsi_ultimo',
-		'vv_sheets_corsi_stato'  => 'vv_corsi_stato',
-		'vv_sheets_corsi_inizio' => 'vv_corsi_inizio',
-	);
-	foreach ( $nomi as $vecchio => $nuovo ) {
-		$valore = get_option( $vecchio, false );
-		if ( false === $valore ) {
-			continue;
-		}
-		if ( false === get_option( $nuovo, false ) ) {
-			update_option( $nuovo, $valore, false );
-		}
-		delete_option( $vecchio );
-	}
-	update_option( 'vv_sheets_versione', 2 );
-}
-add_action( 'admin_init', 'vv_sheets_migra_opzioni' );
-
-/**
- * Indirizzo e codice ci sono e Forminator è attivo?
+ * Indirizzo, codice e modulo ci sono e Forminator è attivo? Allora il collegamento parte.
  *
  * @param string $id Collegamento.
  */
 function vv_sheets_configurato( $id = 'soci' ) {
 	$c = vv_sheets_config( $id );
-	return '' !== $c['url'] && '' !== $c['token'] && $c['form'] > 0 && $c['righe'] && class_exists( 'Forminator_API' );
-}
-
-/**
- * Cosa manca, oltre a indirizzo e codice, perché il collegamento parta ('' se nulla).
- *
- * @param string $id Collegamento.
- */
-function vv_sheets_manca( $id = 'soci' ) {
-	$c = vv_sheets_config( $id );
-	return $c['requisito'] && is_callable( $c['requisito'] ) ? (string) call_user_func( $c['requisito'] ) : '';
-}
-
-/**
- * Il collegamento è configurato e pronto a partire?
- *
- * @param string $id Collegamento.
- */
-function vv_sheets_ready( $id = 'soci' ) {
-	return vv_sheets_configurato( $id ) && '' === vv_sheets_manca( $id );
+	return '' !== $c['url'] && '' !== $c['token'] && $c['form'] > 0 && class_exists( 'Forminator_API' );
 }
 
 /**
@@ -269,7 +203,7 @@ function vv_sheets_valore( $value, $field, $part = '' ) {
 		return implode( ', ', array_filter( array_map( 'strval', array_filter( $value, 'is_scalar' ) ), 'strlen' ) );
 	}
 	$value = trim( wp_strip_all_tags( (string) $value ) );
-	return 'text-1' === $field ? strtoupper( $value ) : $value;
+	return VV_CAMPO_CF === $field ? strtoupper( $value ) : $value;
 }
 
 /**
@@ -304,31 +238,28 @@ function vv_sheets_rif( $entry ) {
  * Intestazione della colonna del foglio => campo del modulo (o array( campo, parte ) per gli indirizzi).
  */
 function vv_soci_colonne() {
-	return apply_filters(
-		'vv_soci_colonne',
-		array(
-			'Tipologia'                          => 'radio-6',
-			'Nome'                               => 'name-1',
-			'Cognome'                            => 'name-2',
-			'CODICE FISCALE'                     => 'text-1',
-			'Email'                              => 'email-1',
-			'Telefono'                           => 'phone-1',
-			'Cellulare (+39)'                    => 'phone-2',
-			'Indirizzo'                          => array( 'address-1', 'street_address' ),
-			'Citta'                              => array( 'address-1', 'city' ),
-			'Provincia'                          => array( 'address-1', 'state' ),
-			'CAP'                                => array( 'address-1', 'zip' ),
-			'Genere'                             => 'radio-1',
-			'Data di Nascita'                    => 'date-1',
-			'Address - Comune Di Nascita'        => array( 'address-2', 'city' ),
-			'ADDRESS - PROVINCIA DI NASCITA'     => array( 'address-2', 'state' ),
-			'Pagamento quota'                    => 'upload-1',
-			'Attività di Volontariato'           => 'checkbox-2',
-			'GDPR'                               => 'consent-1',
-			'Statuto e Regolamento'              => 'consent-2',
-			'Autorizzazione Invio Comunicazioni' => 'radio-4',
-			'Data compilazione'                  => 'hidden-1',
-		)
+	return array(
+		'Tipologia'                          => 'radio-6',
+		'Nome'                               => 'name-1',
+		'Cognome'                            => 'name-2',
+		'CODICE FISCALE'                     => VV_CAMPO_CF,
+		'Email'                              => 'email-1',
+		'Telefono'                           => 'phone-1',
+		'Cellulare (+39)'                    => 'phone-2',
+		'Indirizzo'                          => array( 'address-1', 'street_address' ),
+		'Citta'                              => array( 'address-1', 'city' ),
+		'Provincia'                          => array( 'address-1', 'state' ),
+		'CAP'                                => array( 'address-1', 'zip' ),
+		'Genere'                             => 'radio-1',
+		'Data di Nascita'                    => 'date-1',
+		'Address - Comune Di Nascita'        => array( 'address-2', 'city' ),
+		'ADDRESS - PROVINCIA DI NASCITA'     => array( 'address-2', 'state' ),
+		'Pagamento quota'                    => 'upload-1',
+		'Attività di Volontariato'           => 'checkbox-2',
+		'GDPR'                               => 'consent-1',
+		'Statuto e Regolamento'              => 'consent-2',
+		'Autorizzazione Invio Comunicazioni' => 'radio-4',
+		'Data compilazione'                  => 'hidden-1',
 	);
 }
 
@@ -376,13 +307,12 @@ function vv_socio_iscritto( $cf, $adesso ) {
 		return false;
 	}
 	$dal     = vv_anno_sociale( $adesso ) . '-09-01';
-	$campo   = (string) ( vv_soci_colonne()['CODICE FISCALE'] ?? 'text-1' );
 	$entries = Forminator_API::get_entries( vv_sheets_config( 'soci' )['form'] );
 	foreach ( is_array( $entries ) ? $entries : array() as $e ) {
 		if ( ! is_object( $e ) || ! empty( $e->is_spam ) || ! empty( $e->draft_id ) || substr( (string) ( $e->date_created_sql ?? '' ), 0, 10 ) < $dal ) {
 			continue;
 		}
-		$v = $e->meta_data[ $campo ]['value'] ?? '';
+		$v = $e->meta_data[ VV_CAMPO_CF ]['value'] ?? '';
 		if ( is_scalar( $v ) && vv_cf_normalizza( $v ) === $cf ) {
 			return true;
 		}
@@ -428,48 +358,33 @@ function vv_soci_righe( $entry ) {
  * Corsi.
  */
 
-/**
+/*
  * Tab per le iscrizioni a un corso che il tab "configurazioni" del foglio non conosce.
  */
-function vv_corsi_da_smistare() {
-	return 'Da smistare';
-}
+const VV_CORSI_DA_SMISTARE = 'Da smistare';
+
+/*
+ * Id del campo del modulo con il corso scelto (caselle multiple).
+ */
+const VV_CORSI_CAMPO = 'checkbox-1';
 
 /**
  * Intestazione della colonna del tab => campo del modulo 1617 (o array( campo, parte )).
  * Id letti dal modulo pubblicato su /iscrizione-corso/ (ottobre 2026).
  */
 function vv_corsi_colonne() {
-	return apply_filters(
-		'vv_corsi_colonne',
-		array(
-			'Nome'           => 'name-1',
-			'Cognome'        => 'name-2',
-			'Codice Fiscale' => 'text-1',
-			'Email'          => 'email-1',
-			'Cellulare'      => 'phone-2',
-			'Ricevuta'       => 'upload-1',
-			'Regolamento'    => 'consent-1',
-			'Socio'          => 'consent-2',
-			'Privacy'        => 'consent-3',
-			'Note'           => 'textarea-1',
-		)
+	return array(
+		'Nome'           => 'name-1',
+		'Cognome'        => 'name-2',
+		'Codice Fiscale' => VV_CAMPO_CF,
+		'Email'          => 'email-1',
+		'Cellulare'      => 'phone-2',
+		'Ricevuta'       => 'upload-1',
+		'Regolamento'    => 'consent-1',
+		'Socio'          => 'consent-2',
+		'Privacy'        => 'consent-3',
+		'Note'           => 'textarea-1',
 	);
-}
-
-/**
- * Id del campo del modulo con il corso scelto (caselle multiple). Se il filtro lo svuota il
- * collegamento dei corsi resta fermo.
- */
-function vv_corsi_campo() {
-	return (string) apply_filters( 'vv_corsi_campo', 'checkbox-1' );
-}
-
-/**
- * Cosa manca per attivare i corsi ('' se nulla).
- */
-function vv_corsi_requisito() {
-	return '' === vv_corsi_campo() ? 'manca il campo del corso (filtro vv_corsi_campo)' : '';
 }
 
 /**
@@ -478,19 +393,17 @@ function vv_corsi_requisito() {
 function vv_corsi_opzioni() {
 	static $copie = array();
 
-	$campo  = vv_corsi_campo();
-	$form   = vv_sheets_config( 'corsi' )['form'];
-	$chiave = "{$form}/{$campo}";
-	if ( ! isset( $copie[ $chiave ] ) ) {
-		$copie[ $chiave ] = array();
+	$form = vv_sheets_config( 'corsi' )['form'];
+	if ( ! isset( $copie[ $form ] ) ) {
+		$copie[ $form ] = array();
 		foreach ( vv_sheets_campi( $form ) as $f ) {
-			if ( '' !== $campo && $f['id'] === $campo ) {
-				$copie[ $chiave ] = array_values( array_filter( array_column( $f['opzioni'], 'valore' ), 'strlen' ) );
+			if ( VV_CORSI_CAMPO === $f['id'] ) {
+				$copie[ $form ] = array_values( array_filter( array_column( $f['opzioni'], 'valore' ), 'strlen' ) );
 				break;
 			}
 		}
 	}
-	return $copie[ $chiave ];
+	return $copie[ $form ];
 }
 
 /**
@@ -537,8 +450,7 @@ function vv_corsi_scelti( $valore, $opzioni = null ) {
  */
 function vv_corsi_righe( $entry ) {
 	$meta  = is_array( $entry->meta_data ?? null ) ? $entry->meta_data : array();
-	$campo = vv_corsi_campo();
-	$corsi = vv_corsi_scelti( '' === $campo ? '' : ( $meta[ $campo ]['value'] ?? '' ) );
+	$corsi = vv_corsi_scelti( $meta[ VV_CORSI_CAMPO ]['value'] ?? '' );
 	$base  = array( 'Rif.' => vv_sheets_rif( $entry ) ) + vv_sheets_valori( $meta, vv_corsi_colonne() );
 	$righe = array();
 	foreach ( $corsi ? $corsi : array( '' ) as $corso ) {
@@ -597,11 +509,11 @@ function vv_corsi_tab( $corso, $mappa ) {
 	foreach ( (array) ( $mappa['mappa'] ?? array() ) as $nome => $tab ) {
 		if ( '' !== $chiave && vv_corsi_normalizza( $nome ) === $chiave ) {
 			// Come lo script: "configurazioni" e "Da smistare" non sono tab di un corso.
-			$valido = ! in_array( $tab, array( 'configurazioni', vv_corsi_da_smistare() ), true ) && in_array( $tab, (array) ( $mappa['tab'] ?? array() ), true );
-			return $valido ? $tab : vv_corsi_da_smistare();
+			$valido = ! in_array( $tab, array( 'configurazioni', VV_CORSI_DA_SMISTARE ), true ) && in_array( $tab, (array) ( $mappa['tab'] ?? array() ), true );
+			return $valido ? $tab : VV_CORSI_DA_SMISTARE;
 		}
 	}
-	return vv_corsi_da_smistare();
+	return VV_CORSI_DA_SMISTARE;
 }
 
 /**
@@ -729,15 +641,6 @@ function vv_sheets_iscrizioni( $id = 'soci' ) {
 }
 
 /**
- * Iscrizioni da mandare (vedi vv_sheets_iscrizioni()).
- *
- * @param string $id Collegamento.
- */
-function vv_sheets_da_inviare( $id = 'soci' ) {
-	return vv_sheets_iscrizioni( $id )['da_inviare'];
-}
-
-/**
  * Righe per il foglio di un blocco di iscrizioni.
  *
  * @param array  $entries Iscrizioni.
@@ -834,7 +737,7 @@ function vv_sheets_verifica( $id ) {
  * @return array Esito: inviate, errore.
  */
 function vv_sheets_sync( $id = 'soci' ) {
-	if ( ! vv_sheets_ready( $id ) ) {
+	if ( ! vv_sheets_configurato( $id ) ) {
 		return array( 'inviate' => 0, 'errore' => 'Collegamento non configurato.' );
 	}
 	$c       = vv_sheets_config( $id );
@@ -897,19 +800,15 @@ function vv_sheets_sync( $id = 'soci' ) {
 }
 
 /**
- * Un giro per ogni collegamento pronto: l'errore di uno non ferma gli altri.
+ * Un giro per ogni collegamento configurato: l'errore di uno non ferma gli altri.
  */
 function vv_sheets_sync_tutti() {
-	vv_sheets_migra_opzioni();
 	if ( ! vv_sheets_qualcuno() ) {
 		wp_clear_scheduled_hook( 'vv_sheets_sync' );
 		return;
 	}
 	foreach ( array_keys( vv_sheets_collegamenti() ) as $id ) {
 		if ( vv_sheets_configurato( $id ) ) {
-			vv_sheets_ultimo( $id ); // Fissa il punto di partenza anche prima che sia pronto.
-		}
-		if ( vv_sheets_ready( $id ) ) {
 			vv_sheets_sync( $id );
 		}
 	}
@@ -970,7 +869,7 @@ function vv_sheets_prova( $id = 'soci', $gruppo = null ) {
 	$c       = vv_sheets_config( $id );
 	$tab     = array();
 	$piene   = array_fill_keys( array_keys( (array) call_user_func( $c['colonne'] ) ), 0 );
-	$entries = vv_sheets_da_inviare( $id );
+	$entries = vv_sheets_iscrizioni( $id )['da_inviare'];
 	$righe   = vv_sheets_righe( $entries, $id );
 	foreach ( $righe as $riga ) {
 		$nome         = $gruppo ? (string) call_user_func( $gruppo, $riga ) : (string) ( $riga['_tab'] ?? '' );

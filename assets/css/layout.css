@@ -12,7 +12,7 @@ body:not(.siteorigin-panels) .content-area.no-sidebar .entry-post,
 	padding-left: 0;
 	padding-right: 0;
 }
-/* La home (modello "Full width") usa tutta la larghezza, con o senza SiteOrigin */
+/* La home (modello "Full width") usa tutta la larghezza */
 body.page-template-page_fullwidth .content-area.no-sidebar .content-inner,
 body.vv-has-hero .content-area.no-sidebar .content-inner,
 body.page-template-page_fullwidth .content-area.no-sidebar .entry-content {
@@ -78,8 +78,7 @@ body.page-template-page_fullwidth .content-area.no-sidebar .entry-content {
 	color: var(--vv-testo);
 }
 
-/* Titoli di sezione del tema (elenchi, soci, home): come i titoli dei widget della home originale,
- * che restano nell'istantanea SiteOrigin (h3.widget-title, il resto in home.css) */
+/* Titoli di sezione del tema (elenchi, soci, home): come i titoli dei widget della home originale */
 .vv-section-title,
 .entry-content h2.vv-section-title {
 	position: relative;
@@ -92,9 +91,7 @@ body.page-template-page_fullwidth .content-area.no-sidebar .entry-content {
 	text-transform: uppercase;
 	color: var(--vv-titoli-sezione);
 }
-.vv-section-title::after,
-.home .so-panel .widget-title::after,
-.home .panel-grid .widget-title::after {
+.vv-section-title::after {
 	content: "";
 	position: absolute;
 	left: 50%;

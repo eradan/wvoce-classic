@@ -23,19 +23,17 @@ function vv_swap_page_template() {
 add_action( 'wp', 'vv_swap_page_template' );
 
 /**
- * La colonna non va nelle pagine legali (privacy, cookie), in quelle composte con SiteOrigin e in
- * quelle con le griglie di card del tema, che sono larghe quanto la pagina e ci finirebbero sotto.
+ * La colonna resta fuori dalle pagine legali (privacy, cookie) e da quelle con le griglie di card del
+ * tema, che sono larghe quanto la pagina e ci finirebbero sotto.
  *
  * @param int $page_id Pagina.
  */
 function vv_page_has_aside( $page_id ) {
 	$page = get_post( $page_id );
-	$show = $page
+	return $page
 		&& (int) get_option( 'wp_page_for_privacy_policy' ) !== $page->ID
 		&& ! preg_match( '/privacy|cookie/', $page->post_name )
-		&& ! get_post_meta( $page->ID, 'panels_data', true )
 		&& ! preg_match( '/\[(vv_cards|vv_elenco|vv_sottopagine)\b/', $page->post_content );
-	return (bool) apply_filters( 'vv_page_has_aside', $show, $page );
 }
 
 /**

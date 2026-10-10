@@ -7,8 +7,7 @@ Tema child di **Sydney 2.71** per wvoce.it, aspetto "classico" vicino al sito or
 ```
 style.css                 intestazione + CSS aggiuntivo ereditato da Sydney
 functions.php             caricamento di CSS e JS, preload dei font, script del tema chiaro/scuro
-inc/migrate.php           copia delle impostazioni del Customizer, costruttore header/footer spento
-inc/setup.php             filtri su Sydney, traduzioni mancanti, credits del footer, Contact Form 7 dove serve
+inc/setup.php             filtri su Sydney, costruttore header/footer spento, traduzioni mancanti, credits del footer, Contact Form 7 dove serve
 inc/contenuti.php         correzioni dei contenuti (trattini, lettere decorative, elenchi rotti, emoji esterne, gallerie)
 inc/condivisione.php      meta description e anteprime Open Graph e Twitter
 inc/sicurezza.php         nomi utente fuori da sitemap e API pubblica, XML-RPC spento

@@ -18,7 +18,7 @@ Dalla corrispondenza in `vv_soci_colonne()`:
 
 ## Cosa passa al foglio "Iscrizione Corsi"
 
-Dalla corrispondenza in `vv_corsi_colonne()` e `vv_corsi_campo()`:
+Dalla corrispondenza in `vv_corsi_colonne()` e `VV_CORSI_CAMPO`:
 
 - **Dati anagrafici e di contatto:** nome, cognome, codice fiscale, email, cellulare.
 - **Corso scelto:** il tab in cui finisce la riga; per i corsi senza tab, il nome del corso (colonna "Corso" del tab "Da smistare").

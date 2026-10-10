@@ -1,17 +1,12 @@
 <?php
 /**
  * Meno informazioni utili a chi tenta l'accesso a forza bruta: nomi utente fuori dalla sitemap e
- * dall'API pubblica, XML-RPC spento, versione di WordPress nascosta. Il filtro vv_sicurezza (false)
- * spegne tutto.
+ * dall'API pubblica, XML-RPC spento, versione di WordPress nascosta.
  *
  * @package VivaVoce
  */
 
 defined( 'ABSPATH' ) || exit;
-
-if ( ! apply_filters( 'vv_sicurezza', true ) ) {
-	return;
-}
 
 /**
  * Niente sitemap degli autori (wp-sitemap-users-1.xml elencava i nomi utente).

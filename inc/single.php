@@ -65,7 +65,7 @@ function vv_single_aside( $post_id ) {
  * @return int[] ID dei tag.
  */
 function vv_path_tags( $post_id ) {
-	$generic = apply_filters( 'vv_generic_tags', array( 'bambini', 'ragazzi', 'adulti', 'teatro', 'lettura-ad-alta-voce', 'narrazione', 'scrittura', 'musica', 'multimedia' ) );
+	$generic = array( 'bambini', 'ragazzi', 'adulti', 'teatro', 'lettura-ad-alta-voce', 'narrazione', 'scrittura', 'musica', 'multimedia' );
 	$tags    = get_the_tags( $post_id );
 	return $tags ? array_values( wp_list_pluck( array_filter( $tags, static fn( $t ) => ! in_array( $t->slug, $generic, true ) ), 'term_id' ) ) : array();
 }
@@ -130,7 +130,7 @@ function vv_aside_list( $title, $posts ) {
 		// Senza immagine un riquadro della stessa misura, così i titoli restano in colonna.
 		$thumb = get_the_post_thumbnail( $p, 'thumbnail', array( 'alt' => '', 'loading' => 'lazy' ) );
 		$thumb = $thumb ? $thumb : '<span class="vv-aside-list__vuoto" aria-hidden="true"></span>';
-		$html .= '<li><a href="' . esc_url( get_permalink( $p ) ) . '">' . $thumb . '<span>' . esc_html( vv_plain_letters( wp_strip_all_tags( get_the_title( $p ) ), false ) ) . '</span></a></li>';
+		$html .= '<li><a href="' . esc_url( get_permalink( $p ) ) . '">' . $thumb . '<span>' . esc_html( wp_strip_all_tags( get_the_title( $p ) ) ) . '</span></a></li>';
 	}
 	return $html . '</ul></div>';
 }
@@ -165,7 +165,7 @@ if ( ! function_exists( 'sydney_post_navigation' ) ) :
 				esc_url( get_permalink( $p ) ),
 				'prev' === $dir ? 'prev' : 'next',
 				'prev' === $dir ? '‹ Articolo precedente' : 'Articolo successivo ›',
-				esc_html( vv_plain_letters( wp_strip_all_tags( get_the_title( $p ) ), false ) )
+				esc_html( wp_strip_all_tags( get_the_title( $p ) ) )
 			);
 		}
 		echo '</nav>';

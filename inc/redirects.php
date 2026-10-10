@@ -4,7 +4,7 @@
  * eliminate, vecchie sottopagine di Formazione, pagine diventate articoli, articoli uniti.
  *
  * Scattano solo quando l'indirizzo darebbe "pagina non trovata": se un giorno lì torna una
- * pagina vera, vince la pagina. Per aggiungerne: filtro vv_redirects.
+ * pagina vera, vince la pagina. Per aggiungerne basta una riga nella tabella.
  *
  * @package VivaVoce
  */
@@ -17,7 +17,7 @@ defined( 'ABSPATH' ) || exit;
  * @return array<string,string>
  */
 function vv_redirects() {
-	return apply_filters( 'vv_redirects', array(
+	return array(
 		// Categorie eliminate
 		'/category/appuntamenti/'                       => '/in-programma/',
 		'/category/notizie/'                            => '/cosa-facciamo/eventi/',
@@ -39,7 +39,7 @@ function vv_redirects() {
 		// Articoli uniti a un altro
 		'/vivavoce-a-if-2021/'                          => '/vivavoce-a-internet-festival/',
 		'/alice_pop/'                                   => '/cartoline-dal-paese-delle-meraviglie/',
-	) );
+	);
 }
 
 /**

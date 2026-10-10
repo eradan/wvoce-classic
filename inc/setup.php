@@ -17,6 +17,23 @@ function vv_setup() {
 }
 add_action( 'after_setup_theme', 'vv_setup', 20 );
 
+/*
+ * Header e footer "classici" di Sydney. Passando da un tema che non ha "sydney" nel nome Sydney accende
+ * da solo il costruttore header/footer, con un markup che il CSS del child non conosce e un footer senza
+ * aree widget: qui resta spento, senza toccare l'opzione salvata. Per usarlo davvero:
+ * define( 'VV_SYDNEY_BUILDER', true ); in wp-config.php.
+ */
+if ( ! defined( 'VV_SYDNEY_BUILDER' ) || ! VV_SYDNEY_BUILDER ) {
+	add_filter(
+		'option_sydney-modules',
+		static function ( $modules ) {
+			$modules               = is_array( $modules ) ? $modules : (array) $modules;
+			$modules['hf-builder'] = false;
+			return $modules;
+		}
+	);
+}
+
 // Niente sidebar: i contatti vivono nel footer.
 add_filter( 'sydney_show_sidebar', '__return_false' );
 
@@ -138,25 +155,11 @@ function vv_excerpt_more() {
 add_filter( 'excerpt_more', 'vv_excerpt_more', 20 );
 
 /**
- * La pagina corrente contiene un modulo di Contact Form 7 (shortcode o blocco, anche dentro un
- * layout di SiteOrigin)?
- */
-function vv_cf7_in_pagina() {
-	if ( ! is_singular() ) {
-		return false;
-	}
-	$post  = get_queried_object();
-	$testo = $post->post_content . wp_json_encode( get_post_meta( $post->ID, 'panels_data', true ) );
-	return false !== strpos( $testo, 'contact-form-7' );
-}
-
-/**
- * Contact Form 7 e reCAPTCHA solo nelle pagine con un modulo (oggi Contatti): nelle altre sono peso
- * inutile e una richiesta ai server di Google prima del consenso. Il filtro vv_cf7_ovunque li
- * rimette su tutte le pagine.
+ * Contact Form 7 e reCAPTCHA solo nelle pagine con un modulo (shortcode o blocco, oggi Contatti):
+ * nelle altre sono peso inutile e una richiesta ai server di Google prima del consenso.
  */
 function vv_cf7_solo_dove_serve() {
-	if ( ! defined( 'WPCF7_VERSION' ) || apply_filters( 'vv_cf7_ovunque', false ) || vv_cf7_in_pagina() ) {
+	if ( ! defined( 'WPCF7_VERSION' ) || ( is_singular() && false !== strpos( get_queried_object()->post_content, 'contact-form-7' ) ) ) {
 		return;
 	}
 	foreach ( array( 'contact-form-7', 'swv', 'wpcf7-recaptcha', 'google-recaptcha' ) as $handle ) {
