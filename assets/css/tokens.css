@@ -125,7 +125,6 @@
 	--vv-fondo-card: #f1f5f9;      /* card degli elenchi, "Sostienici", immagine in testa alle pagine */
 	--vv-riquadro: #d7e0e9;        /* footer, "In breve", "In questa sezione", card senza foto (la vecchia sidebar dei contatti) */
 	--vv-fondo-hero: var(--vv-perla); /* fondo dell'illustrazione della home */
-	--vv-fondo-disco: var(--vv-fondo-hero); /* ovale dietro testa e mano dell'illustrazione (home.css): nel chiaro come il fondo */
 	--vv-placeholder: #edf2f6;     /* dietro le immagini che si caricano */
 	--vv-fondo-attivo: #007a87;    /* mouse su pulsanti e sottomenu, voce corrente del sottomenu */
 	--vv-pulsante: #2c3a4a;        /* pulsanti "Copia" */
@@ -200,7 +199,6 @@
 	--vv-fondo-card: #14264a;
 	--vv-riquadro: #1b3059;
 	--vv-fondo-hero: #0c1a33;
-	--vv-fondo-disco: var(--vv-perla); /* stacca dal blu il nero della testa (su #0c1a33 è 1,1:1) */
 	--vv-placeholder: #1b2d50;
 	--vv-pulsante: #eaf0f8;
 

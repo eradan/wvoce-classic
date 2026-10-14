@@ -88,24 +88,6 @@
 	width: min(100cqw, 100cqh * 1900 / 1615);
 	aspect-ratio: 1900 / 1615;
 	translate: -50% -50%;
-	--vv-disco-x: 5%;
-	--vv-disco-y: 12%;
-	--vv-disco-l: 86%;
-	--vv-disco-a: 76%;
-}
-/* Ovale dietro testa e mano, fermo mentre si muovono: sul fondo scuro stacca la parte nera del
- * disegno. Colore in tokens.css (--vv-fondo-disco: perla nel tema scuro, nel chiaro uguale al fondo,
- * quindi invisibile); forma e posizione in % della tela. Testa e mano insieme vanno da 8,5% a 85,6%
- * in larghezza e da 5,8% a 80,3% in altezza; le punte dei capelli possono uscire dall'ovale. */
-.vv-hero__tela::before {
-	content: "";
-	position: absolute;
-	left: var(--vv-disco-x);
-	top: var(--vv-disco-y);
-	width: var(--vv-disco-l);
-	height: var(--vv-disco-a);
-	border-radius: 50%;
-	background: var(--vv-fondo-disco);
 }
 .vv-hero__pezzo {
 	position: absolute;

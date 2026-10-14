@@ -2,6 +2,11 @@
 
 Storia del tema VivaVoce Classic, dalla versione più recente. La guida d'uso è nel README.
 
+## Versione 0.9.8: illustrazione della home senza ovale
+
+- **Via l'ovale dietro testa e mano dell'hero**, in entrambi i temi: tolti `.vv-hero__tela::before` e le variabili `--vv-disco-*` da `home.css` e `--vv-fondo-disco` da `tokens.css`. Nel tema scuro l'illustrazione sta direttamente sul blu.
+- **Bordi delle immagini dell'animazione ripuliti** (`assets/img/hero/`: testa, mano, tre trattini). Le sfumature dei bordi erano mescolate al fondo perla dell'illustrazione originale e sul blu del tema scuro lasciavano un alone chiaro: ora i pixel di bordo hanno il colore pieno della forma e la parte chiara è diventata trasparenza, così il bordo resta morbido su qualunque fondo. Le striature chiare del pastello dentro le forme restano. Peso dei file pressoché invariato.
+
 ## Versione 0.9.7: codice più snello, stesso sito
 
 Revisione per la manutenzione: circa 460 righe di codice in meno, aspetto e funzioni invariati. Verifica a vista su 13 pagine del sito (desktop e telefono, tema chiaro e scuro, menu aperti): 56 schermate identiche al pixel prima e dopo.
