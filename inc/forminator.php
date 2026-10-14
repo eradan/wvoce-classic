@@ -128,3 +128,138 @@ function vv_forminator_cf_style() {
 	}
 }
 add_action( 'wp_enqueue_scripts', 'vv_forminator_cf_style', 21 );
+
+/*
+ * Dal modulo dei soci a quello dei corsi. Chi nel modulo dei soci risponde di volersi iscrivere anche
+ * a un corso viene mandato da Forminator (comportamento dopo l'invio, rinvio con condizione) alla
+ * pagina dei corsi; il tema aggiunge all'indirizzo un codice usa e getta (?vv=…) e lì ricompila il
+ * modulo dei corsi con i dati appena inviati, caselle comprese: restano da scegliere i corsi e da
+ * caricare la ricevuta. I dati restano sul server (transient di due ore), mai nell'indirizzo.
+ */
+
+/**
+ * Campi ripresi: hanno lo stesso id nel modulo dei soci e in quello dei corsi.
+ */
+function vv_corso_campi() {
+	return array( 'name-1', 'name-2', VV_CAMPO_CF, 'email-1', 'phone-2' );
+}
+
+/*
+ * Caselle del modulo dei corsi già accettate con l'iscrizione a socio: Regolamento ("Statuto e
+ * Regolamento"), Socio, Privacy ("GDPR").
+ */
+const VV_CORSO_CASELLE = array( 'consent-1', 'consent-2', 'consent-3' );
+
+/*
+ * Durata del codice usa e getta, in secondi: due ore.
+ */
+const VV_CORSO_DURATA = 7200;
+
+/**
+ * Campi inviati al modulo dei soci, tenuti da parte per il rinvio alla pagina dei corsi.
+ *
+ * @param array|null $campi Campi da tenere (null: solo lettura).
+ * @return array Campi tenuti: id => valore.
+ */
+function vv_corso_inviati( $campi = null ) {
+	static $tenuti = array();
+	if ( null !== $campi ) {
+		$tenuti = $campi;
+	}
+	return $tenuti;
+}
+
+/**
+ * Tiene da parte i campi ripresi da un invio del modulo dei soci.
+ *
+ * @param array $field_data_array Campi inviati: array( 'name' => id del campo, 'value' => valore ).
+ * @param int   $form_id          Id del modulo.
+ */
+function vv_corso_tieni_campi( $field_data_array, $form_id ) {
+	if ( (int) vv_sheets_config( 'soci' )['form'] === (int) $form_id && is_array( $field_data_array ) ) {
+		$campi = array();
+		foreach ( $field_data_array as $item ) {
+			$id = is_array( $item ) ? (string) ( $item['name'] ?? '' ) : '';
+			if ( in_array( $id, vv_corso_campi(), true ) ) {
+				$campi[ $id ] = vv_sheets_valore( $item['value'] ?? '', $id );
+			}
+		}
+		vv_corso_inviati( $campi );
+	}
+	return $field_data_array;
+}
+add_filter( 'forminator_custom_form_submit_field_data', 'vv_corso_tieni_campi', 10, 2 );
+
+/**
+ * L'indirizzo porta alla pagina dei corsi (vv_url_corso nel Customizer)?
+ *
+ * @param string $url Indirizzo.
+ */
+function vv_corso_e_pagina( $url ) {
+	$path = static fn( $u ) => trailingslashit( (string) wp_parse_url( (string) $u, PHP_URL_PATH ) );
+	return '' !== (string) $url && $path( $url ) === $path( vv_mod( 'vv_url_corso' ) );
+}
+
+/**
+ * Invio riuscito del modulo dei soci con rinvio alla pagina dei corsi: i campi ripresi vanno in un
+ * transient e il codice nell'indirizzo del rinvio.
+ *
+ * @param array $response Risposta di Forminator (success, url…).
+ * @param int   $form_id  Id del modulo.
+ */
+function vv_corso_rinvio( $response, $form_id ) {
+	$campi = vv_corso_inviati();
+	if ( ! is_array( $response ) || empty( $response['success'] ) || empty( $response['url'] ) || ! $campi
+		|| (int) vv_sheets_config( 'soci' )['form'] !== (int) $form_id || ! vv_corso_e_pagina( $response['url'] ) ) {
+		return $response;
+	}
+	$codice = bin2hex( random_bytes( 16 ) );
+	set_transient( 'vv_corso_' . $codice, $campi, VV_CORSO_DURATA );
+	$response['url'] = add_query_arg( 'vv', $codice, $response['url'] );
+	vv_corso_inviati( array() );
+	return $response;
+}
+add_filter( 'forminator_form_ajax_submit_response', 'vv_corso_rinvio', 10, 2 );
+add_filter( 'forminator_form_submit_response', 'vv_corso_rinvio', 10, 2 );
+
+/**
+ * Dati da ricompilare per un codice, o null se il codice non è valido o è scaduto.
+ *
+ * @param mixed $codice Codice dall'indirizzo.
+ * @return array|null
+ */
+function vv_corso_dati( $codice ) {
+	if ( ! is_string( $codice ) || ! preg_match( '/^[0-9a-f]{32}$/', $codice ) ) {
+		return null;
+	}
+	$campi = get_transient( 'vv_corso_' . $codice );
+	return is_array( $campi ) && $campi ? $campi : null;
+}
+
+/**
+ * Pagina dei corsi aperta con un codice valido: niente cache (dentro ci sono dati personali) e, in
+ * fondo alla pagina, i dati per la ricompilazione del modulo dei corsi (assets/js/vv.js).
+ */
+function vv_corso_pagina() {
+	// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Il codice stesso fa da gettone.
+	$campi = isset( $_GET['vv'] ) ? vv_corso_dati( sanitize_key( wp_unslash( $_GET['vv'] ) ) ) : null;
+	if ( ! $campi ) {
+		return;
+	}
+	if ( ! defined( 'DONOTCACHEPAGE' ) ) {
+		define( 'DONOTCACHEPAGE', true );
+	}
+	nocache_headers();
+	add_action(
+		'wp_footer',
+		static function () use ( $campi ) {
+			$dati = array(
+				'form'    => (int) vv_sheets_config( 'corsi' )['form'],
+				'campi'   => $campi,
+				'caselle' => VV_CORSO_CASELLE,
+			);
+			printf( '<script id="vv-corso-dati" type="application/json">%s</script>' . "\n", wp_json_encode( $dati, JSON_HEX_TAG | JSON_HEX_AMP ) );
+		}
+	);
+}
+add_action( 'template_redirect', 'vv_corso_pagina' );

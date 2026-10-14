@@ -113,6 +113,24 @@ function wp_mail() {}
 function admin_url( $path = '' ) {
 	return 'https://wvoce.it/wp-admin/' . $path;
 }
+$vv_transient = array();
+function set_transient( $name, $value, $durata ) {
+	global $vv_transient;
+	$vv_transient[ $name ] = $value;
+}
+function get_transient( $name ) {
+	global $vv_transient;
+	return $vv_transient[ $name ] ?? false;
+}
+function wp_parse_url( $url, $component = -1 ) {
+	return parse_url( $url, $component );
+}
+function trailingslashit( $text ) {
+	return rtrim( (string) $text, '/' ) . '/';
+}
+function add_query_arg( $key, $value, $url ) {
+	return $url . ( false === strpos( $url, '?' ) ? '?' : '&' ) . $key . '=' . $value;
+}
 /**
  * Date in italiano come wp_date(), per i soli formati del tema (j, n, Y, F, M).
  */
@@ -320,6 +338,34 @@ uguale( 'Modulo dei corsi cambiato: CF controllato sul nuovo', 1, count( vv_form
 uguale( 'Modulo dei corsi cambiato: socio richiesto sul nuovo', array( 1800 => 'richiesto', 274 => 'unico' ), vv_forminator_moduli() );
 uguale( 'Modulo dei corsi cambiato: il vecchio non si controlla più', array(), vv_forminator_check_cf( array(), 1617, array( array( 'name' => 'text-1', 'value' => 'xxx' ) ) ) );
 unset( $vv_opzioni['vv_corsi_impostazioni'] );
+
+// Dal modulo dei soci a quello dei corsi: campi ripresi, codice nel rinvio, codice letto
+$vv_inviati = array(
+	array( 'name' => 'name-1', 'value' => 'Mario' ),
+	array( 'name' => 'name-2', 'value' => 'Rossi' ),
+	array( 'name' => 'text-1', 'value' => 'rssmra85t10a562t' ),
+	array( 'name' => 'email-1', 'value' => 'mario@example.com' ),
+	array( 'name' => 'phone-2', 'value' => '+39 333 1234567' ),
+	array( 'name' => 'address-1', 'value' => array( 'city' => 'Pisa' ) ),
+);
+$vv_ok = array( 'success' => true, 'url' => 'https://wvoce.it/cosa-puoi-fare/iscrizione-corso/' );
+vv_corso_tieni_campi( $vv_inviati, 1617 );
+uguale( 'Modulo dei corsi: campi non tenuti', array(), vv_corso_inviati() );
+uguale( 'Modulo dei corsi: risposta invariata', $vv_ok, vv_corso_rinvio( $vv_ok, 1617 ) );
+uguale( 'Campi inviati restituiti a Forminator', $vv_inviati, vv_corso_tieni_campi( $vv_inviati, 274 ) );
+uguale( 'Modulo dei soci: campi ripresi, CF maiuscolo', array( 'name-1' => 'Mario', 'name-2' => 'Rossi', 'text-1' => 'RSSMRA85T10A562T', 'email-1' => 'mario@example.com', 'phone-2' => '+39 333 1234567' ), vv_corso_inviati() );
+uguale( 'Senza rinvio: nessun codice', array( 'success' => true ), vv_corso_rinvio( array( 'success' => true ), 274 ) );
+uguale( 'Rinvio altrove: nessun codice', array( 'success' => true, 'url' => 'https://wvoce.it/grazie/' ), vv_corso_rinvio( array( 'success' => true, 'url' => 'https://wvoce.it/grazie/' ), 274 ) );
+uguale( 'Invio non riuscito: nessun codice', array( 'success' => false, 'url' => $vv_ok['url'] ), vv_corso_rinvio( array( 'success' => false, 'url' => $vv_ok['url'] ), 274 ) );
+$vv_rinvio = vv_corso_rinvio( $vv_ok, 274 );
+$vv_codice = preg_match( '/\?vv=([0-9a-f]{32})$/', $vv_rinvio['url'], $vv_m ) ? $vv_m[1] : '';
+uguale( 'Rinvio alla pagina dei corsi: codice nell\'indirizzo', 32, strlen( $vv_codice ) );
+uguale( 'Nell\'indirizzo solo il codice, niente dati', false, strpos( $vv_rinvio['url'], 'RSSMRA' ) );
+uguale( 'Codice valido: dati ripresi', 'RSSMRA85T10A562T', vv_corso_dati( $vv_codice )['text-1'] ?? '' );
+uguale( 'Pagina dei corsi senza la barra finale', true, vv_corso_e_pagina( 'https://wvoce.it/cosa-puoi-fare/iscrizione-corso' ) );
+uguale( 'Codice sconosciuto', null, vv_corso_dati( str_repeat( 'a', 32 ) ) );
+uguale( 'Codice malformato', null, vv_corso_dati( '../x' ) );
+uguale( 'Dopo il rinvio i campi non restano per l\'invio seguente', array( 'success' => true, 'url' => $vv_ok['url'] ), vv_corso_rinvio( $vv_ok, 274 ) );
 
 // Impostazioni dal pannello
 $vv_opzioni = array();

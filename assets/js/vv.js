@@ -1,4 +1,4 @@
-/* VivaVoce: testata che si stringe, switcher del tema, pulsanti "Copia" (CF, P.IVA, IBAN), caroselli e menu mobile. */
+/* VivaVoce: testata che si stringe, switcher del tema, pulsanti "Copia" (CF, P.IVA, IBAN), caroselli, menu mobile e modulo dei corsi ricompilato. */
 (function () {
 	'use strict';
 
@@ -345,4 +345,43 @@
 		}
 		sync();
 	});
+
+	// Modulo dei corsi ricompilato dopo l'iscrizione a socio (inc/forminator.php): nome, codice fiscale,
+	// contatti e caselle già accettate. Forminator può disegnare il modulo dopo il caricamento della
+	// pagina: si riprova per qualche secondo. I valori passano dagli eventi, così il plugin li vede.
+	var datiCorso = document.getElementById('vv-corso-dati');
+	if (datiCorso) {
+		var corso = null;
+		try { corso = JSON.parse(datiCorso.textContent); } catch (e) {}
+		var tentativi = 0;
+		var ricompila = function () {
+			var form = corso && document.getElementById('forminator-module-' + corso.form);
+			if (!form) {
+				if (corso && ++tentativi < 40) {
+					setTimeout(ricompila, 250);
+				}
+				return;
+			}
+			Object.keys(corso.campi).forEach(function (nome) {
+				var input = form.querySelector('[name="' + nome + '"]');
+				if (input && !input.value && corso.campi[nome]) {
+					input.value = corso.campi[nome];
+					input.dispatchEvent(new Event('input', { bubbles: true }));
+					input.dispatchEvent(new Event('change', { bubbles: true }));
+				}
+			});
+			corso.caselle.forEach(function (nome) {
+				var casella = form.querySelector('input[type="checkbox"][name="' + nome + '"]');
+				if (casella && !casella.checked) {
+					casella.click();
+				}
+			});
+			var avviso = document.createElement('p');
+			avviso.className = 'vv-corso-avviso';
+			avviso.setAttribute('role', 'status');
+			avviso.textContent = 'Abbiamo ripreso i tuoi dati dall\'iscrizione a socio: scegli il corso e carica la ricevuta del pagamento.';
+			form.parentNode.insertBefore(avviso, form);
+		};
+		ricompila();
+	}
 })();

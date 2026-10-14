@@ -259,3 +259,13 @@ body.vv-cookie-open {
 	background: var(--vv-fondo-attivo) !important;
 	color: var(--vv-testo-attivo) !important;
 }
+
+/* Modulo dei corsi ricompilato dopo l'iscrizione a socio (vv.js) */
+.vv-corso-avviso {
+	margin: 0 0 24px;
+	padding: 14px 18px;
+	background-color: var(--vv-fondo-card);
+	border-left: 4px solid var(--vv-link);
+	color: var(--vv-testo);
+	font-size: var(--vv-fs-piccolo);
+}

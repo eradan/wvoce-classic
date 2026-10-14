@@ -2,6 +2,17 @@
 
 Storia del tema VivaVoce Classic, dalla versione più recente. La guida d'uso è nel README.
 
+## Versione 0.10.0: dal modulo dei soci al corso, senza ricompilare
+
+- **Iscrizione al corso subito dopo quella a socio.** Chi nel modulo dei soci risponde di voler frequentare anche un corso arriva, dopo l'invio, alla pagina dei corsi con il modulo già compilato: nome, cognome, codice fiscale, email, cellulare e le caselle Regolamento, Socio e Privacy, già accettate con l'iscrizione a socio. Restano da scegliere i corsi e da caricare la ricevuta. I due moduli restano distinti: la pagina dei corsi continua a servire a chi è già socio.
+- **I dati non passano nell'indirizzo.** Il tema aggiunge al rinvio un codice usa e getta (`?vv=…`) e tiene i dati sul server per due ore (`vv_corso_rinvio()`, `vv_corso_dati()` in `inc/forminator.php`; ricompilazione in `assets/js/vv.js`). Con un codice scaduto o sbagliato il modulo si presenta vuoto. La pagina aperta con il codice non entra nella cache.
+- **Nuova impostazione** Customizer → VivaVoce → Dati dell'associazione → *Pagina "Iscrizione ai corsi"*: il codice si aggiunge solo ai rinvii verso questa pagina.
+- **Test:** 146 controlli.
+
+Da fare nel pannello di Forminator, modulo "Iscrizione Socio":
+1. Un campo a scelta singola "Vuoi iscriverti anche a un corso?" con No (predefinito) e Sì, prima del pulsante di invio.
+2. Comportamento dopo l'invio: un secondo comportamento "Reindirizza", nella stessa scheda, verso `/cosa-puoi-fare/iscrizione-corso/`, con la condizione "il campo del punto 1 è Sì". Il messaggio di ringraziamento resta per il No.
+
 ## Versione 0.9.8: illustrazione della home senza ovale
 
 - **Via l'ovale dietro testa e mano dell'hero**, in entrambi i temi: tolti `.vv-hero__tela::before` e le variabili `--vv-disco-*` da `home.css` e `--vv-fondo-disco` da `tokens.css`. Nel tema scuro l'illustrazione sta direttamente sul blu.

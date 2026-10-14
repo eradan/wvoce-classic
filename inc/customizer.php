@@ -23,6 +23,7 @@ function vv_defaults() {
 		'vv_piva'           => '02441190507',
 		'vv_iban'           => 'IT47D0501802800000017134545',
 		'vv_url_socio'      => home_url( '/cosa-puoi-fare/diventa-socio/' ),
+		'vv_url_corso'      => home_url( '/cosa-puoi-fare/iscrizione-corso/' ),
 		'vv_url_donazione'  => home_url( '/cosa-puoi-fare/fai-una-donazione/' ),
 	);
 }
@@ -78,6 +79,7 @@ function vv_customize_register( $wp_customize ) {
 		'vv_piva'           => array( 'vv_dati', 'Partita IVA', 'text' ),
 		'vv_iban'           => array( 'vv_dati', 'IBAN', 'text' ),
 		'vv_url_socio'      => array( 'vv_dati', 'Pagina "Diventa socio"', 'url' ),
+		'vv_url_corso'      => array( 'vv_dati', 'Pagina "Iscrizione ai corsi"', 'url' ),
 		'vv_url_donazione'  => array( 'vv_dati', 'Pagina "Fai una donazione"', 'url' ),
 	);
 
