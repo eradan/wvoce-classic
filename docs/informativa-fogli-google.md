@@ -1,6 +1,6 @@
 # Informativa privacy: iscrizioni nei fogli Google
 
-Due moduli del sito copiano le iscrizioni in un foglio Google (`inc/sheets.php`):
+Due moduli del sito copiano le iscrizioni in un foglio Google (plugin wvoce-iscrizioni):
 
 - dalla versione 0.7.1 le domande del modulo "Iscrizione Socio" (Forminator n. 274) nel foglio "VivaVoce / Albo Soci";
 - dalla versione 0.8.0 le iscrizioni del modulo "Iscrizione ai corsi 2026-2027" (n. 1617) nel foglio "VivaVoce / Iscrizione Corsi".

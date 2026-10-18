@@ -33,7 +33,7 @@ assets/js/vv.js           testata, switcher del tema, caroselli, menu mobile, pu
 assets/fonts/             Poppins (self-hosted, licenza OFL)
 assets/img/               livelli dell'hero, faccine e scritta del footer, mano del "torna su"
 CHANGELOG.md              note di versione
-docs/                     bozza di informativa privacy, piani di lavoro
+docs/                     bozza di informativa privacy per i fogli Google
 tests/                    test senza WordPress (run.php)
 bin/build-zip.sh          zip del tema
 ```

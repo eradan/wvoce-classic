@@ -34,4 +34,4 @@ There is no per-test filter: `tests/run.php` is a flat script of `uguale( 'nome'
 
 - Configurable values are constants or literals in the code, not `vv_*` filters: 0.9.7 removed filters that had no consumers. Don't add new extension hooks unless something uses them.
 - Releases: bump `Version:` in `style.css`, add a section at the top of `CHANGELOG.md` (Italian, user-facing, notes any manual step needed on the site), commit message `X.Y.Z: breve descrizione`.
-- `docs/` holds operator guides (e.g. course-sheet activation) and a privacy notice draft; they are excluded from the theme zip.
+- `docs/` holds the privacy notice draft for the Google Sheets transfer; it is excluded from the theme zip. Operator guides for registrations live in the plugin panel (Strumenti → Iscrizioni → Collegamenti → Guida), not here.
