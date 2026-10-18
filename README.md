@@ -10,6 +10,7 @@ functions.php             caricamento di CSS e JS, preload dei font, script del 
 inc/setup.php             filtri su Sydney, costruttore header/footer spento, traduzioni mancanti, credits del footer, Contact Form 7 dove serve
 inc/contenuti.php         correzioni dei contenuti (trattini, lettere decorative, elenchi rotti, emoji esterne, gallerie)
 inc/condivisione.php      meta description e anteprime Open Graph e Twitter
+inc/dati-strutturati.php  dati strutturati schema.org: sito e associazione in home, eventi negli articoli
 inc/sicurezza.php         nomi utente fuori da sitemap e API pubblica, XML-RPC spento
 inc/customizer.php        pannello VivaVoce (hero, dati dell'associazione)
 inc/meta.php              date e luogo degli eventi, "In evidenza", opzioni delle pagine

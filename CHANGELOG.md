@@ -2,6 +2,15 @@
 
 Storia del tema VivaVoce Classic, dalla versione più recente. La guida d'uso è nel README.
 
+## Versione 0.11.0: dati strutturati per Google
+
+- **Il sito e l'associazione descritti per i motori di ricerca** (`inc/dati-strutturati.php`, schema.org in JSON-LD). In home: il sito con il suo nome e i nomi alternativi (la ragione sociale e "wvoce"), così Google sa come chiamarlo nei risultati; l'associazione con logo, sede, telefono, email, codice fiscale, partita IVA e profili social.
+- **Gli eventi negli articoli:** ogni articolo con data e luogo si presenta a Google come evento (date, luogo, immagine, organizzatore), e può comparire nei risultati per eventi. Senza luogo l'articolo non viene segnalato come evento: per gli eventi nuovi conviene compilare sempre il campo Luogo nella forma "Nome del posto, indirizzo, città".
+- **Tutto generato dai dati del sito:** nome e motto da Impostazioni → Generali, logo da quello del sito, date e luogo dai campi dell'articolo. I dati dell'associazione sono nel Customizer → VivaVoce → Dati dell'associazione, con i nuovi campi ragione sociale, sede, telefono, email, Facebook e Instagram (già compilati con i dati attuali).
+- **Test:** 160 controlli.
+
+Da fare dopo il caricamento: controllare la home e un evento con il Test dei risultati multimediali di Google (search.google.com/test/rich-results).
+
 ## Versione 0.10.2: una sola informativa sulla privacy
 
 - **`/privacy-policy/` porta all'informativa vera** (`/informativa-sulla-privacy/`). La vecchia pagina era il modello di WordPress mai compilato, con il "Testo suggerito"; ora è in bozza e il suo indirizzo, se qualcuno lo ha salvato, reindirizza (`inc/redirects.php`).

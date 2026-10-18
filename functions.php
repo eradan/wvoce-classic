@@ -13,6 +13,7 @@ define( 'VV_URI', get_stylesheet_directory_uri() );
 require VV_DIR . '/inc/setup.php';
 require VV_DIR . '/inc/contenuti.php';
 require VV_DIR . '/inc/condivisione.php';
+require VV_DIR . '/inc/dati-strutturati.php';
 require VV_DIR . '/inc/sicurezza.php';
 require VV_DIR . '/inc/customizer.php';
 require VV_DIR . '/inc/meta.php';

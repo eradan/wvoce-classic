@@ -101,6 +101,9 @@ function home_url( $path = '' ) {
 function get_theme_mod( $name, $default = false ) {
 	return $default;
 }
+function get_bloginfo( $show ) {
+	return array( 'name' => 'VivaVoce', 'description' => 'Lettura ad alta voce, teatro e creatività a Pisa' )[ $show ] ?? '';
+}
 function sanitize_title( $title ) {
 	return trim( preg_replace( '/[^a-z0-9]+/', '-', strtolower( (string) $title ) ), '-' );
 }
@@ -149,6 +152,7 @@ require dirname( __DIR__ ) . '/inc/meta.php';
 require dirname( __DIR__ ) . '/inc/cards.php';
 require dirname( __DIR__ ) . '/inc/contenuti.php';
 require dirname( __DIR__ ) . '/inc/condivisione.php';
+require dirname( __DIR__ ) . '/inc/dati-strutturati.php';
 require dirname( __DIR__ ) . '/inc/forminator.php';
 require dirname( __DIR__ ) . '/inc/sheets.php';
 
@@ -528,6 +532,26 @@ uguale( 'Galleria senza link resta senza', 'none', vv_gallery_link_file( array( 
 // Descrizione per motori di ricerca e social
 uguale( 'Descrizione corta ripulita', 'Laboratorio di lettura & teatro.', vv_condivisione_taglia( "<p>Laboratorio  di lettura &amp; teatro.</p>\n[vv_cards]" ) );
 uguale( 'Descrizione lunga tagliata sulla parola', 'Uno due tre quattro…', vv_condivisione_taglia( 'Uno due tre quattro cinque sei', 22 ) );
+
+// Dati strutturati: sito, associazione, eventi
+$vv_sito = vv_ds_sito();
+uguale( 'Sito: nome dalle impostazioni', 'VivaVoce', $vv_sito['name'] );
+uguale( 'Sito: nomi alternativi, ragione sociale e dominio', array( 'Associazione VivaVoce APS', 'wvoce' ), $vv_sito['alternateName'] );
+$vv_ass = vv_ds_associazione();
+uguale( 'Associazione: sede completa', array( '@type' => 'PostalAddress', 'streetAddress' => 'Via G. Mazzini 112', 'postalCode' => '56125', 'addressLocality' => 'Pisa', 'addressCountry' => 'IT' ), $vv_ass['address'] );
+uguale( 'Associazione: partita IVA con il prefisso del paese', 'IT02441190507', $vv_ass['vatID'] );
+uguale( 'Associazione: profili social', 2, count( $vv_ass['sameAs'] ) );
+uguale( 'Associazione: senza logo nessun campo vuoto', false, array_key_exists( 'logo', $vv_ass ) );
+$vv_ev = array( 'titolo' => 'Peter Pan', 'url' => 'https://wvoce.it/peter-pan/', 'inizio' => '2026-10-14', 'fine' => '2026-12-16', 'luogo' => 'Spazio Mumu, via Lenin 155/b, San Giuliano Terme' );
+$vv_evento = vv_ds_evento( $vv_ev );
+uguale( 'Evento: date', array( '2026-10-14', '2026-12-16' ), array( $vv_evento['startDate'], $vv_evento['endDate'] ) );
+uguale( 'Evento: nome del luogo prima della virgola', 'Spazio Mumu', $vv_evento['location']['name'] );
+uguale( 'Evento: indirizzo del luogo intero', 'Spazio Mumu, via Lenin 155/b, San Giuliano Terme', $vv_evento['location']['address'] );
+uguale( 'Evento: senza descrizione né immagine, campi assenti', array( false, false ), array( isset( $vv_evento['description'] ), isset( $vv_evento['image'] ) ) );
+uguale( 'Evento: fine prima dell\'inizio, dura un giorno', '2026-10-14', vv_ds_evento( array( 'fine' => '2026-10-01' ) + $vv_ev )['endDate'] );
+uguale( 'Evento: senza fine, dura un giorno', '2026-10-14', vv_ds_evento( array( 'fine' => '' ) + $vv_ev )['endDate'] );
+uguale( 'Evento: senza luogo niente evento', array(), vv_ds_evento( array( 'luogo' => ' ' ) + $vv_ev ) );
+uguale( 'Evento: data non valida niente evento', array(), vv_ds_evento( array( 'inizio' => '14/10/2026' ) + $vv_ev ) );
 
 // Lettere decorative incollate dai social
 uguale( 'Lettere decorative', '<strong class="vv-plain">Voce</strong> e testo', vv_plain_letters( '𝕍𝕠𝕔𝕖 e testo' ) );
