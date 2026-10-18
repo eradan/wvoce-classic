@@ -1,4 +1,4 @@
-/* VivaVoce: testata che si stringe, switcher del tema, pulsanti "Copia" (CF, P.IVA, IBAN), caroselli, menu mobile, moduli dei soci e dei corsi (ricompilati, codice fiscale, "Riprendi i miei dati"). */
+/* VivaVoce: testata che si stringe, switcher del tema, pulsanti "Copia" (CF, P.IVA, IBAN), caroselli, menu mobile, moduli dei soci e dei corsi (ricompilati, codice fiscale, "Recupera i tuoi dati"). */
 (function () {
 	'use strict';
 
@@ -459,33 +459,41 @@
 					errore.hidden = true;
 				});
 
-				// Pulsante per riprendere i dati dell'ultima iscrizione: solo nel modulo dei soci e non
-				// quando il modulo è già stato ricompilato dal link dell'email.
+				// "Recupera i tuoi dati": un link a destra sotto il codice fiscale, solo nel modulo dei soci e
+				// non quando il modulo è già stato ricompilato dal link dell'email. L'esito va sotto la riga,
+				// a tutta larghezza, per non allungare la colonna.
 				if (id !== moduli.soci || (ricompila && ricompila.form === id)) {
 					return;
 				}
-				// Una riga a tutta larghezza sotto quella del codice fiscale, per non allungare la colonna
+				var invito = document.createElement('p');
+				invito.className = 'vv-recupera';
+				invito.innerHTML = 'Già socio? <a href="#" role="button" class="vv-recupera__link">Recupera i tuoi dati</a>';
+				campo.appendChild(invito);
 				var riga = cf.closest('.forminator-row') || campo;
-				var box = document.createElement('div');
-				box.className = 'vv-riprendi';
-				box.innerHTML = '<p class="vv-riprendi__testo">Ti sei già iscritto negli anni scorsi? ' +
-					'<button type="button" class="vv-riprendi__pulsante">Riprendi i tuoi dati</button></p>' +
-					'<p class="vv-riprendi__esito" role="status" hidden></p>';
-				riga.parentNode.insertBefore(box, riga.nextSibling);
-				var pulsante = box.querySelector('button');
-				var esito = box.querySelector('.vv-riprendi__esito');
+				var esito = document.createElement('p');
+				esito.className = 'vv-recupera__esito';
+				esito.setAttribute('role', 'status');
+				esito.hidden = true;
+				riga.parentNode.insertBefore(esito, riga.nextSibling);
+				var link = invito.querySelector('a');
+				var attesa = false;
 				var mostra = function (testo) {
 					esito.textContent = testo;
 					esito.hidden = false;
 				};
-				pulsante.addEventListener('click', function () {
+				link.addEventListener('click', function (e) {
+					e.preventDefault();
+					if (attesa) {
+						return;
+					}
 					if (!cfValido(cf.value)) {
-						mostra(msgFormato);
+						mostra('Scrivi prima il tuo codice fiscale: sono 16 lettere e numeri, come sulla tessera sanitaria.');
 						cf.focus();
 						return;
 					}
-					pulsante.disabled = true;
-					fetch(moduli.riprendi, {
+					attesa = true;
+					link.setAttribute('aria-disabled', 'true');
+					fetch(moduli.recupera, {
 						method: 'POST',
 						headers: { 'Content-Type': 'application/json' },
 						body: JSON.stringify({ cf: cf.value })
@@ -496,7 +504,8 @@
 					}).catch(function () {
 						mostra('Non è stato possibile inviare la richiesta: riprova fra poco, oppure compila il modulo per intero.');
 					}).then(function () {
-						pulsante.disabled = false;
+						attesa = false;
+						link.removeAttribute('aria-disabled');
 					});
 				});
 			});

@@ -277,37 +277,33 @@ body.vv-cookie-open {
 	font-size: var(--vv-fs-meta);
 }
 
-/* "Riprendi i tuoi dati": una riga sotto quella del codice fiscale nel modulo dei soci (vv.js) */
-.vv-riprendi {
-	margin: -6px 0 22px;
+/* "Recupera i tuoi dati": link a destra sotto il codice fiscale del modulo dei soci; l'esito sotto la
+ * riga, a tutta larghezza (vv.js) */
+.vv-recupera {
+	margin: 4px 0 0;
+	text-align: right;
 	font-size: var(--vv-fs-meta);
 	color: var(--vv-testo-2);
 }
-.vv-riprendi__testo {
-	margin: 0;
-}
-.vv-riprendi__pulsante {
-	padding: 0;
-	border: 0;
-	background: none;
+.vv-recupera__link {
 	color: var(--vv-link);
-	font: inherit;
 	font-weight: 600;
 	text-decoration: underline;
 	text-underline-offset: 3px;
-	cursor: pointer;
 }
-.vv-riprendi__pulsante:hover,
-.vv-riprendi__pulsante:focus-visible {
+.vv-recupera__link:hover,
+.vv-recupera__link:focus-visible {
 	color: var(--vv-testo);
 }
-.vv-riprendi__pulsante:disabled {
+.vv-recupera__link[aria-disabled="true"] {
 	opacity: 0.6;
 	cursor: wait;
 }
-.vv-riprendi__esito {
-	margin: 6px 0 0;
-	padding-left: 10px;
+.vv-recupera__esito {
+	margin: 0 0 22px;
+	padding: 10px 14px;
+	background-color: var(--vv-fondo-card);
 	border-left: 3px solid var(--vv-link);
+	font-size: var(--vv-fs-meta);
 	color: var(--vv-testo);
 }

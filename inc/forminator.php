@@ -277,7 +277,7 @@ function vv_ricompila( $form, $campi, $caselle, $avviso ) {
 }
 
 /*
- * Riprendi i dati dell'ultima iscrizione. Nel modulo dei soci, sotto il codice fiscale, un pulsante
+ * Recupera i dati dell'ultima iscrizione. Nel modulo dei soci, sotto il codice fiscale, un link
  * (assets/js/vv.js) chiede al sito di cercare l'ultima iscrizione con quel codice negli ultimi anni
  * sociali. A video il messaggio è sempre lo stesso, per non dire a nessuno chi è socio: la risposta
  * arriva per email all'indirizzo di quell'iscrizione. Se la persona è già iscritta quest'anno l'email
@@ -303,10 +303,10 @@ const VV_SOCIO_RICHIESTE = 5;
 const VV_SOCIO_ATTESA    = 15;
 
 /**
- * Campi ripresi: id del campo, o array( campo, parte ) per gli indirizzi. Fuori: ricevuta, caselle,
+ * Campi recuperati: id del campo, o array( campo, parte ) per gli indirizzi. Fuori: ricevuta, caselle,
  * accettazioni, autorizzazione alle comunicazioni, corso sì/no, data di compilazione.
  */
-function vv_socio_campi_ripresi() {
+function vv_socio_campi_recuperati() {
 	return array(
 		'radio-6',
 		'name-1',
@@ -333,10 +333,10 @@ function vv_socio_campi_ripresi() {
  *
  * @param object $entry Iscrizione di Forminator.
  */
-function vv_socio_dati_ripresi( $entry ) {
+function vv_socio_dati_recuperati( $entry ) {
 	$meta = is_array( $entry->meta_data ?? null ) ? $entry->meta_data : array();
 	$dati = array();
-	foreach ( vv_socio_campi_ripresi() as $campo ) {
+	foreach ( vv_socio_campi_recuperati() as $campo ) {
 		list( $field, $part ) = is_array( $campo ) ? $campo : array( $campo, '' );
 		$valore               = vv_sheets_valore( $meta[ $field ]['value'] ?? '', $field, $part );
 		if ( '' !== $valore ) {
@@ -379,7 +379,7 @@ function vv_ip_visitatore() {
 }
 
 /**
- * Richiesta di riprendere i dati: controlli, limiti, email. L'esito serve ai test e a scegliere il
+ * Richiesta di recuperare i dati: controlli, limiti, email. L'esito serve ai test e a scegliere il
  * messaggio; a video "formato" e "troppe" hanno il loro, tutti gli altri lo stesso.
  *
  * @param string $cf     Codice fiscale scritto nel modulo.
@@ -416,7 +416,7 @@ function vv_socio_richiesta( $cf, $ip, $adesso ) {
 			$email,
 			sprintf( 'VivaVoce: la tua iscrizione %d-%d è già registrata', $anno, $anno + 1 ),
 			sprintf(
-				"Ciao,\n\nqualcuno, probabilmente tu, ha chiesto di riprendere i dati della tua iscrizione a VivaVoce dal modulo sul sito.\n\nLa tua iscrizione per l'anno sociale %d-%d è già registrata: non serve compilare di nuovo il modulo. Per correggere i dati scrivi a %s.\n\nSe non sei stato tu, ignora questa email.\n\nVivaVoce",
+				"Ciao,\n\nqualcuno, probabilmente tu, ha chiesto di recuperare i dati della tua iscrizione a VivaVoce dal modulo sul sito.\n\nLa tua iscrizione per l'anno sociale %d-%d è già registrata: non serve compilare di nuovo il modulo. Per correggere i dati scrivi a %s.\n\nSe non sei stato tu, ignora questa email.\n\nVivaVoce",
 				$anno,
 				$anno + 1,
 				vv_mod( 'vv_email' )
@@ -437,9 +437,9 @@ function vv_socio_richiesta( $cf, $ip, $adesso ) {
 	);
 	wp_mail(
 		$email,
-		'VivaVoce: riprendi i dati della tua iscrizione',
+		'VivaVoce: recupera i dati della tua iscrizione',
 		sprintf(
-			"Ciao,\n\nhai chiesto di riprendere i dati della tua ultima iscrizione a VivaVoce. Apri questo link entro 24 ore: troverai il modulo di iscrizione già compilato con i dati anagrafici, di residenza e di contatto.\n\n%s\n\nControlla che i dati siano ancora giusti, carica la ricevuta del pagamento e rinnova le accettazioni.\n\nSe non sei stato tu, ignora questa email: senza il link nessuno vede i tuoi dati.\n\nVivaVoce",
+			"Ciao,\n\nhai chiesto di recuperare i dati della tua ultima iscrizione a VivaVoce. Apri questo link entro 24 ore: troverai il modulo di iscrizione già compilato con i dati anagrafici, di residenza e di contatto.\n\n%s\n\nControlla che i dati siano ancora giusti, carica la ricevuta del pagamento e rinnova le accettazioni.\n\nSe non sei stato tu, ignora questa email: senza il link nessuno vede i tuoi dati.\n\nVivaVoce",
 			add_query_arg( 'vv-socio', $codice, vv_mod( 'vv_url_socio' ) )
 		)
 	);
@@ -462,12 +462,12 @@ function vv_socio_messaggio( $esito ) {
 }
 
 /**
- * Endpoint per il pulsante: POST /wp-json/vv/v1/riprendi-socio, con "cf".
+ * Endpoint per il pulsante: POST /wp-json/vv/v1/recupera-socio, con "cf".
  */
 function vv_socio_rest() {
 	register_rest_route(
 		'vv/v1',
-		'/riprendi-socio',
+		'/recupera-socio',
 		array(
 			'methods'             => 'POST',
 			'permission_callback' => '__return_true',
@@ -505,7 +505,7 @@ function vv_socio_dati( $codice ) {
 	if ( ! is_object( $entry ) || ! empty( $entry->is_spam ) || vv_cf_normalizza( $entry->meta_data[ VV_CAMPO_CF ]['value'] ?? '' ) !== $rif['cf'] ) {
 		return null;
 	}
-	return vv_socio_dati_ripresi( $entry );
+	return vv_socio_dati_recuperati( $entry );
 }
 
 /**
@@ -515,7 +515,7 @@ function vv_socio_dati( $codice ) {
  */
 function vv_socio_pagina() {
 	$form   = (int) vv_sheets_config( 'soci' )['form'];
-	$avviso = 'Abbiamo ripreso i dati della tua ultima iscrizione: controlla che siano ancora giusti, carica la ricevuta del pagamento e rinnova le accettazioni.';
+	$avviso = 'Abbiamo recuperato i dati della tua ultima iscrizione: controlla che siano ancora giusti, carica la ricevuta del pagamento e rinnova le accettazioni.';
 	// phpcs:disable WordPress.Security.NonceVerification.Recommended -- Il codice fa da gettone; la prova è solo per gli amministratori e non cambia niente.
 	$campi = isset( $_GET['vv-socio'] ) ? vv_socio_dati( sanitize_key( wp_unslash( $_GET['vv-socio'] ) ) ) : null;
 	$prova = isset( $_GET['vv-socio-prova'] ) && current_user_can( 'manage_options' ) ? absint( $_GET['vv-socio-prova'] ) : 0;
@@ -523,7 +523,7 @@ function vv_socio_pagina() {
 	if ( ! $campi && $prova && class_exists( 'Forminator_API' ) ) {
 		$entry = Forminator_API::get_entry( $form, $prova );
 		if ( is_object( $entry ) && (int) ( $entry->form_id ?? 0 ) === $form ) {
-			$campi  = vv_socio_dati_ripresi( $entry );
+			$campi  = vv_socio_dati_recuperati( $entry );
 			$avviso = sprintf( 'Anteprima per l\'amministrazione: modulo compilato dall\'iscrizione n. %d, senza email. Non inviarlo se non serve davvero.', $prova );
 		}
 	}
@@ -546,7 +546,7 @@ function vv_moduli_script() {
 		'soci'     => (int) vv_sheets_config( 'soci' )['form'],
 		'corsi'    => (int) vv_sheets_config( 'corsi' )['form'],
 		'cf'       => VV_CAMPO_CF,
-		'riprendi' => esc_url_raw( rest_url( 'vv/v1/riprendi-socio' ) ),
+		'recupera' => esc_url_raw( rest_url( 'vv/v1/recupera-socio' ) ),
 	);
 	wp_add_inline_script( 'vv-main', 'window.vvModuli = ' . wp_json_encode( $dati ) . ';', 'before' );
 }

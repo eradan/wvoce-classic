@@ -587,7 +587,7 @@ uguale( 'Evento: senza fine, dura un giorno', '2026-10-14', vv_ds_evento( array(
 uguale( 'Evento: senza luogo niente evento', array(), vv_ds_evento( array( 'luogo' => ' ' ) + $vv_ev ) );
 uguale( 'Evento: data non valida niente evento', array(), vv_ds_evento( array( 'inizio' => '14/10/2026' ) + $vv_ev ) );
 
-// Riprendi i dati dell'ultima iscrizione: email all'indirizzo dell'ultima iscrizione, a video sempre lo stesso
+// Recupera i dati dell'ultima iscrizione: email all'indirizzo dell'ultima iscrizione, a video sempre lo stesso
 $vv_adesso    = '2026-10-07 10:00:00';
 $vv_transient = array();
 $vv_email     = array();
@@ -615,30 +615,30 @@ Forminator_API::$entries = array(
 	$vv_iscritto( 43, '2026-09-10 10:00:00', 'RSSMRA85T10A562S', 'mario@example.com' ),
 	$vv_iscritto( 44, '2022-10-01 10:00:00', 'VRDGPP80A01H501U', 'troppo@example.com' ),
 );
-uguale( 'Riprendi: l\'iscrizione più recente, non spam', 41, vv_socio_ultima_iscrizione( 'BNCLRA90A41G702N', $vv_adesso )->entry_id ?? 0 );
-uguale( 'Riprendi: oltre tre anni sociali non si cerca', null, vv_socio_ultima_iscrizione( 'VRDGPP80A01H501U', $vv_adesso ) );
-$vv_ripresi = vv_socio_dati_ripresi( Forminator_API::$entries[1] );
-uguale( 'Riprendi: anagrafica, CF maiuscolo, indirizzo per parti', array( 'radio-6' => 'individuo', 'name-1' => 'Laura', 'text-1' => 'BNCLRA90A41G702N', 'email-1' => 'laura@example.com', 'address-1-street_address' => 'Via Roma 1', 'address-1-city' => 'Pisa', 'address-1-zip' => '56125' ), $vv_ripresi );
-uguale( 'Riprendi: ricevuta, accettazioni e autorizzazioni escluse', array(), array_intersect_key( $vv_ripresi, array_flip( array( 'upload-1', 'consent-1', 'radio-4' ) ) ) );
-uguale( 'Riprendi: CF sbagliato', 'formato', vv_socio_richiesta( 'BNCLRA90A41G702X', '1.2.3.4', $vv_adesso ) );
-uguale( 'Riprendi: CF sbagliato, nessuna email', array(), $vv_email );
-uguale( 'Riprendi: CF sconosciuto, nessuna email', array( 'nessuno', array() ), array( vv_socio_richiesta( 'VRDGPP80A01H501U', '1.2.3.4', $vv_adesso ), $vv_email ) );
-uguale( 'Riprendi: socio dell\'anno scorso, email con il link', 'link', vv_socio_richiesta( 'BNCLRA90A41G702N', '1.2.3.4', $vv_adesso ) );
-uguale( 'Riprendi: all\'indirizzo dell\'ultima iscrizione', 'laura@example.com', $vv_email[0]['a'] ?? '' );
+uguale( 'Recupera: l\'iscrizione più recente, non spam', 41, vv_socio_ultima_iscrizione( 'BNCLRA90A41G702N', $vv_adesso )->entry_id ?? 0 );
+uguale( 'Recupera: oltre tre anni sociali non si cerca', null, vv_socio_ultima_iscrizione( 'VRDGPP80A01H501U', $vv_adesso ) );
+$vv_ripresi = vv_socio_dati_recuperati( Forminator_API::$entries[1] );
+uguale( 'Recupera: anagrafica, CF maiuscolo, indirizzo per parti', array( 'radio-6' => 'individuo', 'name-1' => 'Laura', 'text-1' => 'BNCLRA90A41G702N', 'email-1' => 'laura@example.com', 'address-1-street_address' => 'Via Roma 1', 'address-1-city' => 'Pisa', 'address-1-zip' => '56125' ), $vv_ripresi );
+uguale( 'Recupera: ricevuta, accettazioni e autorizzazioni escluse', array(), array_intersect_key( $vv_ripresi, array_flip( array( 'upload-1', 'consent-1', 'radio-4' ) ) ) );
+uguale( 'Recupera: CF sbagliato', 'formato', vv_socio_richiesta( 'BNCLRA90A41G702X', '1.2.3.4', $vv_adesso ) );
+uguale( 'Recupera: CF sbagliato, nessuna email', array(), $vv_email );
+uguale( 'Recupera: CF sconosciuto, nessuna email', array( 'nessuno', array() ), array( vv_socio_richiesta( 'VRDGPP80A01H501U', '1.2.3.4', $vv_adesso ), $vv_email ) );
+uguale( 'Recupera: socio dell\'anno scorso, email con il link', 'link', vv_socio_richiesta( 'BNCLRA90A41G702N', '1.2.3.4', $vv_adesso ) );
+uguale( 'Recupera: all\'indirizzo dell\'ultima iscrizione', 'laura@example.com', $vv_email[0]['a'] ?? '' );
 $vv_codice = preg_match( '/vv-socio=([0-9a-f]{32})/', $vv_email[0]['testo'] ?? '', $vv_m ) ? $vv_m[1] : '';
-uguale( 'Riprendi: nel link solo il codice', array( 32, false ), array( strlen( $vv_codice ), strpos( $vv_email[0]['testo'] ?? '', 'Via Roma' ) ) );
-uguale( 'Riprendi: il link riapre il modulo con i dati', $vv_ripresi, vv_socio_dati( $vv_codice ) );
-uguale( 'Riprendi: codice sconosciuto o malformato', array( null, null ), array( vv_socio_dati( str_repeat( 'b', 32 ) ), vv_socio_dati( '../x' ) ) );
-uguale( 'Riprendi: seconda richiesta entro 15 minuti, nessuna email', array( 'attesa', 1 ), array( vv_socio_richiesta( 'BNCLRA90A41G702N', '1.2.3.4', $vv_adesso ), count( $vv_email ) ) );
-uguale( 'Riprendi: già iscritto quest\'anno, email senza link', 'iscritto', vv_socio_richiesta( 'RSSMRA85T10A562S', '1.2.3.4', $vv_adesso ) );
-uguale( 'Riprendi: email "già registrata" senza link', array( 'mario@example.com', false ), array( $vv_email[1]['a'] ?? '', strpos( $vv_email[1]['testo'] ?? '', 'vv-socio=' ) ) );
+uguale( 'Recupera: nel link solo il codice', array( 32, false ), array( strlen( $vv_codice ), strpos( $vv_email[0]['testo'] ?? '', 'Via Roma' ) ) );
+uguale( 'Recupera: il link riapre il modulo con i dati', $vv_ripresi, vv_socio_dati( $vv_codice ) );
+uguale( 'Recupera: codice sconosciuto o malformato', array( null, null ), array( vv_socio_dati( str_repeat( 'b', 32 ) ), vv_socio_dati( '../x' ) ) );
+uguale( 'Recupera: seconda richiesta entro 15 minuti, nessuna email', array( 'attesa', 1 ), array( vv_socio_richiesta( 'BNCLRA90A41G702N', '1.2.3.4', $vv_adesso ), count( $vv_email ) ) );
+uguale( 'Recupera: già iscritto quest\'anno, email senza link', 'iscritto', vv_socio_richiesta( 'RSSMRA85T10A562S', '1.2.3.4', $vv_adesso ) );
+uguale( 'Recupera: email "già registrata" senza link', array( 'mario@example.com', false ), array( $vv_email[1]['a'] ?? '', strpos( $vv_email[1]['testo'] ?? '', 'vv-socio=' ) ) );
 Forminator_API::$entries[1]->is_spam = 1;
-uguale( 'Riprendi: iscrizione spostata nello spam, il link non vale più', null, vv_socio_dati( $vv_codice ) );
-uguale( 'Riprendi: quinta richiesta dallo stesso IP, ancora ammessa', 'nessuno', vv_socio_richiesta( 'VRDGPP80A01H501U', '1.2.3.4', $vv_adesso ) );
-uguale( 'Riprendi: sesta richiesta dallo stesso IP, troppe', 'troppe', vv_socio_richiesta( 'VRDGPP80A01H501U', '1.2.3.4', $vv_adesso ) );
-uguale( 'Riprendi: un altro IP può ancora', 'nessuno', vv_socio_richiesta( 'VRDGPP80A01H501U', '5.6.7.8', $vv_adesso ) );
-uguale( 'Riprendi: stesso messaggio a video con o senza socio', vv_socio_messaggio( 'link' ), vv_socio_messaggio( 'nessuno' ) );
-uguale( 'Riprendi: stesso messaggio anche se già iscritto o in attesa', array( vv_socio_messaggio( 'link' ), vv_socio_messaggio( 'link' ) ), array( vv_socio_messaggio( 'iscritto' ), vv_socio_messaggio( 'attesa' ) ) );
+uguale( 'Recupera: iscrizione spostata nello spam, il link non vale più', null, vv_socio_dati( $vv_codice ) );
+uguale( 'Recupera: quinta richiesta dallo stesso IP, ancora ammessa', 'nessuno', vv_socio_richiesta( 'VRDGPP80A01H501U', '1.2.3.4', $vv_adesso ) );
+uguale( 'Recupera: sesta richiesta dallo stesso IP, troppe', 'troppe', vv_socio_richiesta( 'VRDGPP80A01H501U', '1.2.3.4', $vv_adesso ) );
+uguale( 'Recupera: un altro IP può ancora', 'nessuno', vv_socio_richiesta( 'VRDGPP80A01H501U', '5.6.7.8', $vv_adesso ) );
+uguale( 'Recupera: stesso messaggio a video con o senza socio', vv_socio_messaggio( 'link' ), vv_socio_messaggio( 'nessuno' ) );
+uguale( 'Recupera: stesso messaggio anche se già iscritto o in attesa', array( vv_socio_messaggio( 'link' ), vv_socio_messaggio( 'link' ) ), array( vv_socio_messaggio( 'iscritto' ), vv_socio_messaggio( 'attesa' ) ) );
 Forminator_API::$entries = array();
 $vv_transient = array();
 

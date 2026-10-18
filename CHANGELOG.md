@@ -2,6 +2,12 @@
 
 Storia del tema VivaVoce Classic, dalla versione più recente. La guida d'uso è nel README.
 
+## Versione 0.13.2: "Recupera i tuoi dati"
+
+- **"Recupera" al posto di "riprendi"**, in italiano più corretto: link, messaggi, email ("VivaVoce: recupera i dati della tua iscrizione") e avviso sul modulo. L'indirizzo per il pulsante diventa `vv/v1/recupera-socio`.
+- **Link più discreto:** "Già socio? Recupera i tuoi dati", allineato a destra sotto il codice fiscale, in minuscolo; su telefono resta sotto il campo. L'esito della richiesta compare sotto la riga, a tutta larghezza.
+- **Informativa privacy** (pagina sul sito, aggiornata al 18/10/2026): paragrafo "Recupero dei dati dell'ultima iscrizione" e Mailjet fra i fornitori, per l'invio delle email.
+
 ## Versione 0.13.1: "Riprendi i tuoi dati" più discreto
 
 - **Una riga sola** sotto quella di nome, cognome e codice fiscale, con un link al posto del riquadro con pulsante: la colonna del codice fiscale non si allunga più. Messaggio dopo la richiesta più breve.
