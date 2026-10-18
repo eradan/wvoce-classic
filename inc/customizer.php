@@ -31,7 +31,6 @@ function vv_defaults() {
 		'vv_facebook'       => 'https://www.facebook.com/associazionevivavoce',
 		'vv_instagram'      => 'https://www.instagram.com/associazione_vivavoce/',
 		'vv_url_socio'      => home_url( '/cosa-puoi-fare/diventa-socio/' ),
-		'vv_url_corso'      => home_url( '/cosa-puoi-fare/iscrizione-corso/' ),
 		'vv_url_donazione'  => home_url( '/cosa-puoi-fare/fai-una-donazione/' ),
 	);
 }
@@ -73,8 +72,9 @@ function vv_customize_register( $wp_customize ) {
 		'description' => 'Sostituisce lo slider di Sydney nella home.',
 	) );
 	$wp_customize->add_section( 'vv_dati', array(
-		'title' => 'Dati dell\'associazione',
-		'panel' => 'vv_panel',
+		'title'       => 'Dati dell\'associazione',
+		'panel'       => 'vv_panel',
+		'description' => 'Valgono per il sito: piè di pagina e modello delle email, dati strutturati, pulsante "Diventa socio" della home. Per le iscrizioni il plugin wvoce-iscrizioni ha la sua email di contatto e le sue pagine dei moduli (Strumenti → Iscrizioni → Collegamenti): se cambiano, vanno cambiate anche lì.',
 	) );
 
 	$text_fields = array(
@@ -95,7 +95,6 @@ function vv_customize_register( $wp_customize ) {
 		'vv_facebook'       => array( 'vv_dati', 'Pagina Facebook', 'url' ),
 		'vv_instagram'      => array( 'vv_dati', 'Profilo Instagram', 'url' ),
 		'vv_url_socio'      => array( 'vv_dati', 'Pagina "Diventa socio"', 'url' ),
-		'vv_url_corso'      => array( 'vv_dati', 'Pagina "Iscrizione ai corsi"', 'url' ),
 		'vv_url_donazione'  => array( 'vv_dati', 'Pagina "Fai una donazione"', 'url' ),
 	);
 

@@ -2,6 +2,15 @@
 
 Storia del tema VivaVoce Classic, dalla versione più recente. La guida d'uso è nel README.
 
+## Versione 1.0.1: tolti i pezzi di transizione
+
+- **Tolto il passaggio una tantum al plugin** (`inc/iscrizioni.php`): sul sito ha già passato configurazione e stato delle iscrizioni al plugin wvoce-iscrizioni, e il tema non conosce più l'interno del plugin. L'opzione `vv_iscrizioni_passate` resta nel database, innocua.
+- **Tolta l'impostazione "Pagina 'Iscrizione ai corsi'"** dal Customizer: la usava solo il passaggio. La pagina dei corsi è nel plugin (Strumenti → Iscrizioni → Collegamenti).
+- **Email di contatto e pagina "Diventa socio"** restano nel Customizer per il sito (piè di pagina e modello delle email, dati strutturati, pulsante della home); il plugin ha le sue per le iscrizioni. Il Customizer lo ricorda: se cambiano, vanno cambiate in tutti e due.
+- **Test:** 51 controlli.
+
+Da fare: nessun passo manuale; aggiornare insieme il plugin alla 1.1.0.
+
 ## Versione 1.0.0: prima versione stabile, iscrizioni nel plugin wvoce-iscrizioni
 
 Il tema copre ormai tutto il sito di VivaVoce ed è in uso da settimane: da qui i numeri di versione seguono la regola consueta (1.0.x correzioni, 1.x novità compatibili, 2.0 cambiamenti che richiedono interventi sul sito).

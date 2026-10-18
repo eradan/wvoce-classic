@@ -1,7 +1,7 @@
 <?php
 /**
  * Test delle funzioni del tema che non hanno bisogno di WordPress (date e ordine degli eventi,
- * meta_query, contenuti, dati strutturati, email, passaggio delle iscrizioni al plugin wvoce-iscrizioni).
+ * meta_query, contenuti, dati strutturati, email). Le iscrizioni sono del plugin wvoce-iscrizioni.
  * Si lanciano con: php tests/run.php
  *
  * Le poche funzioni di WordPress che servono sono imitate qui sotto, nel modo più semplice.
@@ -184,7 +184,6 @@ require dirname( __DIR__ ) . '/inc/contenuti.php';
 require dirname( __DIR__ ) . '/inc/condivisione.php';
 require dirname( __DIR__ ) . '/inc/dati-strutturati.php';
 require dirname( __DIR__ ) . '/inc/email.php';
-require dirname( __DIR__ ) . '/inc/iscrizioni.php';
 
 $vv_falliti = 0;
 $vv_totale  = 0;
@@ -308,24 +307,6 @@ uguale( 'Email HTML: intestazioni tenute, un solo Content-Type', array( 'From: V
 uguale( 'Email HTML: testo ricavato con i link', "Nome: Laura\nSito (https://wvoce.it/)", strstr( vv_email_testo(), "\n\n--", true ) );
 $vv_doc = array( 'subject' => 'X', 'message' => '<html><body>già impaginata</body></html>', 'headers' => '' );
 uguale( 'Email già impaginata: invariata, senza testo alternativo', array( $vv_doc, '' ), array( vv_email_avvolgi( $vv_doc ), vv_email_testo() ) );
-
-// Passaggio delle iscrizioni al plugin: configurazione di VivaVoce e stato del tema
-$vv_opzioni = array(
-	'vv_soci_impostazioni'  => array( 'url' => 'https://script.google.com/macros/s/s/exec', 'token' => 'ts', 'form' => 274, 'dal' => '2026-09-01', 'foglio' => 'idsoci' ),
-	'vv_corsi_impostazioni' => array( 'url' => 'https://script.google.com/macros/s/c/exec', 'token' => 'tc', 'form' => 1617, 'foglio' => 'idcorsi' ),
-	'vv_soci_ultimo'        => 389,
-	'vv_corsi_ultimo'       => 1650,
-	'vv_corsi_inizio'       => 1600,
-	'vv_corsi_sospese'      => array( 1640 ),
-);
-$vv_conf    = vv_iscrizioni_configurazione();
-uguale( 'Passaggio: collegamenti con indirizzo, codice, foglio, modulo', array( 'ts', 'idsoci', 274, '2026-09-01', 'tc', 1617, '' ), array( $vv_conf['soci']['token'], $vv_conf['soci']['foglio'], $vv_conf['soci']['form'], $vv_conf['soci']['dal'], $vv_conf['corsi']['token'], $vv_conf['corsi']['form'], $vv_conf['corsi']['dal'] ) );
-uguale( 'Passaggio: stato dell\'invio, nessuna voce inventata', array( 'soci' => array( 'ultimo' => 389 ), 'corsi' => array( 'ultimo' => 1650, 'sospese' => array( 1640 ), 'inizio' => 1600 ) ), $vv_conf['stato'] );
-uguale( 'Passaggio: intestazioni del foglio dei soci di oggi', array( 21, array( 'address-2', 'state' ) ), array( count( $vv_conf['soci']['colonne'] ), $vv_conf['soci']['colonne']['ADDRESS - PROVINCIA DI NASCITA'] ) );
-uguale( 'Passaggio: tab e pagine di VivaVoce', array( 'DomandeAmmissione ', 'configurazioni', 'Da smistare', 9, 'https://wvoce.it/cosa-puoi-fare/diventa-socio/' ), array( $vv_conf['soci']['tab_prefisso'], $vv_conf['corsi']['tab_configurazioni'], $vv_conf['corsi']['tab_riserva'], $vv_conf['generali']['mese_inizio'], $vv_conf['generali']['pagina_soci'] ) );
-vv_iscrizioni_passaggio();
-uguale( 'Passaggio senza il plugin: niente da fare', false, isset( $vv_opzioni['vv_iscrizioni_passate'] ) );
-$vv_opzioni = array();
 
 // Lettere decorative incollate dai social
 uguale( 'Lettere decorative', '<strong class="vv-plain">Voce</strong> e testo', vv_plain_letters( '𝕍𝕠𝕔𝕖 e testo' ) );

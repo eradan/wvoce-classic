@@ -25,7 +25,6 @@ inc/breadcrumbs.php       percorso in alto, dati strutturati, voce di menu della
 inc/single.php            articolo con colonna laterale, navigazione, altri soci fondatori
 inc/page.php              pagine con la colonna "In questa sezione", schemi a due colonne e con blocco finale
 inc/redirects.php         301 degli indirizzi spariti
-inc/iscrizioni.php        passaggio al plugin wvoce-iscrizioni della configurazione e dello stato delle iscrizioni (una volta)
 template-parts/           card.php, home-hero.php
 page-templates/           page-hub.php, page-elenco.php
 post-templates/           post_full.php ("Page builder ready" dei soci fondatori)

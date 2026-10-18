@@ -26,7 +26,6 @@ require VV_DIR . '/inc/breadcrumbs.php';
 require VV_DIR . '/inc/single.php';
 require VV_DIR . '/inc/page.php';
 require VV_DIR . '/inc/redirects.php';
-require VV_DIR . '/inc/iscrizioni.php';
 
 /**
  * Fogli di stile e script del tema.
