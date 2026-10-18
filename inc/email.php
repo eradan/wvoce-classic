@@ -7,7 +7,8 @@
  * Contro lo spam conta soprattutto l'autenticazione del dominio (SPF, DKIM, DMARC, nel DNS e in WP Mail
  * SMTP); qui le parti che dipendono dal messaggio: due versioni, HTML e testo (multipart/alternative),
  * HTML ben formato con lingua, charset e titolo, testo vero e non solo immagini, link al sito con il
- * suo dominio, Message-ID con il dominio del sito invece del nome del container.
+ * suo dominio, Message-ID con il dominio del sito invece del nome del container. Niente testo nascosto
+ * (la riga d'anteprima invisibile): SpamAssassin lo conta come trucco da spam (FONT_INVIS_MSGID).
  *
  * Un'email che è già un documento HTML completo (con <html>) resta com'è: l'ha impaginata qualcun altro.
  *
@@ -126,11 +127,10 @@ function vv_email_piede() {
  * Tabelle e stili in linea, come vogliono i programmi di posta, che non leggono le variabili CSS:
  * i colori sono quelli del tema chiaro di assets/css/tokens.css (giallo, inchiostro, link, riquadro).
  *
- * @param string $oggetto   Oggetto, anche come <title>.
- * @param string $corpo     Corpo, frammento HTML.
- * @param string $anteprima Testo d'anteprima nascosto (la riga grigia accanto all'oggetto).
+ * @param string $oggetto Oggetto, anche come <title>.
+ * @param string $corpo   Corpo, frammento HTML.
  */
-function vv_email_documento( $oggetto, $corpo, $anteprima ) {
+function vv_email_documento( $oggetto, $corpo ) {
 	$piede = vv_email_piede();
 	$nome  = get_bloginfo( 'name' );
 	return '<!DOCTYPE html>
@@ -145,7 +145,6 @@ function vv_email_documento( $oggetto, $corpo, $anteprima ) {
 <title>' . esc_html( $oggetto ) . '</title>
 </head>
 <body style="margin:0;padding:0;background-color:#f1f5f9;">
-<div style="display:none;max-height:0;overflow:hidden;opacity:0;color:transparent;">' . esc_html( $anteprima ) . '</div>
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color:#f1f5f9;">
 <tr><td align="center" style="padding:24px 12px;">
 <table role="presentation" width="600" cellpadding="0" cellspacing="0" border="0" style="width:100%;max-width:600px;background-color:#ffffff;border-collapse:collapse;">
@@ -184,14 +183,19 @@ function vv_email_avvolgi( $atts ) {
 	} else {
 		$testo = trim( $messaggio );
 		$corpo = make_clickable( wpautop( esc_html( $testo ) ) );
-		$corpo = preg_replace( '#<a #', '<a style="color:#007a87;" ', $corpo );
+		$corpo = preg_replace( '#<a href=#', '<a style="color:#007a87;" href=', $corpo );
+		// Un paragrafo che è solo un indirizzo diventa un pulsante: più chiaro da toccare, e il testo del
+		// link non è un indirizzo diverso da quello vero se il servizio d'invio riscrive i link per
+		// contare i clic (SpamAssassin: HTTPS_HTTP_MISMATCH). Nella versione in solo testo resta l'indirizzo.
+		$corpo = preg_replace(
+			'#<p>\s*<a [^>]*href="([^"]+)"[^>]*>[^<]+</a>\s*</p>#',
+			'<p style="margin:22px 0;"><a href="$1" style="display:inline-block;padding:12px 22px;background-color:#ffd923;color:#00102e;font-weight:bold;text-decoration:none;border-radius:2px;">Apri il link</a></p>',
+			$corpo
+		);
 	}
 	$corpo = str_replace( '<p>', '<p style="margin:0 0 14px;">', $corpo );
 
-	$anteprima = mb_substr( (string) preg_replace( '/\s+/u', ' ', $testo ), 0, 110, 'UTF-8' );
-	$oggetto   = (string) ( $atts['subject'] ?? '' );
-
-	$atts['message'] = vv_email_documento( $oggetto, $corpo, $anteprima );
+	$atts['message'] = vv_email_documento( (string) ( $atts['subject'] ?? '' ), $corpo );
 	$atts['headers'] = vv_email_intestazioni( $headers );
 	vv_email_testo( $testo . "\n\n" . vv_email_piede()['testo'] );
 	return $atts;

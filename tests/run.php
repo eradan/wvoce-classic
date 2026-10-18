@@ -115,6 +115,11 @@ function make_clickable( $text ) {
 function get_privacy_policy_url() {
 	return 'https://wvoce.it/informativa-sulla-privacy/';
 }
+$vv_admin = false;
+function current_user_can( $cap ) {
+	global $vv_admin;
+	return $vv_admin;
+}
 function get_bloginfo( $show ) {
 	return array( 'name' => 'VivaVoce', 'description' => 'Lettura ad alta voce, teatro e creatività a Pisa' )[ $show ] ?? '';
 }
@@ -629,7 +634,7 @@ $vv_codice = preg_match( '/vv-socio=([0-9a-f]{32})/', $vv_email[0]['testo'] ?? '
 uguale( 'Recupera: nel link solo il codice', array( 32, false ), array( strlen( $vv_codice ), strpos( $vv_email[0]['testo'] ?? '', 'Via Roma' ) ) );
 uguale( 'Recupera: il link riapre il modulo con i dati', $vv_ripresi, vv_socio_dati( $vv_codice ) );
 uguale( 'Recupera: codice sconosciuto o malformato', array( null, null ), array( vv_socio_dati( str_repeat( 'b', 32 ) ), vv_socio_dati( '../x' ) ) );
-uguale( 'Recupera: seconda richiesta entro 15 minuti, nessuna email', array( 'attesa', 1 ), array( vv_socio_richiesta( 'BNCLRA90A41G702N', '1.2.3.4', $vv_adesso ), count( $vv_email ) ) );
+uguale( 'Recupera: seconda richiesta entro 5 minuti, nessuna email', array( 'attesa', 1 ), array( vv_socio_richiesta( 'BNCLRA90A41G702N', '1.2.3.4', $vv_adesso ), count( $vv_email ) ) );
 uguale( 'Recupera: già iscritto quest\'anno, email senza link', 'iscritto', vv_socio_richiesta( 'RSSMRA85T10A562S', '1.2.3.4', $vv_adesso ) );
 uguale( 'Recupera: email "già registrata" senza link', array( 'mario@example.com', false ), array( $vv_email[1]['a'] ?? '', strpos( $vv_email[1]['testo'] ?? '', 'vv-socio=' ) ) );
 Forminator_API::$entries[1]->is_spam = 1;
@@ -639,6 +644,9 @@ uguale( 'Recupera: sesta richiesta dallo stesso IP, troppe', 'troppe', vv_socio_
 uguale( 'Recupera: un altro IP può ancora', 'nessuno', vv_socio_richiesta( 'VRDGPP80A01H501U', '5.6.7.8', $vv_adesso ) );
 uguale( 'Recupera: stesso messaggio a video con o senza socio', vv_socio_messaggio( 'link' ), vv_socio_messaggio( 'nessuno' ) );
 uguale( 'Recupera: stesso messaggio anche se già iscritto o in attesa', array( vv_socio_messaggio( 'link' ), vv_socio_messaggio( 'link' ) ), array( vv_socio_messaggio( 'iscritto' ), vv_socio_messaggio( 'attesa' ) ) );
+$vv_admin = true;
+uguale( 'Recupera: agli amministratori l\'esito vero', array( true, true ), array( false !== strpos( vv_socio_messaggio( 'attesa' ), '5 minuti' ), vv_socio_messaggio( 'link' ) !== vv_socio_messaggio( 'nessuno' ) ) );
+$vv_admin = false;
 Forminator_API::$entries = array();
 $vv_transient = array();
 
@@ -646,6 +654,7 @@ $vv_transient = array();
 $vv_mail = vv_email_avvolgi( array( 'to' => 'a@example.com', 'subject' => 'Prova', 'message' => "Ciao <Laura>,\n\napri https://wvoce.it/x/?a=1\n\nVivaVoce", 'headers' => '' ) );
 uguale( 'Email di testo: documento HTML con lingua e titolo', array( true, true ), array( false !== strpos( $vv_mail['message'], '<html lang="it"' ), false !== strpos( $vv_mail['message'], '<title>Prova</title>' ) ) );
 uguale( 'Email di testo: testo protetto, link cliccabile', array( true, true ), array( false !== strpos( $vv_mail['message'], 'Ciao &lt;Laura&gt;' ), false !== strpos( $vv_mail['message'], 'href="https://wvoce.it/x/?a=1' ) ) );
+uguale( 'Email di testo: niente testo nascosto', false, strpos( $vv_mail['message'], 'display:none' ) );
 uguale( 'Email di testo: intestazione HTML in UTF-8', array( 'Content-Type: text/html; charset=UTF-8' ), $vv_mail['headers'] );
 uguale( 'Email di testo: versione in solo testo con il piè di pagina', true, 0 === strpos( vv_email_testo(), "Ciao <Laura>,\n\napri https://wvoce.it/x/?a=1" ) && false !== strpos( vv_email_testo(), 'Via G. Mazzini 112' ) );
 $vv_pm = new stdClass();
@@ -653,6 +662,9 @@ vv_email_phpmailer( $vv_pm );
 uguale( 'PHPMailer: testo alternativo e dominio del sito nel Message-ID', array( true, 'wvoce.it' ), array( false !== strpos( $vv_pm->AltBody, 'Ciao <Laura>' ), $vv_pm->Hostname ) );
 vv_email_phpmailer( $vv_pm );
 uguale( 'PHPMailer: il testo non passa all\'email seguente', '', $vv_pm->AltBody );
+$vv_mail2 = vv_email_avvolgi( array( 'subject' => 'Link', 'message' => "Apri questo link:\n\nhttps://wvoce.it/y/\n\nVivaVoce", 'headers' => '' ) );
+uguale( 'Email di testo: indirizzo da solo diventa il pulsante "Apri il link"', array( true, false ), array( false !== strpos( $vv_mail2['message'], '>Apri il link</a>' ), strpos( $vv_mail2['message'], '>https://wvoce.it/y/</a>' ) ) );
+uguale( 'Email di testo: nella versione in solo testo l\'indirizzo resta', true, false !== strpos( vv_email_testo(), 'https://wvoce.it/y/' ) );
 $vv_mail = vv_email_avvolgi( array( 'subject' => 'Nuova iscrizione', 'message' => '<p>Nome: <strong>Laura</strong></p><p><a href="https://wvoce.it/">Sito</a></p>', 'headers' => array( 'From: VivaVoce <info@wvoce.it>', 'Content-Type: text/html; charset=UTF-8' ) ) );
 uguale( 'Email HTML (Forminator): frammento dentro il modello', true, false !== strpos( $vv_mail['message'], '<strong>Laura</strong>' ) && false !== strpos( $vv_mail['message'], 'logo-email.png' ) );
 uguale( 'Email HTML: intestazioni tenute, un solo Content-Type', array( 'From: VivaVoce <info@wvoce.it>', 'Content-Type: text/html; charset=UTF-8' ), $vv_mail['headers'] );

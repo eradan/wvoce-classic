@@ -2,6 +2,22 @@
 
 Storia del tema VivaVoce Classic, dalla versione più recente. La guida d'uso è nel README.
 
+## Versione 1.0.0: prima versione stabile
+
+Il tema copre ormai tutto il sito di VivaVoce ed è in uso da settimane: da qui i numeri di versione seguono la regola consueta (1.0.x correzioni, 1.x novità compatibili, 2.0 cambiamenti che richiedono interventi sul sito).
+
+Novità di questa versione:
+- **"Recupera i tuoi dati": attesa fra due email allo stesso codice fiscale ridotta da 15 a 5 minuti**, per chi riprova subito pensando che qualcosa non abbia funzionato.
+- **Email più pulite per i filtri antispam:** tolto il testo d'anteprima nascosto, che SpamAssassin conta come trucco da spam (FONT_INVIS_MSGID, la penalità più pesante nella prova con mail-tester.com); un paragrafo che contiene solo un indirizzo diventa un pulsante giallo "Apri il link" (nella versione in solo testo resta l'indirizzo), così il testo del link non contrasta con l'indirizzo riscritto da un servizio che conta i clic. Da fare in Mailjet: disattivare il tracciamento di clic e aperture (Impostazioni account → Tracciamento).
+- **Esito vero per gli amministratori:** da loggati, dopo "Recupera i tuoi dati" il messaggio dice cosa è successo (link mandato, già iscritto quest'anno, email già mandata da pochi minuti, nessuna iscrizione trovata). I visitatori vedono sempre il messaggio neutro. Serve per le prove e per aiutare un socio che non riceve l'email.
+
+In sintesi, cosa fa il tema alla versione 1.0.0:
+- aspetto VivaVoce su Sydney, con tema chiaro e scuro, home con l'illustrazione animata, card, caroselli e archivi degli eventi;
+- moduli Forminator per soci e corsi: codice fiscale controllato, iscrizione a socio richiesta per i corsi e unica per anno sociale, passaggio dal modulo dei soci a quello dei corsi, "Recupera i tuoi dati" con conferma via email;
+- copia automatica delle iscrizioni nei fogli Google dei soci e dei corsi;
+- sito leggero (icone e immagini ottimizzate, miniature WebP) e descritto ai motori di ricerca (meta description, anteprime social, breadcrumb, dati strutturati di sito, associazione ed eventi);
+- email con il marchio VivaVoce e la versione in solo testo.
+
 ## Versione 0.13.2: "Recupera i tuoi dati"
 
 - **"Recupera" al posto di "riprendi"**, in italiano più corretto: link, messaggi, email ("VivaVoce: recupera i dati della tua iscrizione") e avviso sul modulo. L'indirizzo per il pulsante diventa `vv/v1/recupera-socio`.

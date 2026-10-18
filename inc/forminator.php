@@ -300,7 +300,7 @@ const VV_SOCIO_DURATA = 86400;
  * Limiti: richieste per IP in un'ora, minuti fra due email allo stesso codice fiscale.
  */
 const VV_SOCIO_RICHIESTE = 5;
-const VV_SOCIO_ATTESA    = 15;
+const VV_SOCIO_ATTESA    = 5;
 
 /**
  * Campi recuperati: id del campo, o array( campo, parte ) per gli indirizzi. Fuori: ricevuta, caselle,
@@ -439,7 +439,7 @@ function vv_socio_richiesta( $cf, $ip, $adesso ) {
 		$email,
 		'VivaVoce: recupera i dati della tua iscrizione',
 		sprintf(
-			"Ciao,\n\nhai chiesto di recuperare i dati della tua ultima iscrizione a VivaVoce. Apri questo link entro 24 ore: troverai il modulo di iscrizione già compilato con i dati anagrafici, di residenza e di contatto.\n\n%s\n\nControlla che i dati siano ancora giusti, carica la ricevuta del pagamento e rinnova le accettazioni.\n\nSe non sei stato tu, ignora questa email: senza il link nessuno vede i tuoi dati.\n\nVivaVoce",
+			"Ciao,\n\nhai chiesto di recuperare i dati della tua ultima iscrizione a VivaVoce. Apri il link qui sotto entro 24 ore: troverai il modulo di iscrizione già compilato con i dati anagrafici, di residenza e di contatto.\n\n%s\n\nControlla che i dati siano ancora giusti, carica la ricevuta del pagamento e rinnova le accettazioni.\n\nSe non sei stato tu, ignora questa email: senza il link nessuno vede i tuoi dati.\n\nVivaVoce",
 			add_query_arg( 'vv-socio', $codice, vv_mod( 'vv_url_socio' ) )
 		)
 	);
@@ -447,11 +447,27 @@ function vv_socio_richiesta( $cf, $ip, $adesso ) {
 }
 
 /**
- * Messaggio a video per un esito.
+ * Esiti spiegati, per gli amministratori: i visitatori vedono sempre il messaggio neutro.
+ */
+function vv_socio_esiti() {
+	return array(
+		'nessuno'  => sprintf( 'nessuna iscrizione valida con questo codice fiscale negli ultimi %d anni sociali, o email non valida: nessun invio.', VV_SOCIO_ANNI ),
+		'attesa'   => sprintf( 'a questo codice fiscale è già stata mandata un\'email negli ultimi %d minuti: nessun nuovo invio.', VV_SOCIO_ATTESA ),
+		'iscritto' => 'già iscritto quest\'anno: mandata l\'email "iscrizione già registrata", senza link.',
+		'link'     => 'mandata l\'email con il link per recuperare i dati dell\'ultima iscrizione.',
+	);
+}
+
+/**
+ * Messaggio a video per un esito. Agli amministratori loggati (pagina con il nonce di vv_moduli_script())
+ * l'esito vero, per le prove e per aiutare i soci.
  *
  * @param string $esito Esito di vv_socio_richiesta().
  */
 function vv_socio_messaggio( $esito ) {
+	if ( current_user_can( 'manage_options' ) && isset( vv_socio_esiti()[ $esito ] ) ) {
+		return 'Solo per gli amministratori: ' . vv_socio_esiti()[ $esito ];
+	}
 	if ( 'formato' === $esito ) {
 		return 'Controlla il codice fiscale: sono 16 lettere e numeri, come sulla tessera sanitaria.';
 	}
@@ -548,6 +564,10 @@ function vv_moduli_script() {
 		'cf'       => VV_CAMPO_CF,
 		'recupera' => esc_url_raw( rest_url( 'vv/v1/recupera-socio' ) ),
 	);
+	// Solo da loggati: con il nonce la richiesta riconosce l'utente e agli amministratori mostra l'esito vero
+	if ( is_user_logged_in() ) {
+		$dati['nonce'] = wp_create_nonce( 'wp_rest' );
+	}
 	wp_add_inline_script( 'vv-main', 'window.vvModuli = ' . wp_json_encode( $dati ) . ';', 'before' );
 }
 add_action( 'wp_enqueue_scripts', 'vv_moduli_script', 21 );
