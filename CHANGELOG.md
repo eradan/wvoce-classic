@@ -2,6 +2,10 @@
 
 Storia del tema VivaVoce Classic, dalla versione più recente. La guida d'uso è nel README.
 
+## Versione 0.11.1: immagine dell'associazione
+
+- **Dati strutturati:** l'associazione ha anche un'immagine, la stessa dell'anteprima della home sui social. Il Test dei risultati multimediali di Google la segnalava come campo facoltativo mancante.
+
 ## Versione 0.11.0: dati strutturati per Google
 
 - **Il sito e l'associazione descritti per i motori di ricerca** (`inc/dati-strutturati.php`, schema.org in JSON-LD). In home: il sito con il suo nome e i nomi alternativi (la ragione sociale e "wvoce"), così Google sa come chiamarlo nei risultati; l'associazione con logo, sede, telefono, email, codice fiscale, partita IVA e profili social.

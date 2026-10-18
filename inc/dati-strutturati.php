@@ -37,8 +37,10 @@ function vv_ds_sito() {
 
 /**
  * L'associazione: recapiti, sede, codici fiscali, profili social.
+ *
+ * @param string $immagine Immagine dell'anteprima della home (og:image).
  */
-function vv_ds_associazione() {
+function vv_ds_associazione( $immagine = '' ) {
 	$sede = array_filter( array(
 		'@type'           => 'PostalAddress',
 		'streetAddress'   => vv_mod( 'vv_indirizzo' ),
@@ -54,6 +56,7 @@ function vv_ds_associazione() {
 		'legalName'   => vv_mod( 'vv_nome_legale' ),
 		'url'         => home_url( '/' ),
 		'logo'        => get_theme_mod( 'site_logo', '' ),
+		'image'       => $immagine,
 		'description' => get_bloginfo( 'description' ),
 		'email'       => vv_mod( 'vv_email' ),
 		'telephone'   => vv_mod( 'vv_telefono' ),
@@ -106,14 +109,14 @@ function vv_ds_evento( $e ) {
  * Dati strutturati della pagina corrente.
  */
 function vv_dati_strutturati() {
-	if ( is_front_page() ) {
-		return array( vv_ds_sito(), vv_ds_associazione() );
-	}
-	if ( ! is_singular( 'post' ) ) {
+	if ( ! is_front_page() && ! is_singular( 'post' ) ) {
 		return array();
 	}
+	$d = vv_condivisione_dati();
+	if ( is_front_page() ) {
+		return array( vv_ds_sito(), vv_ds_associazione( $d['immagine']['url'] ?? '' ) );
+	}
 	$id     = get_queried_object_id();
-	$d      = vv_condivisione_dati();
 	$evento = vv_ds_evento( array(
 		'titolo'      => html_entity_decode( wp_strip_all_tags( $d['titolo'] ), ENT_QUOTES, 'UTF-8' ),
 		'descrizione' => $d['descrizione'],
