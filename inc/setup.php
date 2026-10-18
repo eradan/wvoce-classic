@@ -17,6 +17,19 @@ function vv_setup() {
 }
 add_action( 'after_setup_theme', 'vv_setup', 20 );
 
+/**
+ * Miniature in WebP: più leggere a parità di qualità. L'originale caricato resta JPEG o PNG, scaricabile
+ * così com'è dalla libreria dei media. Vale per le immagini nuove e per quelle rigenerate.
+ *
+ * @param array $formati Formato di uscita per tipo MIME.
+ */
+function vv_miniature_webp( $formati ) {
+	$formati['image/jpeg'] = 'image/webp';
+	$formati['image/png']  = 'image/webp';
+	return $formati;
+}
+add_filter( 'image_editor_output_format', 'vv_miniature_webp' );
+
 /*
  * Header e footer "classici" di Sydney. Passando da un tema che non ha "sydney" nel nome Sydney accende
  * da solo il costruttore header/footer, con un markup che il CSS del child non conosce e un footer senza

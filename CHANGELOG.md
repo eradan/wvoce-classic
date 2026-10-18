@@ -2,6 +2,20 @@
 
 Storia del tema VivaVoce Classic, dalla versione più recente. La guida d'uso è nel README.
 
+## Versione 0.10.1: sito più leggero
+
+- **Icone senza Font Awesome.** Le icone dei widget del footer e quella del PDF negli articoli sono disegnate dal tema (`assets/css/components.css`): niente più 280 KB di file da use.fontawesome.com a ogni pagina. Il markup resta lo stesso (`<i class="fas fa-phone">`); per un'icona nuova va aggiunta una riga in quel file.
+- **Miniature in WebP.** Le dimensioni generate da WordPress per le immagini caricate escono in WebP, più leggere; l'originale resta JPEG o PNG nella libreria dei media.
+- **Card:** il browser sceglie la miniatura in base alla larghezza reale della card, non a quella della pagina.
+- **Un solo h1 in home:** il titolo della pagina home ("Benvenuto") non si stampa più, l'h1 è quello dell'hero.
+- **Widget del footer:** lo stile vale per la classe `side-contacts` e non più per l'id, ripetuto in tre widget.
+
+Da fare sul sito, nell'ordine:
+1. Caricare il tema.
+2. Nei widget del footer, `id="side-contacts"` diventa `class="side-contacts"`.
+3. Disattivare i plugin Font Awesome e Smush (il lazy load lo fa già WordPress).
+4. Strumenti → Rigenera miniature, **senza** eliminare le miniature delle dimensioni non più usate: gli articoli puntano ancora a quei file.
+
 ## Versione 0.10.0: dal modulo dei soci al corso, senza ricompilare
 
 - **Iscrizione al corso subito dopo quella a socio.** Chi nel modulo dei soci risponde di voler frequentare anche un corso arriva, dopo l'invio, alla pagina dei corsi con il modulo già compilato: nome, cognome, codice fiscale, email, cellulare e le caselle Regolamento, Socio e Privacy, già accettate con l'iscrizione a socio. Restano da scegliere i corsi e da caricare la ricevuta. I due moduli restano distinti: la pagina dei corsi continua a servire a chi è già socio.

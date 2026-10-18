@@ -48,30 +48,29 @@
 #sidebar-footer .widget a:hover {
 	color: var(--vv-testo) !important;
 }
-/* Widget del footer scritti a mano (blocco "side-contacts", con le icone di Font Awesome): icona
+/* Widget del footer scritti a mano (blocco "side-contacts", con le icone di components.css): icona
  * accanto al testo invece che sopra. Niente gap: nei widget c'è un "&nbsp;" prima del testo, che
  * davanti a un link diventerebbe un elemento a sé e sposterebbe il link di qualche pixel rispetto al
  * testo semplice */
-#side-contacts p {
+.side-contacts p {
 	display: flex;
 	align-items: center;
 	margin: 0 0 12px;
 }
-#side-contacts p br {
+.side-contacts p br {
 	display: none;
 }
-#side-contacts i {
+.side-contacts i {
 	flex: none;
 	width: 22px;
+	height: 18px;
 	margin-right: 6px;
-	font-size: 18px;
-	text-align: center;
 	color: var(--vv-testo);
 }
 /* Loghi di Facebook e Instagram un po' più grandi */
-#side-contacts i:is(.fa-facebook, .fa-facebook-f, .fa-facebook-square, .fa-instagram) {
+.side-contacts i:is(.fa-facebook, .fa-facebook-f, .fa-facebook-square, .fa-instagram) {
 	width: 26px;
-	font-size: 24px;
+	height: 24px;
 }
 
 /* [vv_dati_fiscali]: etichetta sopra, poi valore e "Copia". I valori sono larghi quanto il più lungo

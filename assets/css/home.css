@@ -156,7 +156,7 @@
 	}
 }
 
-/* L'h1 della pagina home è nascosto come nell'originale */
+/* Testata della pagina home, rimasta vuota: il titolo lo toglie inc/home.php, l'h1 è quello dell'hero */
 .vv-has-hero .page-wrap .entry-header {
 	display: none;
 }

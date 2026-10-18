@@ -27,6 +27,8 @@ $vv_img     = get_the_post_thumbnail( $vv_post, $vv_size, array(
 	'class'   => 'vv-card__img',
 	'loading' => 'lazy',
 	'alt'     => '',
+	// Larghezza della card nelle griglie e nei caroselli (components.css): così il browser sceglie la miniatura giusta
+	'sizes'   => '(max-width: 599px) 85vw, (max-width: 991px) 50vw, 380px',
 ) );
 
 $vv_meta = array();

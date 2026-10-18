@@ -52,3 +52,18 @@ function vv_render_hero() {
 	}
 }
 add_action( 'sydney_after_hero', 'vv_render_hero' );
+
+/**
+ * Con l'hero il titolo della pagina home ("Benvenuto") non si stampa: l'h1 è quello dell'hero, e una
+ * pagina deve averne uno solo. the_title() con un titolo vuoto non stampa neanche i tag.
+ *
+ * @param string $title Titolo.
+ * @param int    $id    ID del contenuto.
+ */
+function vv_home_senza_titolo( $title, $id = 0 ) {
+	if ( in_the_loop() && is_main_query() && (int) get_option( 'page_on_front' ) === (int) $id && vv_hero_active() ) {
+		return '';
+	}
+	return $title;
+}
+add_filter( 'the_title', 'vv_home_senza_titolo', 10, 2 );
