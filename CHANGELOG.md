@@ -2,6 +2,11 @@
 
 Storia del tema VivaVoce Classic, dalla versione più recente. La guida d'uso è nel README.
 
+## Versione 0.13.1: "Riprendi i tuoi dati" più discreto
+
+- **Una riga sola** sotto quella di nome, cognome e codice fiscale, con un link al posto del riquadro con pulsante: la colonna del codice fiscale non si allunga più. Messaggio dopo la richiesta più breve.
+- **Anteprima per gli amministratori:** da loggati, `…/diventa-socio/?vv-socio-prova=123` apre il modulo compilato con i dati dell'iscrizione 123 (il numero dopo il trattino nella colonna "Rif." del foglio, F274-123), senza mandare email. Serve a provare la ricompilazione e ad aiutare un socio che non riceve l'email.
+
 ## Versione 0.13.0: email con il marchio VivaVoce
 
 - **Tutte le email del sito con lo stesso aspetto** (`inc/email.php`): quelle del tema ("Riprendi i miei dati"), le notifiche di Forminator a chi si iscrive e alla segreteria, Contact Form 7 e le email di WordPress. Header giallo con il logo (`assets/img/logo-email.png`, PNG perché Outlook non mostra il WebP), corpo bianco, piè di pagina con ragione sociale, sede, email, sito, social e informativa privacy, presi dal Customizer. Le email scritte come testo semplice diventano paragrafi con i link cliccabili; quelle già in HTML (Forminator) entrano nel modello così come sono; un'email che è già un documento HTML completo resta com'è.

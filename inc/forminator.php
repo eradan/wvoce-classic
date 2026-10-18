@@ -458,7 +458,7 @@ function vv_socio_messaggio( $esito ) {
 	if ( 'troppe' === $esito ) {
 		return 'Troppe richieste da questa connessione: riprova fra un\'ora, oppure compila il modulo per intero.';
 	}
-	return sprintf( 'Se questo codice fiscale è nel nostro archivio soci, abbiamo mandato un\'email all\'indirizzo usato l\'ultima volta, con un link per riprendere i dati (vale 24 ore). Controlla la posta, anche nello spam. Se non arriva nulla, compila il modulo per intero o scrivi a %s.', vv_mod( 'vv_email' ) );
+	return 'Se il codice fiscale è nel nostro archivio, ti abbiamo scritto all\'indirizzo email dell\'ultima iscrizione (guarda anche nello spam). Il link vale 24 ore.';
 }
 
 /**
@@ -509,13 +509,26 @@ function vv_socio_dati( $codice ) {
 }
 
 /**
- * Pagina dei soci aperta dal link dell'email: modulo ricompilato.
+ * Pagina dei soci aperta dal link dell'email: modulo ricompilato. Per gli amministratori, anche con
+ * ?vv-socio-prova=<id dell'iscrizione> (il numero dopo il trattino nella colonna "Rif." del foglio): stessa
+ * ricompilazione senza email, per provarla o per aiutare un socio.
  */
 function vv_socio_pagina() {
-	// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Il codice stesso fa da gettone.
+	$form   = (int) vv_sheets_config( 'soci' )['form'];
+	$avviso = 'Abbiamo ripreso i dati della tua ultima iscrizione: controlla che siano ancora giusti, carica la ricevuta del pagamento e rinnova le accettazioni.';
+	// phpcs:disable WordPress.Security.NonceVerification.Recommended -- Il codice fa da gettone; la prova è solo per gli amministratori e non cambia niente.
 	$campi = isset( $_GET['vv-socio'] ) ? vv_socio_dati( sanitize_key( wp_unslash( $_GET['vv-socio'] ) ) ) : null;
+	$prova = isset( $_GET['vv-socio-prova'] ) && current_user_can( 'manage_options' ) ? absint( $_GET['vv-socio-prova'] ) : 0;
+	// phpcs:enable
+	if ( ! $campi && $prova && class_exists( 'Forminator_API' ) ) {
+		$entry = Forminator_API::get_entry( $form, $prova );
+		if ( is_object( $entry ) && (int) ( $entry->form_id ?? 0 ) === $form ) {
+			$campi  = vv_socio_dati_ripresi( $entry );
+			$avviso = sprintf( 'Anteprima per l\'amministrazione: modulo compilato dall\'iscrizione n. %d, senza email. Non inviarlo se non serve davvero.', $prova );
+		}
+	}
 	if ( $campi ) {
-		vv_ricompila( (int) vv_sheets_config( 'soci' )['form'], $campi, array(), 'Abbiamo ripreso i dati della tua ultima iscrizione: controlla che siano ancora giusti, carica la ricevuta del pagamento e rinnova le accettazioni.' );
+		vv_ricompila( $form, $campi, array(), $avviso );
 	}
 }
 add_action( 'template_redirect', 'vv_socio_pagina' );

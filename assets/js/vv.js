@@ -464,12 +464,14 @@
 				if (id !== moduli.soci || (ricompila && ricompila.form === id)) {
 					return;
 				}
+				// Una riga a tutta larghezza sotto quella del codice fiscale, per non allungare la colonna
+				var riga = cf.closest('.forminator-row') || campo;
 				var box = document.createElement('div');
 				box.className = 'vv-riprendi';
-				box.innerHTML = '<p class="vv-riprendi__testo">Ti sei già iscritto in passato? Scrivi il codice fiscale e riprendi i dati dell\'ultima iscrizione: ti mandiamo un link per email.</p>' +
-					'<button type="button" class="vv-riprendi__pulsante">Riprendi i miei dati</button>' +
+				box.innerHTML = '<p class="vv-riprendi__testo">Ti sei già iscritto negli anni scorsi? ' +
+					'<button type="button" class="vv-riprendi__pulsante">Riprendi i tuoi dati</button></p>' +
 					'<p class="vv-riprendi__esito" role="status" hidden></p>';
-				campo.parentNode.insertBefore(box, campo.nextSibling);
+				riga.parentNode.insertBefore(box, riga.nextSibling);
 				var pulsante = box.querySelector('button');
 				var esito = box.querySelector('.vv-riprendi__esito');
 				var mostra = function (testo) {

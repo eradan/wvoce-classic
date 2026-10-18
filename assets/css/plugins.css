@@ -277,38 +277,37 @@ body.vv-cookie-open {
 	font-size: var(--vv-fs-meta);
 }
 
-/* "Riprendi i miei dati" sotto il codice fiscale del modulo dei soci (vv.js) */
+/* "Riprendi i tuoi dati": una riga sotto quella del codice fiscale nel modulo dei soci (vv.js) */
 .vv-riprendi {
-	margin: 0 0 24px;
-	padding: 14px 18px;
-	background-color: var(--vv-fondo-card);
-	border-left: 4px solid var(--vv-link);
-	font-size: var(--vv-fs-piccolo);
+	margin: -6px 0 22px;
+	font-size: var(--vv-fs-meta);
+	color: var(--vv-testo-2);
 }
 .vv-riprendi__testo {
-	margin: 0 0 10px;
-	color: var(--vv-testo);
+	margin: 0;
 }
 .vv-riprendi__pulsante {
-	padding: 8px 16px;
+	padding: 0;
 	border: 0;
-	border-radius: 2px;
-	background-color: var(--vv-pulsante);
-	color: var(--vv-testo-pulsante);
+	background: none;
+	color: var(--vv-link);
 	font: inherit;
 	font-weight: 600;
+	text-decoration: underline;
+	text-underline-offset: 3px;
 	cursor: pointer;
 }
 .vv-riprendi__pulsante:hover,
 .vv-riprendi__pulsante:focus-visible {
-	background-color: var(--vv-fondo-attivo);
-	color: var(--vv-testo-attivo);
+	color: var(--vv-testo);
 }
 .vv-riprendi__pulsante:disabled {
 	opacity: 0.6;
 	cursor: wait;
 }
 .vv-riprendi__esito {
-	margin: 10px 0 0;
+	margin: 6px 0 0;
+	padding-left: 10px;
+	border-left: 3px solid var(--vv-link);
 	color: var(--vv-testo);
 }
