@@ -39,6 +39,8 @@ function vv_redirects() {
 		// Articoli uniti a un altro
 		'/vivavoce-a-if-2021/'                          => '/vivavoce-a-internet-festival/',
 		'/alice_pop/'                                   => '/cartoline-dal-paese-delle-meraviglie/',
+		// Modello di privacy policy di WordPress, mai compilato: ora in bozza
+		'/privacy-policy/'                              => '/informativa-sulla-privacy/',
 	);
 }
 

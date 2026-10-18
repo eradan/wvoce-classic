@@ -2,6 +2,12 @@
 
 Storia del tema VivaVoce Classic, dalla versione più recente. La guida d'uso è nel README.
 
+## Versione 0.10.2: una sola informativa sulla privacy
+
+- **`/privacy-policy/` porta all'informativa vera** (`/informativa-sulla-privacy/`). La vecchia pagina era il modello di WordPress mai compilato, con il "Testo suggerito"; ora è in bozza e il suo indirizzo, se qualcuno lo ha salvato, reindirizza (`inc/redirects.php`).
+
+Da fare sul sito: Impostazioni → Privacy → scegliere "Informativa sulla Privacy" come pagina della privacy policy.
+
 ## Versione 0.10.1: sito più leggero
 
 - **Icone senza Font Awesome.** Le icone dei widget del footer e quella del PDF negli articoli sono disegnate dal tema (`assets/css/components.css`): niente più 280 KB di file da use.fontawesome.com a ogni pagina. Il markup resta lo stesso (`<i class="fas fa-phone">`); per un'icona nuova va aggiunta una riga in quel file.
