@@ -141,6 +141,7 @@
 	--vv-testo-su-giallo: #2c3a4a; /* pulsanti gialli: 8,2:1 */
 	--vv-testo-su-scuro: #ffffff;  /* badge, frecce e card su foto con il velo scuro */
 	--vv-header-testo: #00102e;    /* voci e icone dell'header giallo e dei sottomenu turchesi */
+	--vv-errore: #c40000;          /* messaggi d'errore dei moduli: 6,3:1 */
 
 	/* Linee, ombre, veli. Ombre e veli sono i tre canali RGB: rgb(var(--vv-ombra) / 0.12). */
 	--vv-bordo: #d7e0e9;
@@ -209,6 +210,7 @@
 	--vv-titoli-sezione: #d9e1ee;  /* 13,2:1 */
 	--vv-link: #4fd6e3;            /* 10:1, 8,6:1 sulla card */
 	--vv-testo-pulsante: #0c1a33;  /* 15,1:1 */
+	--vv-errore: #ff8a80;          /* 7,6:1 */
 
 	--vv-bordo: #2a406b;
 	--vv-ombra: 0 0 0;

@@ -2,6 +2,20 @@
 
 Storia del tema VivaVoce Classic, dalla versione più recente. La guida d'uso è nel README.
 
+## Versione 0.12.0: rinnovo dell'iscrizione senza ricompilare tutto
+
+- **"Riprendi i miei dati" nel modulo dei soci.** Sotto il codice fiscale c'è un pulsante per chi si è già iscritto in passato. Il sito cerca l'ultima iscrizione con quel codice fiscale negli ultimi tre anni sociali e scrive all'indirizzo email di quell'iscrizione:
+  - socio di un anno precedente: un link, valido 24 ore, che riapre il modulo già compilato con i dati anagrafici, di residenza e di contatto. Ricevuta, accettazioni (GDPR, Statuto), autorizzazione alle comunicazioni e scelte vanno rifatte;
+  - già iscritto quest'anno: un'email che lo dice, senza link.
+- **Nessuno scopre chi è socio.** A video il messaggio è sempre lo stesso, che il codice fiscale sia in archivio o no; solo la casella email dell'interessato riceve la risposta. Al massimo 5 richieste all'ora dalla stessa connessione e un'email ogni 15 minuti per lo stesso codice fiscale. Nel link c'è solo un codice: i dati si rileggono all'apertura, e se l'iscrizione nel frattempo è stata cancellata o messa nello spam il link non vale più.
+- **Codice fiscale controllato subito:** un codice sbagliato (formato o carattere di controllo) viene segnalato appena si esce dal campo, non più solo dopo l'invio, nel modulo dei soci e in quello dei corsi. Il controllo "già iscritto quest'anno" resta all'invio.
+- **Compilazione automatica del browser:** nome e cognome distinti, telefoni riconosciuti, e il luogo di nascita lasciato fuori (il browser ci metteva la città di residenza). Chi ha i dati salvati nel browser li inserisce con un tocco.
+- **Codice:** `inc/forminator.php` (sezione "Riprendi i dati", endpoint `vv/v1/riprendi-socio`, ricompilazione comune ai due moduli), `vv_soci_iscrizioni()` in `inc/sheets.php`, `assets/js/vv.js`. **Test:** 182 controlli.
+
+Da fare:
+1. Provare il pulsante con il proprio codice fiscale e controllare che l'email arrivi (passa da WP Mail SMTP).
+2. Informativa privacy: aggiungere che, su richiesta dell'interessato e con conferma via email, i dati dell'ultima iscrizione (al massimo tre anni sociali) possono essere usati per precompilare il modulo di rinnovo.
+
 ## Versione 0.11.1: immagine dell'associazione
 
 - **Dati strutturati:** l'associazione ha anche un'immagine, la stessa dell'anteprima della home sui social. Il Test dei risultati multimediali di Google la segnalava come campo facoltativo mancante.

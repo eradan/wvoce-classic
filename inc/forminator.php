@@ -237,29 +237,304 @@ function vv_corso_dati( $codice ) {
 }
 
 /**
- * Pagina dei corsi aperta con un codice valido: niente cache (dentro ci sono dati personali) e, in
- * fondo alla pagina, i dati per la ricompilazione del modulo dei corsi (assets/js/vv.js).
+ * Pagina dei corsi aperta con un codice valido: modulo dei corsi ricompilato (vv_ricompila()).
  */
 function vv_corso_pagina() {
 	// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Il codice stesso fa da gettone.
 	$campi = isset( $_GET['vv'] ) ? vv_corso_dati( sanitize_key( wp_unslash( $_GET['vv'] ) ) ) : null;
-	if ( ! $campi ) {
-		return;
+	if ( $campi ) {
+		vv_ricompila( (int) vv_sheets_config( 'corsi' )['form'], $campi, VV_CORSO_CASELLE, 'Abbiamo ripreso i tuoi dati dall\'iscrizione a socio: scegli il corso e carica la ricevuta del pagamento.' );
 	}
+}
+add_action( 'template_redirect', 'vv_corso_pagina' );
+
+/**
+ * Modulo da ricompilare nella pagina (assets/js/vv.js): pagina fuori dalla cache, perché dentro ci sono
+ * dati personali, e dati in fondo alla pagina.
+ *
+ * @param int      $form    Id del modulo.
+ * @param array    $campi   Nome del campo nella pagina => valore (i radio per valore dell'opzione).
+ * @param string[] $caselle Caselle da spuntare.
+ * @param string   $avviso  Testo sopra il modulo.
+ */
+function vv_ricompila( $form, $campi, $caselle, $avviso ) {
 	if ( ! defined( 'DONOTCACHEPAGE' ) ) {
 		define( 'DONOTCACHEPAGE', true );
 	}
 	nocache_headers();
 	add_action(
 		'wp_footer',
-		static function () use ( $campi ) {
+		static function () use ( $form, $campi, $caselle, $avviso ) {
 			$dati = array(
-				'form'    => (int) vv_sheets_config( 'corsi' )['form'],
+				'form'    => $form,
 				'campi'   => $campi,
-				'caselle' => VV_CORSO_CASELLE,
+				'caselle' => $caselle,
+				'avviso'  => $avviso,
 			);
-			printf( '<script id="vv-corso-dati" type="application/json">%s</script>' . "\n", wp_json_encode( $dati, JSON_HEX_TAG | JSON_HEX_AMP ) );
+			printf( '<script id="vv-ricompila" type="application/json">%s</script>' . "\n", wp_json_encode( $dati, JSON_HEX_TAG | JSON_HEX_AMP ) );
 		}
 	);
 }
-add_action( 'template_redirect', 'vv_corso_pagina' );
+
+/*
+ * Riprendi i dati dell'ultima iscrizione. Nel modulo dei soci, sotto il codice fiscale, un pulsante
+ * (assets/js/vv.js) chiede al sito di cercare l'ultima iscrizione con quel codice negli ultimi anni
+ * sociali. A video il messaggio è sempre lo stesso, per non dire a nessuno chi è socio: la risposta
+ * arriva per email all'indirizzo di quell'iscrizione. Se la persona è già iscritta quest'anno l'email
+ * lo dice; altrimenti porta un link che riapre il modulo con i dati anagrafici, di residenza e di
+ * contatto. Ricevuta, accettazioni e scelte si rifanno. Il link vale 24 ore; nel transient c'è solo il
+ * riferimento all'iscrizione, i dati si rileggono all'apertura.
+ */
+
+/*
+ * Anni sociali precedenti in cui cercare l'ultima iscrizione.
+ */
+const VV_SOCIO_ANNI = 3;
+
+/*
+ * Durata del link, in secondi: 24 ore.
+ */
+const VV_SOCIO_DURATA = 86400;
+
+/*
+ * Limiti: richieste per IP in un'ora, minuti fra due email allo stesso codice fiscale.
+ */
+const VV_SOCIO_RICHIESTE = 5;
+const VV_SOCIO_ATTESA    = 15;
+
+/**
+ * Campi ripresi: id del campo, o array( campo, parte ) per gli indirizzi. Fuori: ricevuta, caselle,
+ * accettazioni, autorizzazione alle comunicazioni, corso sì/no, data di compilazione.
+ */
+function vv_socio_campi_ripresi() {
+	return array(
+		'radio-6',
+		'name-1',
+		'name-2',
+		VV_CAMPO_CF,
+		'text-4',
+		'text-5',
+		'email-1',
+		'phone-1',
+		'phone-2',
+		array( 'address-1', 'street_address' ),
+		array( 'address-1', 'city' ),
+		array( 'address-1', 'state' ),
+		array( 'address-1', 'zip' ),
+		'radio-1',
+		'date-1',
+		array( 'address-2', 'city' ),
+		array( 'address-2', 'state' ),
+	);
+}
+
+/**
+ * Valori da ricompilare da un'iscrizione: nome del campo nella pagina ("address-1-city") => valore.
+ *
+ * @param object $entry Iscrizione di Forminator.
+ */
+function vv_socio_dati_ripresi( $entry ) {
+	$meta = is_array( $entry->meta_data ?? null ) ? $entry->meta_data : array();
+	$dati = array();
+	foreach ( vv_socio_campi_ripresi() as $campo ) {
+		list( $field, $part ) = is_array( $campo ) ? $campo : array( $campo, '' );
+		$valore               = vv_sheets_valore( $meta[ $field ]['value'] ?? '', $field, $part );
+		if ( '' !== $valore ) {
+			$dati[ $part ? "{$field}-{$part}" : $field ] = $valore;
+		}
+	}
+	return $dati;
+}
+
+/**
+ * Ultima iscrizione a socio con questo codice fiscale negli ultimi VV_SOCIO_ANNI anni sociali.
+ *
+ * @param string $cf     Codice fiscale.
+ * @param string $adesso Data di riferimento, "Y-m-d H:i:s".
+ * @return object|null
+ */
+function vv_socio_ultima_iscrizione( $cf, $adesso ) {
+	$ultima = null;
+	foreach ( vv_soci_iscrizioni( $cf, ( vv_anno_sociale( $adesso ) - VV_SOCIO_ANNI ) . '-09-01' ) as $e ) {
+		if ( ! $ultima || (string) $e->date_created_sql > (string) $ultima->date_created_sql ) {
+			$ultima = $e;
+		}
+	}
+	return $ultima;
+}
+
+/**
+ * Indirizzo del visitatore. Il sito sta dietro nginx: se la richiesta arriva dal proxy (indirizzo
+ * locale o privato) vale X-Real-IP, che imposta il proxy.
+ */
+function vv_ip_visitatore() {
+	$ip = isset( $_SERVER['REMOTE_ADDR'] ) ? sanitize_text_field( wp_unslash( $_SERVER['REMOTE_ADDR'] ) ) : '';
+	if ( $ip && ! filter_var( $ip, FILTER_VALIDATE_IP, FILTER_FLAG_NO_PRIV_RANGE | FILTER_FLAG_NO_RES_RANGE ) && isset( $_SERVER['HTTP_X_REAL_IP'] ) ) {
+		$reale = sanitize_text_field( wp_unslash( $_SERVER['HTTP_X_REAL_IP'] ) );
+		if ( filter_var( $reale, FILTER_VALIDATE_IP ) ) {
+			return $reale;
+		}
+	}
+	return $ip;
+}
+
+/**
+ * Richiesta di riprendere i dati: controlli, limiti, email. L'esito serve ai test e a scegliere il
+ * messaggio; a video "formato" e "troppe" hanno il loro, tutti gli altri lo stesso.
+ *
+ * @param string $cf     Codice fiscale scritto nel modulo.
+ * @param string $ip     Indirizzo del visitatore.
+ * @param string $adesso Data di riferimento, "Y-m-d H:i:s".
+ * @return string formato|troppe|nessuno|attesa|iscritto|link
+ */
+function vv_socio_richiesta( $cf, $ip, $adesso ) {
+	if ( ! vv_codice_fiscale_valido( $cf ) ) {
+		return 'formato';
+	}
+	$chiave_ip = 'vv_socio_ip_' . md5( (string) $ip );
+	$richieste = (int) get_transient( $chiave_ip );
+	if ( $richieste >= VV_SOCIO_RICHIESTE ) {
+		return 'troppe';
+	}
+	set_transient( $chiave_ip, $richieste + 1, HOUR_IN_SECONDS );
+
+	$cf     = vv_cf_normalizza( $cf );
+	$ultima = vv_socio_ultima_iscrizione( $cf, $adesso );
+	$email  = $ultima ? vv_sheets_valore( $ultima->meta_data['email-1']['value'] ?? '', 'email-1' ) : '';
+	if ( ! $ultima || ! is_email( $email ) ) {
+		return 'nessuno';
+	}
+	$chiave_cf = 'vv_socio_cf_' . md5( $cf );
+	if ( get_transient( $chiave_cf ) ) {
+		return 'attesa';
+	}
+	set_transient( $chiave_cf, 1, VV_SOCIO_ATTESA * MINUTE_IN_SECONDS );
+
+	$anno = vv_anno_sociale( $adesso );
+	if ( vv_anno_sociale( $ultima->date_created_sql ) === $anno ) {
+		wp_mail(
+			$email,
+			sprintf( 'VivaVoce: la tua iscrizione %d-%d è già registrata', $anno, $anno + 1 ),
+			sprintf(
+				"Ciao,\n\nqualcuno, probabilmente tu, ha chiesto di riprendere i dati della tua iscrizione a VivaVoce dal modulo sul sito.\n\nLa tua iscrizione per l'anno sociale %d-%d è già registrata: non serve compilare di nuovo il modulo. Per correggere i dati scrivi a %s.\n\nSe non sei stato tu, ignora questa email.\n\nVivaVoce",
+				$anno,
+				$anno + 1,
+				vv_mod( 'vv_email' )
+			)
+		);
+		return 'iscritto';
+	}
+
+	$codice = bin2hex( random_bytes( 16 ) );
+	set_transient(
+		'vv_socio_' . $codice,
+		array(
+			'form'  => (int) $ultima->form_id,
+			'entry' => (int) $ultima->entry_id,
+			'cf'    => $cf,
+		),
+		VV_SOCIO_DURATA
+	);
+	wp_mail(
+		$email,
+		'VivaVoce: riprendi i dati della tua iscrizione',
+		sprintf(
+			"Ciao,\n\nhai chiesto di riprendere i dati della tua ultima iscrizione a VivaVoce. Apri questo link entro 24 ore: troverai il modulo di iscrizione già compilato con i dati anagrafici, di residenza e di contatto.\n\n%s\n\nControlla che i dati siano ancora giusti, carica la ricevuta del pagamento e rinnova le accettazioni.\n\nSe non sei stato tu, ignora questa email: senza il link nessuno vede i tuoi dati.\n\nVivaVoce",
+			add_query_arg( 'vv-socio', $codice, vv_mod( 'vv_url_socio' ) )
+		)
+	);
+	return 'link';
+}
+
+/**
+ * Messaggio a video per un esito.
+ *
+ * @param string $esito Esito di vv_socio_richiesta().
+ */
+function vv_socio_messaggio( $esito ) {
+	if ( 'formato' === $esito ) {
+		return 'Controlla il codice fiscale: sono 16 lettere e numeri, come sulla tessera sanitaria.';
+	}
+	if ( 'troppe' === $esito ) {
+		return 'Troppe richieste da questa connessione: riprova fra un\'ora, oppure compila il modulo per intero.';
+	}
+	return sprintf( 'Se questo codice fiscale è nel nostro archivio soci, abbiamo mandato un\'email all\'indirizzo usato l\'ultima volta, con un link per riprendere i dati (vale 24 ore). Controlla la posta, anche nello spam. Se non arriva nulla, compila il modulo per intero o scrivi a %s.', vv_mod( 'vv_email' ) );
+}
+
+/**
+ * Endpoint per il pulsante: POST /wp-json/vv/v1/riprendi-socio, con "cf".
+ */
+function vv_socio_rest() {
+	register_rest_route(
+		'vv/v1',
+		'/riprendi-socio',
+		array(
+			'methods'             => 'POST',
+			'permission_callback' => '__return_true',
+			'args'                => array(
+				'cf' => array(
+					'type'     => 'string',
+					'required' => true,
+				),
+			),
+			'callback'            => static function ( $request ) {
+				$esito = vv_socio_richiesta( (string) $request['cf'], vv_ip_visitatore(), current_time( 'mysql' ) );
+				return array(
+					'ok'        => ! in_array( $esito, array( 'formato', 'troppe' ), true ),
+					'messaggio' => vv_socio_messaggio( $esito ),
+				);
+			},
+		)
+	);
+}
+add_action( 'rest_api_init', 'vv_socio_rest' );
+
+/**
+ * Dati da ricompilare per un codice del link, o null se il codice non è valido, è scaduto o
+ * l'iscrizione non c'è più (cancellata, spostata nello spam, codice fiscale cambiato).
+ *
+ * @param mixed $codice Codice dall'indirizzo.
+ * @return array|null
+ */
+function vv_socio_dati( $codice ) {
+	if ( ! is_string( $codice ) || ! preg_match( '/^[0-9a-f]{32}$/', $codice ) || ! class_exists( 'Forminator_API' ) ) {
+		return null;
+	}
+	$rif   = get_transient( 'vv_socio_' . $codice );
+	$entry = is_array( $rif ) ? Forminator_API::get_entry( $rif['form'], $rif['entry'] ) : null;
+	if ( ! is_object( $entry ) || ! empty( $entry->is_spam ) || vv_cf_normalizza( $entry->meta_data[ VV_CAMPO_CF ]['value'] ?? '' ) !== $rif['cf'] ) {
+		return null;
+	}
+	return vv_socio_dati_ripresi( $entry );
+}
+
+/**
+ * Pagina dei soci aperta dal link dell'email: modulo ricompilato.
+ */
+function vv_socio_pagina() {
+	// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Il codice stesso fa da gettone.
+	$campi = isset( $_GET['vv-socio'] ) ? vv_socio_dati( sanitize_key( wp_unslash( $_GET['vv-socio'] ) ) ) : null;
+	if ( $campi ) {
+		vv_ricompila( (int) vv_sheets_config( 'soci' )['form'], $campi, array(), 'Abbiamo ripreso i dati della tua ultima iscrizione: controlla che siano ancora giusti, carica la ricevuta del pagamento e rinnova le accettazioni.' );
+	}
+}
+add_action( 'template_redirect', 'vv_socio_pagina' );
+
+/**
+ * Nelle pagine con un modulo Forminator: id dei moduli dei soci e dei corsi e indirizzo del pulsante,
+ * per assets/js/vv.js.
+ */
+function vv_moduli_script() {
+	$post = get_post();
+	if ( ! is_singular() || ! $post || false === strpos( (string) $post->post_content, '[forminator_form' ) ) {
+		return;
+	}
+	$dati = array(
+		'soci'     => (int) vv_sheets_config( 'soci' )['form'],
+		'corsi'    => (int) vv_sheets_config( 'corsi' )['form'],
+		'cf'       => VV_CAMPO_CF,
+		'riprendi' => esc_url_raw( rest_url( 'vv/v1/riprendi-socio' ) ),
+	);
+	wp_add_inline_script( 'vv-main', 'window.vvModuli = ' . wp_json_encode( $dati ) . ';', 'before' );
+}
+add_action( 'wp_enqueue_scripts', 'vv_moduli_script', 21 );

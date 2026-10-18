@@ -22,7 +22,7 @@ inc/breadcrumbs.php       percorso in alto, dati strutturati, voce di menu della
 inc/single.php            articolo con colonna laterale, navigazione, altri soci fondatori
 inc/page.php              pagine con la colonna "In questa sezione", schemi a due colonne e con blocco finale
 inc/redirects.php         301 degli indirizzi spariti
-inc/forminator.php        codice fiscale e iscrizione a socio nei moduli Forminator, modulo dei corsi ricompilato dopo quello dei soci
+inc/forminator.php        codice fiscale e iscrizione a socio nei moduli Forminator, modulo dei corsi ricompilato dopo quello dei soci, "Riprendi i miei dati" nel modulo dei soci
 inc/sheets.php            iscrizioni dei soci e dei corsi nei fogli Google
 inc/sheets-admin.php      Strumenti → Esporta iscrizioni (configurazione, stato, prova a secco, script)
 inc/apps-script/          script Apps Script dei fogli soci e corsi, da incollare nell'editor

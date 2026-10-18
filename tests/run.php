@@ -112,7 +112,17 @@ define( 'DAY_IN_SECONDS', 86400 );
 function wp_list_pluck( $list, $field ) {
 	return array_map( static fn( $x ) => is_object( $x ) ? $x->$field : $x[ $field ], $list );
 }
-function wp_mail() {}
+$vv_email = array();
+function wp_mail( $a, $oggetto, $testo ) {
+	global $vv_email;
+	$vv_email[] = array( 'a' => $a, 'oggetto' => $oggetto, 'testo' => $testo );
+	return true;
+}
+function is_email( $email ) {
+	return (bool) filter_var( $email, FILTER_VALIDATE_EMAIL );
+}
+define( 'MINUTE_IN_SECONDS', 60 );
+define( 'HOUR_IN_SECONDS', 3600 );
 function admin_url( $path = '' ) {
 	return 'https://wvoce.it/wp-admin/' . $path;
 }
@@ -229,6 +239,14 @@ class Forminator_API {
 	}
 	public static function get_form_fields( $form ) {
 		return self::$campi;
+	}
+	public static function get_entry( $form, $id ) {
+		foreach ( self::$entries as $e ) {
+			if ( (int) $e->entry_id === (int) $id ) {
+				return $e;
+			}
+		}
+		return null;
 	}
 }
 $vv_opzioni_1617 = array(
@@ -553,6 +571,61 @@ uguale( 'Evento: fine prima dell\'inizio, dura un giorno', '2026-10-14', vv_ds_e
 uguale( 'Evento: senza fine, dura un giorno', '2026-10-14', vv_ds_evento( array( 'fine' => '' ) + $vv_ev )['endDate'] );
 uguale( 'Evento: senza luogo niente evento', array(), vv_ds_evento( array( 'luogo' => ' ' ) + $vv_ev ) );
 uguale( 'Evento: data non valida niente evento', array(), vv_ds_evento( array( 'inizio' => '14/10/2026' ) + $vv_ev ) );
+
+// Riprendi i dati dell'ultima iscrizione: email all'indirizzo dell'ultima iscrizione, a video sempre lo stesso
+$vv_adesso    = '2026-10-07 10:00:00';
+$vv_transient = array();
+$vv_email     = array();
+$vv_iscritto  = static function ( $id, $data, $cf, $email, $extra = array() ) {
+	return (object) ( array(
+		'entry_id'         => $id,
+		'form_id'          => 274,
+		'date_created_sql' => $data,
+		'meta_data'        => array(
+			'text-1'    => array( 'value' => $cf ),
+			'email-1'   => array( 'value' => $email ),
+			'name-1'    => array( 'value' => 'Laura' ),
+			'radio-6'   => array( 'value' => 'individuo' ),
+			'address-1' => array( 'value' => array( 'street_address' => 'Via Roma 1', 'city' => 'Pisa', 'zip' => '56125' ) ),
+			'upload-1'  => array( 'value' => array( 'file' => array( 'file_url' => 'https://wvoce.it/ricevuta.pdf' ) ) ),
+			'consent-1' => array( 'value' => 'checked' ),
+			'radio-4'   => array( 'value' => 'autorizzo' ),
+		),
+	) + $extra );
+};
+Forminator_API::$entries = array(
+	$vv_iscritto( 40, '2024-10-01 10:00:00', 'BNCLRA90A41G702N', 'vecchia@example.com' ),
+	$vv_iscritto( 41, '2025-09-15 10:00:00', 'bnclra90a41g702n ', 'laura@example.com' ),
+	$vv_iscritto( 42, '2025-11-15 10:00:00', 'BNCLRA90A41G702N', 'spam@example.com', array( 'is_spam' => 1 ) ),
+	$vv_iscritto( 43, '2026-09-10 10:00:00', 'RSSMRA85T10A562S', 'mario@example.com' ),
+	$vv_iscritto( 44, '2022-10-01 10:00:00', 'VRDGPP80A01H501U', 'troppo@example.com' ),
+);
+uguale( 'Riprendi: l\'iscrizione più recente, non spam', 41, vv_socio_ultima_iscrizione( 'BNCLRA90A41G702N', $vv_adesso )->entry_id ?? 0 );
+uguale( 'Riprendi: oltre tre anni sociali non si cerca', null, vv_socio_ultima_iscrizione( 'VRDGPP80A01H501U', $vv_adesso ) );
+$vv_ripresi = vv_socio_dati_ripresi( Forminator_API::$entries[1] );
+uguale( 'Riprendi: anagrafica, CF maiuscolo, indirizzo per parti', array( 'radio-6' => 'individuo', 'name-1' => 'Laura', 'text-1' => 'BNCLRA90A41G702N', 'email-1' => 'laura@example.com', 'address-1-street_address' => 'Via Roma 1', 'address-1-city' => 'Pisa', 'address-1-zip' => '56125' ), $vv_ripresi );
+uguale( 'Riprendi: ricevuta, accettazioni e autorizzazioni escluse', array(), array_intersect_key( $vv_ripresi, array_flip( array( 'upload-1', 'consent-1', 'radio-4' ) ) ) );
+uguale( 'Riprendi: CF sbagliato', 'formato', vv_socio_richiesta( 'BNCLRA90A41G702X', '1.2.3.4', $vv_adesso ) );
+uguale( 'Riprendi: CF sbagliato, nessuna email', array(), $vv_email );
+uguale( 'Riprendi: CF sconosciuto, nessuna email', array( 'nessuno', array() ), array( vv_socio_richiesta( 'VRDGPP80A01H501U', '1.2.3.4', $vv_adesso ), $vv_email ) );
+uguale( 'Riprendi: socio dell\'anno scorso, email con il link', 'link', vv_socio_richiesta( 'BNCLRA90A41G702N', '1.2.3.4', $vv_adesso ) );
+uguale( 'Riprendi: all\'indirizzo dell\'ultima iscrizione', 'laura@example.com', $vv_email[0]['a'] ?? '' );
+$vv_codice = preg_match( '/vv-socio=([0-9a-f]{32})/', $vv_email[0]['testo'] ?? '', $vv_m ) ? $vv_m[1] : '';
+uguale( 'Riprendi: nel link solo il codice', array( 32, false ), array( strlen( $vv_codice ), strpos( $vv_email[0]['testo'] ?? '', 'Via Roma' ) ) );
+uguale( 'Riprendi: il link riapre il modulo con i dati', $vv_ripresi, vv_socio_dati( $vv_codice ) );
+uguale( 'Riprendi: codice sconosciuto o malformato', array( null, null ), array( vv_socio_dati( str_repeat( 'b', 32 ) ), vv_socio_dati( '../x' ) ) );
+uguale( 'Riprendi: seconda richiesta entro 15 minuti, nessuna email', array( 'attesa', 1 ), array( vv_socio_richiesta( 'BNCLRA90A41G702N', '1.2.3.4', $vv_adesso ), count( $vv_email ) ) );
+uguale( 'Riprendi: già iscritto quest\'anno, email senza link', 'iscritto', vv_socio_richiesta( 'RSSMRA85T10A562S', '1.2.3.4', $vv_adesso ) );
+uguale( 'Riprendi: email "già registrata" senza link', array( 'mario@example.com', false ), array( $vv_email[1]['a'] ?? '', strpos( $vv_email[1]['testo'] ?? '', 'vv-socio=' ) ) );
+Forminator_API::$entries[1]->is_spam = 1;
+uguale( 'Riprendi: iscrizione spostata nello spam, il link non vale più', null, vv_socio_dati( $vv_codice ) );
+uguale( 'Riprendi: quinta richiesta dallo stesso IP, ancora ammessa', 'nessuno', vv_socio_richiesta( 'VRDGPP80A01H501U', '1.2.3.4', $vv_adesso ) );
+uguale( 'Riprendi: sesta richiesta dallo stesso IP, troppe', 'troppe', vv_socio_richiesta( 'VRDGPP80A01H501U', '1.2.3.4', $vv_adesso ) );
+uguale( 'Riprendi: un altro IP può ancora', 'nessuno', vv_socio_richiesta( 'VRDGPP80A01H501U', '5.6.7.8', $vv_adesso ) );
+uguale( 'Riprendi: stesso messaggio a video con o senza socio', vv_socio_messaggio( 'link' ), vv_socio_messaggio( 'nessuno' ) );
+uguale( 'Riprendi: stesso messaggio anche se già iscritto o in attesa', array( vv_socio_messaggio( 'link' ), vv_socio_messaggio( 'link' ) ), array( vv_socio_messaggio( 'iscritto' ), vv_socio_messaggio( 'attesa' ) ) );
+Forminator_API::$entries = array();
+$vv_transient = array();
 
 // Lettere decorative incollate dai social
 uguale( 'Lettere decorative', '<strong class="vv-plain">Voce</strong> e testo', vv_plain_letters( '𝕍𝕠𝕔𝕖 e testo' ) );

@@ -260,12 +260,55 @@ body.vv-cookie-open {
 	color: var(--vv-testo-attivo) !important;
 }
 
-/* Modulo dei corsi ricompilato dopo l'iscrizione a socio (vv.js) */
-.vv-corso-avviso {
+/* Modulo ricompilato: dall'iscrizione a socio ai corsi, o dall'ultima iscrizione (vv.js) */
+.vv-ricompila-avviso {
 	margin: 0 0 24px;
 	padding: 14px 18px;
 	background-color: var(--vv-fondo-card);
 	border-left: 4px solid var(--vv-link);
 	color: var(--vv-testo);
 	font-size: var(--vv-fs-piccolo);
+}
+
+/* Codice fiscale sbagliato, segnalato all'uscita dal campo (vv.js) */
+.vv-cf-errore {
+	margin: 6px 0 0;
+	color: var(--vv-errore);
+	font-size: var(--vv-fs-meta);
+}
+
+/* "Riprendi i miei dati" sotto il codice fiscale del modulo dei soci (vv.js) */
+.vv-riprendi {
+	margin: 0 0 24px;
+	padding: 14px 18px;
+	background-color: var(--vv-fondo-card);
+	border-left: 4px solid var(--vv-link);
+	font-size: var(--vv-fs-piccolo);
+}
+.vv-riprendi__testo {
+	margin: 0 0 10px;
+	color: var(--vv-testo);
+}
+.vv-riprendi__pulsante {
+	padding: 8px 16px;
+	border: 0;
+	border-radius: 2px;
+	background-color: var(--vv-pulsante);
+	color: var(--vv-testo-pulsante);
+	font: inherit;
+	font-weight: 600;
+	cursor: pointer;
+}
+.vv-riprendi__pulsante:hover,
+.vv-riprendi__pulsante:focus-visible {
+	background-color: var(--vv-fondo-attivo);
+	color: var(--vv-testo-attivo);
+}
+.vv-riprendi__pulsante:disabled {
+	opacity: 0.6;
+	cursor: wait;
+}
+.vv-riprendi__esito {
+	margin: 10px 0 0;
+	color: var(--vv-testo);
 }

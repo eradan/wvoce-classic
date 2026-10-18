@@ -1,4 +1,4 @@
-/* VivaVoce: testata che si stringe, switcher del tema, pulsanti "Copia" (CF, P.IVA, IBAN), caroselli, menu mobile e modulo dei corsi ricompilato. */
+/* VivaVoce: testata che si stringe, switcher del tema, pulsanti "Copia" (CF, P.IVA, IBAN), caroselli, menu mobile, moduli dei soci e dei corsi (ricompilati, codice fiscale, "Riprendi i miei dati"). */
 (function () {
 	'use strict';
 
@@ -346,42 +346,158 @@
 		sync();
 	});
 
-	// Modulo dei corsi ricompilato dopo l'iscrizione a socio (inc/forminator.php): nome, codice fiscale,
-	// contatti e caselle già accettate. Forminator può disegnare il modulo dopo il caricamento della
-	// pagina: si riprova per qualche secondo. I valori passano dagli eventi, così il plugin li vede.
-	var datiCorso = document.getElementById('vv-corso-dati');
-	if (datiCorso) {
-		var corso = null;
-		try { corso = JSON.parse(datiCorso.textContent); } catch (e) {}
+	// Moduli Forminator dei soci e dei corsi (inc/forminator.php). Forminator può disegnare il modulo dopo
+	// il caricamento della pagina: si riprova per qualche secondo.
+	var quandoModulo = function (id, fatto) {
 		var tentativi = 0;
-		var ricompila = function () {
-			var form = corso && document.getElementById('forminator-module-' + corso.form);
-			if (!form) {
-				if (corso && ++tentativi < 40) {
-					setTimeout(ricompila, 250);
-				}
-				return;
+		var cerca = function () {
+			var form = id && document.getElementById('forminator-module-' + id);
+			if (form) {
+				fatto(form);
+			} else if (++tentativi < 40) {
+				setTimeout(cerca, 250);
 			}
-			Object.keys(corso.campi).forEach(function (nome) {
-				var input = form.querySelector('[name="' + nome + '"]');
-				if (input && !input.value && corso.campi[nome]) {
-					input.value = corso.campi[nome];
-					input.dispatchEvent(new Event('input', { bubbles: true }));
-					input.dispatchEvent(new Event('change', { bubbles: true }));
-				}
+		};
+		cerca();
+	};
+
+	// Modulo ricompilato: dati dell'iscrizione a socio nel modulo dei corsi, o dell'ultima iscrizione
+	// nel modulo dei soci (link dell'email). Radio per valore dell'opzione, caselle spuntate; i valori
+	// passano dagli eventi, così il plugin li vede.
+	var datiRicompila = document.getElementById('vv-ricompila');
+	var ricompila = null;
+	if (datiRicompila) {
+		try { ricompila = JSON.parse(datiRicompila.textContent); } catch (e) {}
+	}
+	if (ricompila) {
+		quandoModulo(ricompila.form, function (form) {
+			Object.keys(ricompila.campi).forEach(function (nome) {
+				var valore = ricompila.campi[nome];
+				form.querySelectorAll('[name="' + nome + '"]').forEach(function (input) {
+					if (input.type === 'radio') {
+						if (input.value === valore && !input.checked) {
+							input.click();
+						}
+					} else if (!input.value && valore) {
+						input.value = valore;
+						input.dispatchEvent(new Event('input', { bubbles: true }));
+						input.dispatchEvent(new Event('change', { bubbles: true }));
+					}
+				});
 			});
-			corso.caselle.forEach(function (nome) {
+			(ricompila.caselle || []).forEach(function (nome) {
 				var casella = form.querySelector('input[type="checkbox"][name="' + nome + '"]');
 				if (casella && !casella.checked) {
 					casella.click();
 				}
 			});
 			var avviso = document.createElement('p');
-			avviso.className = 'vv-corso-avviso';
+			avviso.className = 'vv-ricompila-avviso';
 			avviso.setAttribute('role', 'status');
-			avviso.textContent = 'Abbiamo ripreso i tuoi dati dall\'iscrizione a socio: scegli il corso e carica la ricevuta del pagamento.';
+			avviso.textContent = ricompila.avviso;
 			form.parentNode.insertBefore(avviso, form);
+		});
+	}
+
+	var moduli = window.vvModuli;
+	if (moduli) {
+		// Codice fiscale: formato e carattere di controllo, come vv_codice_fiscale_valido().
+		var cfValido = function (cf) {
+			cf = cf.replace(/\s+/g, '').toUpperCase();
+			if (!/^[A-Z]{6}[0-9LMNPQRSTUV]{2}[ABCDEHLMPRST][0-9LMNPQRSTUV]{2}[A-Z][0-9LMNPQRSTUV]{3}[A-Z]$/.test(cf)) {
+				return false;
+			}
+			var dispari = [1, 0, 5, 7, 9, 13, 15, 17, 19, 21, 2, 4, 18, 20, 11, 3, 6, 8, 12, 14, 16, 10, 22, 25, 24, 23];
+			var somma = 0;
+			for (var i = 0; i < 15; i++) {
+				var c = cf.charCodeAt(i);
+				var n = c < 65 ? c - 48 : c - 65;
+				somma += i % 2 === 0 ? dispari[n] : n;
+			}
+			return String.fromCharCode(65 + somma % 26) === cf.charAt(15);
 		};
-		ricompila();
+		var msgFormato = 'Controlla il codice fiscale: sono 16 lettere e numeri, come sulla tessera sanitaria.';
+
+		// Compilazione automatica del browser: nome e cognome distinti, telefoni, e il luogo di nascita
+		// lasciato fuori (il browser ci metterebbe la città di residenza).
+		var completamento = {
+			'name-1': 'given-name',
+			'name-2': 'family-name',
+			'email-1': 'email',
+			'phone-1': 'tel',
+			'phone-2': 'tel',
+			'address-2-city': 'off',
+			'address-2-state': 'off'
+		};
+
+		[moduli.soci, moduli.corsi].forEach(function (id) {
+			quandoModulo(id, function (form) {
+				Object.keys(completamento).forEach(function (nome) {
+					var input = form.querySelector('input[name="' + nome + '"]');
+					if (input) {
+						input.setAttribute('autocomplete', completamento[nome]);
+					}
+				});
+
+				var cf = form.querySelector('input[name="' + moduli.cf + '"]');
+				var campo = cf && (cf.closest('.forminator-field') || cf.parentNode);
+				if (!campo) {
+					return;
+				}
+				// Errore di formato subito, all'uscita dal campo, invece che dopo l'invio
+				var errore = document.createElement('p');
+				errore.className = 'vv-cf-errore';
+				errore.setAttribute('role', 'alert');
+				errore.hidden = true;
+				campo.appendChild(errore);
+				cf.addEventListener('blur', function () {
+					var sbagliato = cf.value.trim() !== '' && !cfValido(cf.value);
+					errore.textContent = sbagliato ? msgFormato : '';
+					errore.hidden = !sbagliato;
+				});
+				cf.addEventListener('input', function () {
+					errore.hidden = true;
+				});
+
+				// Pulsante per riprendere i dati dell'ultima iscrizione: solo nel modulo dei soci e non
+				// quando il modulo è già stato ricompilato dal link dell'email.
+				if (id !== moduli.soci || (ricompila && ricompila.form === id)) {
+					return;
+				}
+				var box = document.createElement('div');
+				box.className = 'vv-riprendi';
+				box.innerHTML = '<p class="vv-riprendi__testo">Ti sei già iscritto in passato? Scrivi il codice fiscale e riprendi i dati dell\'ultima iscrizione: ti mandiamo un link per email.</p>' +
+					'<button type="button" class="vv-riprendi__pulsante">Riprendi i miei dati</button>' +
+					'<p class="vv-riprendi__esito" role="status" hidden></p>';
+				campo.parentNode.insertBefore(box, campo.nextSibling);
+				var pulsante = box.querySelector('button');
+				var esito = box.querySelector('.vv-riprendi__esito');
+				var mostra = function (testo) {
+					esito.textContent = testo;
+					esito.hidden = false;
+				};
+				pulsante.addEventListener('click', function () {
+					if (!cfValido(cf.value)) {
+						mostra(msgFormato);
+						cf.focus();
+						return;
+					}
+					pulsante.disabled = true;
+					fetch(moduli.riprendi, {
+						method: 'POST',
+						headers: { 'Content-Type': 'application/json' },
+						body: JSON.stringify({ cf: cf.value })
+					}).then(function (r) {
+						return r.json();
+					}).then(function (d) {
+						mostra(d.messaggio);
+					}).catch(function () {
+						mostra('Non è stato possibile inviare la richiesta: riprova fra poco, oppure compila il modulo per intero.');
+					}).then(function () {
+						pulsante.disabled = false;
+					});
+				});
+			});
+		});
 	}
 })();

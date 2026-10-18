@@ -295,18 +295,18 @@ function vv_cf_normalizza( $cf ) {
 }
 
 /**
- * La persona ha un'iscrizione a socio, sul modulo dei soci, nell'anno sociale di $adesso? Contano
- * le iscrizioni dal 1° settembre in poi, niente spam né bozze.
+ * Iscrizioni a socio di una persona, sul modulo dei soci, dal giorno $dal in poi: niente spam né bozze.
  *
- * @param string $cf     Codice fiscale.
- * @param string $adesso Data di riferimento, "Y-m-d H:i:s" (ora del sito, come Forminator).
+ * @param string $cf  Codice fiscale.
+ * @param string $dal Primo giorno, "Y-m-d".
+ * @return object[] Iscrizioni, nell'ordine di Forminator.
  */
-function vv_socio_iscritto( $cf, $adesso ) {
+function vv_soci_iscrizioni( $cf, $dal ) {
 	$cf = vv_cf_normalizza( $cf );
 	if ( '' === $cf || ! class_exists( 'Forminator_API' ) ) {
-		return false;
+		return array();
 	}
-	$dal     = vv_anno_sociale( $adesso ) . '-09-01';
+	$trovate = array();
 	$entries = Forminator_API::get_entries( vv_sheets_config( 'soci' )['form'] );
 	foreach ( is_array( $entries ) ? $entries : array() as $e ) {
 		if ( ! is_object( $e ) || ! empty( $e->is_spam ) || ! empty( $e->draft_id ) || substr( (string) ( $e->date_created_sql ?? '' ), 0, 10 ) < $dal ) {
@@ -314,10 +314,21 @@ function vv_socio_iscritto( $cf, $adesso ) {
 		}
 		$v = $e->meta_data[ VV_CAMPO_CF ]['value'] ?? '';
 		if ( is_scalar( $v ) && vv_cf_normalizza( $v ) === $cf ) {
-			return true;
+			$trovate[] = $e;
 		}
 	}
-	return false;
+	return $trovate;
+}
+
+/**
+ * La persona ha un'iscrizione a socio nell'anno sociale di $adesso? Contano le iscrizioni dal
+ * 1° settembre in poi.
+ *
+ * @param string $cf     Codice fiscale.
+ * @param string $adesso Data di riferimento, "Y-m-d H:i:s" (ora del sito, come Forminator).
+ */
+function vv_socio_iscritto( $cf, $adesso ) {
+	return (bool) vv_soci_iscrizioni( $cf, vv_anno_sociale( $adesso ) . '-09-01' );
 }
 
 /**
