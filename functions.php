@@ -14,6 +14,7 @@ require VV_DIR . '/inc/setup.php';
 require VV_DIR . '/inc/contenuti.php';
 require VV_DIR . '/inc/condivisione.php';
 require VV_DIR . '/inc/dati-strutturati.php';
+require VV_DIR . '/inc/email.php';
 require VV_DIR . '/inc/sicurezza.php';
 require VV_DIR . '/inc/customizer.php';
 require VV_DIR . '/inc/meta.php';

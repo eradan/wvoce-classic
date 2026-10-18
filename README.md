@@ -11,6 +11,7 @@ inc/setup.php             filtri su Sydney, costruttore header/footer spento, tr
 inc/contenuti.php         correzioni dei contenuti (trattini, lettere decorative, elenchi rotti, emoji esterne, gallerie)
 inc/condivisione.php      meta description e anteprime Open Graph e Twitter
 inc/dati-strutturati.php  dati strutturati schema.org: sito e associazione in home, eventi negli articoli
+inc/email.php             modello HTML con il marchio per tutte le email, versione in solo testo, Message-ID del dominio
 inc/sicurezza.php         nomi utente fuori da sitemap e API pubblica, XML-RPC spento
 inc/customizer.php        pannello VivaVoce (hero, dati dell'associazione)
 inc/meta.php              date e luogo degli eventi, "In evidenza", opzioni delle pagine

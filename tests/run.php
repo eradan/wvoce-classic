@@ -101,6 +101,20 @@ function home_url( $path = '' ) {
 function get_theme_mod( $name, $default = false ) {
 	return $default;
 }
+define( 'VV_URI', 'https://wvoce.it/wp-content/themes/wvoce-classic' );
+function esc_html( $text ) {
+	return htmlspecialchars( (string) $text, ENT_QUOTES );
+}
+function wpautop( $text ) {
+	$blocchi = preg_split( '/\n\s*\n/', trim( (string) $text ) );
+	return implode( "\n", array_map( static fn( $b ) => '<p>' . nl2br( $b, false ) . '</p>', $blocchi ) );
+}
+function make_clickable( $text ) {
+	return preg_replace( '#(https?://[^\s<]+)#', '<a href="$1">$1</a>', (string) $text );
+}
+function get_privacy_policy_url() {
+	return 'https://wvoce.it/informativa-sulla-privacy/';
+}
 function get_bloginfo( $show ) {
 	return array( 'name' => 'VivaVoce', 'description' => 'Lettura ad alta voce, teatro e creatività a Pisa' )[ $show ] ?? '';
 }
@@ -163,6 +177,7 @@ require dirname( __DIR__ ) . '/inc/cards.php';
 require dirname( __DIR__ ) . '/inc/contenuti.php';
 require dirname( __DIR__ ) . '/inc/condivisione.php';
 require dirname( __DIR__ ) . '/inc/dati-strutturati.php';
+require dirname( __DIR__ ) . '/inc/email.php';
 require dirname( __DIR__ ) . '/inc/forminator.php';
 require dirname( __DIR__ ) . '/inc/sheets.php';
 
@@ -626,6 +641,24 @@ uguale( 'Riprendi: stesso messaggio a video con o senza socio', vv_socio_messagg
 uguale( 'Riprendi: stesso messaggio anche se già iscritto o in attesa', array( vv_socio_messaggio( 'link' ), vv_socio_messaggio( 'link' ) ), array( vv_socio_messaggio( 'iscritto' ), vv_socio_messaggio( 'attesa' ) ) );
 Forminator_API::$entries = array();
 $vv_transient = array();
+
+// Email con il marchio: modello HTML, versione in solo testo, Message-ID del dominio
+$vv_mail = vv_email_avvolgi( array( 'to' => 'a@example.com', 'subject' => 'Prova', 'message' => "Ciao <Laura>,\n\napri https://wvoce.it/x/?a=1\n\nVivaVoce", 'headers' => '' ) );
+uguale( 'Email di testo: documento HTML con lingua e titolo', array( true, true ), array( false !== strpos( $vv_mail['message'], '<html lang="it"' ), false !== strpos( $vv_mail['message'], '<title>Prova</title>' ) ) );
+uguale( 'Email di testo: testo protetto, link cliccabile', array( true, true ), array( false !== strpos( $vv_mail['message'], 'Ciao &lt;Laura&gt;' ), false !== strpos( $vv_mail['message'], 'href="https://wvoce.it/x/?a=1' ) ) );
+uguale( 'Email di testo: intestazione HTML in UTF-8', array( 'Content-Type: text/html; charset=UTF-8' ), $vv_mail['headers'] );
+uguale( 'Email di testo: versione in solo testo con il piè di pagina', true, 0 === strpos( vv_email_testo(), "Ciao <Laura>,\n\napri https://wvoce.it/x/?a=1" ) && false !== strpos( vv_email_testo(), 'Via G. Mazzini 112' ) );
+$vv_pm = new stdClass();
+vv_email_phpmailer( $vv_pm );
+uguale( 'PHPMailer: testo alternativo e dominio del sito nel Message-ID', array( true, 'wvoce.it' ), array( false !== strpos( $vv_pm->AltBody, 'Ciao <Laura>' ), $vv_pm->Hostname ) );
+vv_email_phpmailer( $vv_pm );
+uguale( 'PHPMailer: il testo non passa all\'email seguente', '', $vv_pm->AltBody );
+$vv_mail = vv_email_avvolgi( array( 'subject' => 'Nuova iscrizione', 'message' => '<p>Nome: <strong>Laura</strong></p><p><a href="https://wvoce.it/">Sito</a></p>', 'headers' => array( 'From: VivaVoce <info@wvoce.it>', 'Content-Type: text/html; charset=UTF-8' ) ) );
+uguale( 'Email HTML (Forminator): frammento dentro il modello', true, false !== strpos( $vv_mail['message'], '<strong>Laura</strong>' ) && false !== strpos( $vv_mail['message'], 'logo-email.png' ) );
+uguale( 'Email HTML: intestazioni tenute, un solo Content-Type', array( 'From: VivaVoce <info@wvoce.it>', 'Content-Type: text/html; charset=UTF-8' ), $vv_mail['headers'] );
+uguale( 'Email HTML: testo ricavato con i link', "Nome: Laura\nSito (https://wvoce.it/)", strstr( vv_email_testo(), "\n\n--", true ) );
+$vv_doc = array( 'subject' => 'X', 'message' => '<html><body>già impaginata</body></html>', 'headers' => '' );
+uguale( 'Email già impaginata: invariata, senza testo alternativo', array( $vv_doc, '' ), array( vv_email_avvolgi( $vv_doc ), vv_email_testo() ) );
 
 // Lettere decorative incollate dai social
 uguale( 'Lettere decorative', '<strong class="vv-plain">Voce</strong> e testo', vv_plain_letters( '𝕍𝕠𝕔𝕖 e testo' ) );

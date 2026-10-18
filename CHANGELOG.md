@@ -2,6 +2,16 @@
 
 Storia del tema VivaVoce Classic, dalla versione più recente. La guida d'uso è nel README.
 
+## Versione 0.13.0: email con il marchio VivaVoce
+
+- **Tutte le email del sito con lo stesso aspetto** (`inc/email.php`): quelle del tema ("Riprendi i miei dati"), le notifiche di Forminator a chi si iscrive e alla segreteria, Contact Form 7 e le email di WordPress. Header giallo con il logo (`assets/img/logo-email.png`, PNG perché Outlook non mostra il WebP), corpo bianco, piè di pagina con ragione sociale, sede, email, sito, social e informativa privacy, presi dal Customizer. Le email scritte come testo semplice diventano paragrafi con i link cliccabili; quelle già in HTML (Forminator) entrano nel modello così come sono; un'email che è già un documento HTML completo resta com'è.
+- **Meno probabilità di finire nello spam**, per la parte che dipende dal messaggio: ogni email ha anche la versione in solo testo (multipart/alternative), l'HTML ha lingua, charset e titolo, un testo d'anteprima, solo link al dominio del sito, e il Message-ID usa il dominio wvoce.it invece del nome interno del server.
+- **Test:** 192 controlli.
+
+Da fare:
+1. DNS di wvoce.it: la posta è su Google Workspace (MX e DKIM di Google), ma il record SPF autorizza solo Mailjet e OVH. Va aggiunto Google: `v=spf1 include:_spf.google.com include:spf.mailjet.com include:mx.ovh.com ~all` (togliendo i servizi che non si usano più).
+2. Provare un invio verso l'indirizzo di mail-tester.com da WP Mail SMTP → Strumenti → Email di prova, e controllare il punteggio.
+
 ## Versione 0.12.0: rinnovo dell'iscrizione senza ricompilare tutto
 
 - **"Riprendi i miei dati" nel modulo dei soci.** Sotto il codice fiscale c'è un pulsante per chi si è già iscritto in passato. Il sito cerca l'ultima iscrizione con quel codice fiscale negli ultimi tre anni sociali e scrive all'indirizzo email di quell'iscrizione:
