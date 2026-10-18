@@ -26,11 +26,7 @@ require VV_DIR . '/inc/breadcrumbs.php';
 require VV_DIR . '/inc/single.php';
 require VV_DIR . '/inc/page.php';
 require VV_DIR . '/inc/redirects.php';
-require VV_DIR . '/inc/forminator.php';
-require VV_DIR . '/inc/sheets.php';
-if ( is_admin() ) {
-	require VV_DIR . '/inc/sheets-admin.php';
-}
+require VV_DIR . '/inc/iscrizioni.php';
 
 /**
  * Fogli di stile e script del tema.

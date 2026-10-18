@@ -1,7 +1,8 @@
 <?php
 /**
- * Test delle funzioni del tema che non hanno bisogno di WordPress (codice fiscale, fogli dei soci e dei corsi,
- * date, meta_query, lettere decorative). Si lanciano con: php tests/run.php
+ * Test delle funzioni del tema che non hanno bisogno di WordPress (date e ordine degli eventi,
+ * meta_query, contenuti, dati strutturati, email, passaggio delle iscrizioni al plugin wvoce-iscrizioni).
+ * Si lanciano con: php tests/run.php
  *
  * Le poche funzioni di WordPress che servono sono imitate qui sotto, nel modo più semplice.
  *
@@ -183,8 +184,7 @@ require dirname( __DIR__ ) . '/inc/contenuti.php';
 require dirname( __DIR__ ) . '/inc/condivisione.php';
 require dirname( __DIR__ ) . '/inc/dati-strutturati.php';
 require dirname( __DIR__ ) . '/inc/email.php';
-require dirname( __DIR__ ) . '/inc/forminator.php';
-require dirname( __DIR__ ) . '/inc/sheets.php';
+require dirname( __DIR__ ) . '/inc/iscrizioni.php';
 
 $vv_falliti = 0;
 $vv_totale  = 0;
@@ -203,311 +203,6 @@ function uguale( $nome, $atteso, $ottenuto ) {
 	++$vv_falliti;
 	echo "FALLITO: {$nome}\n  atteso:   " . var_export( $atteso, true ) . "\n  ottenuto: " . var_export( $ottenuto, true ) . "\n";
 }
-
-// Codice fiscale
-uguale( 'CF valido', true, vv_codice_fiscale_valido( 'RSSMRA85T10A562S' ) );
-uguale( 'CF valido, minuscolo e con spazi', true, vv_codice_fiscale_valido( ' rssmra85t10a562s ' ) );
-uguale( 'CF con omocodia', true, vv_codice_fiscale_valido( 'RSSMRA85T10A56NH' ) );
-uguale( 'CF con carattere di controllo sbagliato', false, vv_codice_fiscale_valido( 'RSSMRA85T10A562T' ) );
-uguale( 'CF troppo corto', false, vv_codice_fiscale_valido( 'RSSMRA85T10A562' ) );
-uguale( 'Partita IVA al posto del CF', false, vv_codice_fiscale_valido( '02441190507' ) );
-
-$errori = vv_forminator_check_cf( array(), 1617, array( array( 'name' => 'text-1', 'value' => 'RSSMRA85T10A562T' ) ) );
-uguale( 'Modulo 1617: CF sbagliato segnalato', array( array( 'text-1' => 'Controlla il codice fiscale: sono 16 lettere e numeri, come sulla tessera sanitaria.' ) ), $errori );
-uguale( 'Modulo 274: CF sbagliato segnalato', 1, count( vv_forminator_check_cf( array(), 274, array( array( 'name' => 'text-1', 'value' => 'RSSMRA85T10A562T' ) ) ) ) );
-uguale( 'Altro modulo: nessun controllo', array(), vv_forminator_check_cf( array(), 999, array( array( 'name' => 'text-1', 'value' => 'xxx' ) ) ) );
-
-// Foglio dei soci: tab dell'anno sociale (settembre-agosto) e data
-uguale( 'Tab di settembre', 'DomandeAmmissione 2026-2027', vv_soci_tab( '2026-09-01 00:00:00' ) );
-uguale( 'Tab di agosto', 'DomandeAmmissione 2025-2026', vv_soci_tab( '2026-08-31 23:59:59' ) );
-uguale( 'Tab di gennaio', 'DomandeAmmissione 2026-2027', vv_soci_tab( '2027-01-15 10:00:00' ) );
-uguale( 'Anno sociale: 31 agosto, 1° settembre, gennaio', array( 2025, 2026, 2026 ), array( vv_anno_sociale( '2026-08-31 23:59:59' ), vv_anno_sociale( '2026-09-01 00:00:00' ), vv_anno_sociale( '2027-01-15 10:00:00' ) ) );
-uguale( 'Data come l\'export di Forminator', 'Ott 5, 2026 @ 10:08 AM', vv_soci_data( '2026-10-05 10:08:00' ) );
-
-// Foglio dei soci: valori dei campi
-uguale( 'Consenso dato', 'TRUE', vv_sheets_valore( 'checked', 'consent-1' ) );
-uguale( 'Consenso assente', '', vv_sheets_valore( '', 'consent-1' ) );
-uguale( 'Parte di un indirizzo', 'Pisa', vv_sheets_valore( array( 'city' => ' Pisa ' ), 'address-1', 'city' ) );
-uguale( 'Data a tendina', '07/03/1990', vv_sheets_valore( array( 'day' => '7', 'month' => '3', 'year' => '1990' ), 'date-1' ) );
-uguale( 'Caselle', 'Teatro, Letture', vv_sheets_valore( array( 'Teatro', '', 'Letture' ), 'checkbox-2' ) );
-uguale( 'File caricato', 'https://esempio.it/a.pdf', vv_sheets_valore( array( 'file' => array( 'file_url' => 'https://esempio.it/a.pdf' ) ), 'upload-1' ) );
-uguale( 'Codice fiscale in maiuscolo', 'RSSMRA85T10A562S', vv_sheets_valore( 'rssmra85t10a562s', 'text-1' ) );
-uguale( 'Tag HTML tolti', 'Mario', vv_sheets_valore( '<b>Mario</b>', 'name-1' ) );
-
-$entry = (object) array(
-	'form_id'          => 274,
-	'entry_id'         => 12,
-	'date_created_sql' => '2026-10-05 10:08:00',
-	'meta_data'        => array(
-		'name-1' => array( 'value' => 'Maria' ),
-		'text-1' => array( 'value' => 'rssmra85t10a562s' ),
-	),
-);
-$riga  = vv_soci_riga( $entry );
-uguale( 'Riga: riferimento', 'F274-12', $riga['Rif.'] );
-uguale( 'Riga: tab', 'DomandeAmmissione 2026-2027', $riga['_tab'] );
-uguale( 'Riga: nome', 'Maria', $riga['Nome'] );
-uguale( 'Riga: colonna senza valore', '', $riga['Cognome'] );
-uguale( 'Riga: tutte le colonne', count( vv_soci_colonne() ) + 3, count( $riga ) );
-
-// Modulo dei corsi: struttura letta da Forminator (solo per i test)
-class Forminator_API {
-	public static $entries = array();
-	public static $campi   = array();
-	public static function get_entries( $form ) {
-		return self::$entries;
-	}
-	public static function get_form_fields( $form ) {
-		return self::$campi;
-	}
-	public static function get_entry( $form, $id ) {
-		foreach ( self::$entries as $e ) {
-			if ( (int) $e->entry_id === (int) $id ) {
-				return $e;
-			}
-		}
-		return null;
-	}
-}
-$vv_opzioni_1617 = array(
-	'Adulti: Laboratorio di lettura ad alta voce corale, ottobre-dicembre 2026 (martedì 18.30-20.30)',
-	'Adulti: Laboratorio di tecniche attoriali, ottobre-dicembre 2026 (giovedì 18.30-20.30)',
-	'Adulti: Laboratorio di messa in scena, gennaio-giugno 2027 (giovedì 18.30-20.30)',
-	'Bambini (elementari): Il gioco del teatro, ottobre-dicembre 2026',
-);
-Forminator_API::$campi = array(
-	array( 'element_id' => 'name-1', 'field_label' => 'Nome', 'type' => 'name' ),
-	array(
-		'element_id'  => 'checkbox-1',
-		'field_label' => 'Corso',
-		'type'        => 'checkbox',
-		'options'     => array_map( static fn( $o ) => array( 'label' => $o, 'value' => $o ), $vv_opzioni_1617 ),
-	),
-);
-uguale( 'Opzioni del corso lette dal modulo', $vv_opzioni_1617, vv_corsi_opzioni() );
-
-// Foglio dei corsi: righe di un'iscrizione, una per corso, il tab lo sceglie il foglio
-$vv_corsi_entry = static function ( $corso ) {
-	return (object) array(
-		'form_id'          => 1617,
-		'entry_id'         => 40,
-		'date_created_sql' => '2026-10-05 10:08:00',
-		'meta_data'        => array(
-			'text-1'     => array( 'value' => 'rssmra85t10a562s' ),
-			'checkbox-1' => array( 'value' => $corso ),
-		),
-	);
-};
-$righe = vv_corsi_righe( $vv_corsi_entry( 'Tecnica attoriale' ) );
-uguale( 'Corso singolo: una riga', 1, count( $righe ) );
-uguale( 'Corso singolo: testo del corso', 'Tecnica attoriale', $righe[0]['Corso'] );
-uguale( 'Corso singolo: Rif.', 'F1617-40', $righe[0]['Rif.'] );
-uguale( 'Corso singolo: codice fiscale', 'RSSMRA85T10A562S', $righe[0]['Codice Fiscale'] );
-uguale( 'Corso singolo: campo vuoto, colonna vuota', '', $righe[0]['Nome'] );
-uguale( 'Corso singolo: chiavi, nessun _tab', array_merge( array( 'Rif.' ), array_keys( vv_corsi_colonne() ), array( 'Corso' ) ), array_keys( $righe[0] ) );
-$righe = vv_corsi_righe( $vv_corsi_entry( array( 'Lettura', 'Canto', 'Lettura' ) ) );
-uguale( 'Più corsi: una riga per corso, senza ripetizioni', array( 'Lettura', 'Canto' ), array_column( $righe, 'Corso' ) );
-uguale( 'Più corsi: stesso Rif.', array( 'F1617-40', 'F1617-40' ), array_column( $righe, 'Rif.' ) );
-$righe = vv_corsi_righe( $vv_corsi_entry( $vv_opzioni_1617[2] . ', ' . $vv_opzioni_1617[1] ) );
-uguale( 'Caselle unite in un testo: opzioni del modulo', array( $vv_opzioni_1617[2], $vv_opzioni_1617[1] ), array_column( $righe, 'Corso' ) );
-uguale(
-	'Testo unito: opzione contenuta in un\'altra non trovata due volte',
-	array( 'Il gioco del teatro avanzato', 'Dizione' ),
-	vv_corsi_scelti( 'Il gioco del teatro avanzato, Dizione', array( 'Il gioco del teatro', 'Il gioco del teatro avanzato', 'Dizione' ) )
-);
-uguale(
-	'Testo unito: opzione corta e lunga scelte entrambe',
-	array( 'Il gioco del teatro avanzato', 'Il gioco del teatro' ),
-	vv_corsi_scelti( 'Il gioco del teatro avanzato, Il gioco del teatro', array( 'Il gioco del teatro', 'Il gioco del teatro avanzato' ) )
-);
-uguale( 'Testo unito senza opzioni note: un corso', array( 'Dizione, Canto' ), vv_corsi_scelti( 'Dizione, Canto', array() ) );
-uguale( 'Nessun corso: una riga con Corso vuoto', array( '' ), array_column( vv_corsi_righe( $vv_corsi_entry( '' ) ), 'Corso' ) );
-uguale(
-	'Modulo 1617: colonne',
-	array( 'name-1', 'name-2', 'text-1', 'email-1', 'phone-2', 'upload-1', 'consent-1', 'consent-2', 'consent-3', 'textarea-1' ),
-	array_values( vv_corsi_colonne() )
-);
-
-// Foglio dei corsi: tab secondo il tab "configurazioni" (come lo script)
-$vv_mappa = array(
-	'mappa' => array(
-		$vv_opzioni_1617[0] => 'lettura-ad-alta-voce-2026',
-		$vv_opzioni_1617[3] => 'gioco-del-teatro-2026',
-		'Dizione'           => 'dizione-2027',
-	),
-	'tab'   => array( 'lettura-ad-alta-voce-2026', 'gioco-del-teatro-2026', 'configurazioni' ),
-);
-uguale( 'Normalizza: accenti, maiuscole, spazi', 'adulti: lettura e perche', vv_corsi_normalizza( "  Adulti:  Lettura\tè PERCHÉ " ) );
-uguale( 'Normalizza: spazio non separabile, come lo script', 'adulti: lettura', vv_corsi_normalizza( "Adulti:\u{00A0}Lettura" ) );
-uguale( 'Normalizza: maiuscole oltre l\'ASCII', 'ðorð', vv_corsi_normalizza( 'ÐORÐ' ) );
-uguale( 'Mappa: corso noto', 'lettura-ad-alta-voce-2026', vv_corsi_tab( $vv_opzioni_1617[0], $vv_mappa ) );
-uguale( 'Mappa: scritto in altro modo', 'gioco-del-teatro-2026', vv_corsi_tab( strtoupper( 'Bambini (elementari): Il gioco del teatro,  ottobre-dicembre 2026' ), $vv_mappa ) );
-uguale( 'Mappa: corso assente', 'Da smistare', vv_corsi_tab( $vv_opzioni_1617[1], $vv_mappa ) );
-uguale( 'Mappa: tab inesistente', 'Da smistare', vv_corsi_tab( 'Dizione', $vv_mappa ) );
-uguale( 'Mappa: corso vuoto', 'Da smistare', vv_corsi_tab( '', $vv_mappa ) );
-uguale( 'Mappa: tab "configurazioni" non è di un corso', 'Da smistare', vv_corsi_tab( 'Canto', array( 'mappa' => array( 'Canto' => 'configurazioni' ), 'tab' => array( 'configurazioni' ) ) ) );
-
-// Corsi riservati ai soci dell'anno: codice fiscale fra le iscrizioni del modulo dei soci
-$vv_socio = static function ( $id, $data, $cf, $extra = array() ) {
-	return (object) ( array( 'entry_id' => $id, 'date_created_sql' => $data, 'meta_data' => array( 'text-1' => array( 'value' => $cf ) ) ) + $extra );
-};
-$vv_cf_corso = static fn( $cf ) => vv_forminator_check_cf( array(), 1617, array( array( 'name' => 'text-1', 'value' => $cf ) ) );
-$vv_msg_socio = 'Questo codice fiscale manca ancora fra i soci 2026-2027: i corsi sono riservati ai soci. Prima occorre iscriversi all\'associazione con il <a href="https://wvoce.it/cosa-puoi-fare/diventa-socio/" target="_blank" rel="noopener">modulo di iscrizione a socio</a>, poi si torna a questa pagina.';
-Forminator_API::$entries = array(
-	$vv_socio( 1, '2026-09-03 18:00:00', ' rssmra85t10a562s ' ),
-	$vv_socio( 2, '2026-06-10 18:00:00', 'BNCLRA90A41G702N' ),
-	$vv_socio( 3, '2026-09-20 18:00:00', 'VRDGPP80A01H501U', array( 'is_spam' => 1 ) ),
-);
-uguale( 'Socio dell\'anno: iscrizione al corso accettata', array(), $vv_cf_corso( 'RSSMRA85T10A562S' ) );
-uguale( 'Socio dell\'anno precedente: errore con il link', array( array( 'text-1' => $vv_msg_socio ) ), $vv_cf_corso( 'BNCLRA90A41G702N' ) );
-uguale( 'Iscrizione a socio nello spam: errore', array( array( 'text-1' => $vv_msg_socio ) ), $vv_cf_corso( 'VRDGPP80A01H501U' ) );
-uguale( 'CF sbagliato: solo il messaggio sul formato', 1, count( $vv_cf_corso( 'RSSMRA85T10A562T' ) ) );
-uguale( 'Modulo soci: iscrizione dell\'anno precedente, si rinnova', array(), vv_forminator_check_cf( array(), 274, array( array( 'name' => 'text-1', 'value' => 'BNCLRA90A41G702N' ) ) ) );
-$vv_msg_doppio = 'Questo codice fiscale risulta già fra i soci 2026-2027: l\'iscrizione di quest\'anno è già registrata in anagrafica. Per domande o per correggere i dati scrivi a <a href="mailto:info@wvoce.it">info@wvoce.it</a>.';
-$vv_cf_socio   = static fn( $cf ) => vv_forminator_check_cf( array(), 274, array( array( 'name' => 'text-1', 'value' => $cf ) ) );
-uguale( 'Modulo soci: già iscritto quest\'anno, errore con l\'email', array( array( 'text-1' => $vv_msg_doppio ) ), $vv_cf_socio( 'RSSMRA85T10A562S' ) );
-uguale( 'Modulo soci: CF minuscolo con spazi riconosciuto', array( array( 'text-1' => $vv_msg_doppio ) ), $vv_cf_socio( 'rssmra85t10a562s ' ) );
-uguale( 'Modulo soci: iscrizione nello spam, si iscrive', array(), $vv_cf_socio( 'VRDGPP80A01H501U' ) );
-$vv_adesso = '2026-08-20 10:00:00';
-uguale( 'Agosto: vale ancora l\'anno precedente', array(), $vv_cf_corso( 'BNCLRA90A41G702N' ) );
-$vv_adesso = '2026-10-07 10:00:00';
-Forminator_API::$entries = array();
-
-// Controlli dei moduli: seguono il modulo scelto nel pannello, non un numero scritto nel codice
-uguale( 'Moduli predefiniti: corsi e soci', array( 1617 => 'richiesto', 274 => 'unico' ), vv_forminator_moduli() );
-$vv_opzioni['vv_corsi_impostazioni'] = array( 'form' => 1800 );
-uguale( 'Modulo dei corsi cambiato: CF controllato sul nuovo', 1, count( vv_forminator_check_cf( array(), 1800, array( array( 'name' => 'text-1', 'value' => 'RSSMRA85T10A562T' ) ) ) ) );
-uguale( 'Modulo dei corsi cambiato: socio richiesto sul nuovo', array( 1800 => 'richiesto', 274 => 'unico' ), vv_forminator_moduli() );
-uguale( 'Modulo dei corsi cambiato: il vecchio non si controlla più', array(), vv_forminator_check_cf( array(), 1617, array( array( 'name' => 'text-1', 'value' => 'xxx' ) ) ) );
-unset( $vv_opzioni['vv_corsi_impostazioni'] );
-
-// Dal modulo dei soci a quello dei corsi: campi ripresi, codice nel rinvio, codice letto
-$vv_inviati = array(
-	array( 'name' => 'name-1', 'value' => 'Mario' ),
-	array( 'name' => 'name-2', 'value' => 'Rossi' ),
-	array( 'name' => 'text-1', 'value' => 'rssmra85t10a562t' ),
-	array( 'name' => 'email-1', 'value' => 'mario@example.com' ),
-	array( 'name' => 'phone-2', 'value' => '+39 333 1234567' ),
-	array( 'name' => 'address-1', 'value' => array( 'city' => 'Pisa' ) ),
-);
-$vv_ok = array( 'success' => true, 'url' => 'https://wvoce.it/cosa-puoi-fare/iscrizione-corso/' );
-vv_corso_tieni_campi( $vv_inviati, 1617 );
-uguale( 'Modulo dei corsi: campi non tenuti', array(), vv_corso_inviati() );
-uguale( 'Modulo dei corsi: risposta invariata', $vv_ok, vv_corso_rinvio( $vv_ok, 1617 ) );
-uguale( 'Campi inviati restituiti a Forminator', $vv_inviati, vv_corso_tieni_campi( $vv_inviati, 274 ) );
-uguale( 'Modulo dei soci: campi ripresi, CF maiuscolo', array( 'name-1' => 'Mario', 'name-2' => 'Rossi', 'text-1' => 'RSSMRA85T10A562T', 'email-1' => 'mario@example.com', 'phone-2' => '+39 333 1234567' ), vv_corso_inviati() );
-uguale( 'Senza rinvio: nessun codice', array( 'success' => true ), vv_corso_rinvio( array( 'success' => true ), 274 ) );
-uguale( 'Rinvio altrove: nessun codice', array( 'success' => true, 'url' => 'https://wvoce.it/grazie/' ), vv_corso_rinvio( array( 'success' => true, 'url' => 'https://wvoce.it/grazie/' ), 274 ) );
-uguale( 'Invio non riuscito: nessun codice', array( 'success' => false, 'url' => $vv_ok['url'] ), vv_corso_rinvio( array( 'success' => false, 'url' => $vv_ok['url'] ), 274 ) );
-$vv_rinvio = vv_corso_rinvio( $vv_ok, 274 );
-$vv_codice = preg_match( '/\?vv=([0-9a-f]{32})$/', $vv_rinvio['url'], $vv_m ) ? $vv_m[1] : '';
-uguale( 'Rinvio alla pagina dei corsi: codice nell\'indirizzo', 32, strlen( $vv_codice ) );
-uguale( 'Nell\'indirizzo solo il codice, niente dati', false, strpos( $vv_rinvio['url'], 'RSSMRA' ) );
-uguale( 'Codice valido: dati ripresi', 'RSSMRA85T10A562T', vv_corso_dati( $vv_codice )['text-1'] ?? '' );
-uguale( 'Pagina dei corsi senza la barra finale', true, vv_corso_e_pagina( 'https://wvoce.it/cosa-puoi-fare/iscrizione-corso' ) );
-uguale( 'Codice sconosciuto', null, vv_corso_dati( str_repeat( 'a', 32 ) ) );
-uguale( 'Codice malformato', null, vv_corso_dati( '../x' ) );
-uguale( 'Dopo il rinvio i campi non restano per l\'invio seguente', array( 'success' => true, 'url' => $vv_ok['url'] ), vv_corso_rinvio( $vv_ok, 274 ) );
-
-// Impostazioni dal pannello
-$vv_opzioni = array();
-$c = vv_sheets_config( 'soci' );
-uguale( 'Soci: predefiniti', array( '', '', 274, '2026-09-01', 'VV_SOCI' ), array( $c['url'], $c['token'], $c['form'], $c['dal'], $c['prefisso'] ) );
-uguale( 'Soci: opzioni con i nomi nuovi', array( 'vv_soci_impostazioni', 'vv_soci_ultimo', 'vv_soci_stato', '' ), array( $c['impostazioni'], $c['ultimo'], $c['stato'], $c['inizio'] ) );
-$c = vv_sheets_config( 'corsi' );
-uguale( 'Corsi: modulo, opzioni, partenza dalle nuove', array( 1617, 'vv_corsi_ultimo', 'vv_corsi_stato', 'vv_corsi_inizio', '' ), array( $c['form'], $c['ultimo'], $c['stato'], $c['inizio'], $c['dal'] ) );
-uguale( 'Soci: una riga per iscrizione', array( vv_soci_riga( $entry ) ), vv_soci_righe( $entry ) );
-
-$avvisi = vv_sheets_salva_impostazioni( 'soci', array( 'url' => 'https://script.google.com/macros/s/abc/exec', 'token' => ' segreto ', 'form' => '274', 'dal' => '2026-09-15' ) );
-$c      = vv_sheets_config( 'soci' );
-uguale( 'Salvataggio: nessun avviso', array(), $avvisi );
-uguale( 'Salvataggio: valori', array( 'https://script.google.com/macros/s/abc/exec', 'segreto', 274, '2026-09-15' ), array( $c['url'], $c['token'], $c['form'], $c['dal'] ) );
-$vv_opzioni['vv_soci_ultimo'] = 50;
-$avvisi = vv_sheets_salva_impostazioni( 'soci', array( 'url' => 'https://esempio.it/x', 'token' => '', 'form' => '274', 'dal' => '15/09/2026' ) );
-$c      = vv_sheets_config( 'soci' );
-uguale( 'Salvataggio: codice vuoto, resta il salvato', 'segreto', $c['token'] );
-uguale( 'Salvataggio: data non valida, resta la precedente', '2026-09-15', $c['dal'] );
-uguale( 'Salvataggio: due avvisi (indirizzo insolito, data)', 2, count( $avvisi ) );
-uguale( 'Salvataggio: stesso modulo, punto raggiunto intatto', 50, $vv_opzioni['vv_soci_ultimo'] );
-vv_sheets_salva_impostazioni( 'soci', array( 'url' => '', 'form' => '300', 'dal' => '' ) );
-$c = vv_sheets_config( 'soci' );
-uguale( 'Salvataggio: modulo cambiato, si riparte', false, isset( $vv_opzioni['vv_soci_ultimo'] ) );
-uguale( 'Salvataggio: indirizzo vuoto, collegamento spento', false, vv_sheets_configurato( 'soci' ) );
-uguale( 'Salvataggio: data tolta', '', $c['dal'] );
-
-// Partenza dalle nuove: la prima volta si fissa l'iscrizione più recente
-$vv_opzioni = array();
-Forminator_API::$entries = array( (object) array( 'entry_id' => 7 ), (object) array( 'entry_id' => 31, 'is_spam' => 1 ), (object) array( 'entry_id' => 12 ) );
-uguale( 'Partenza dalle nuove: iscrizione più recente', 31, vv_sheets_ultimo( 'corsi' ) );
-uguale( 'Partenza dalle nuove: salvata', 31, $vv_opzioni['vv_corsi_inizio'] );
-Forminator_API::$entries[] = (object) array( 'entry_id' => 32, 'date_created_sql' => '2026-10-06 09:00:00' );
-uguale( 'Partenza dalle nuove: resta fissa', 31, vv_sheets_ultimo( 'corsi' ) );
-uguale( 'Partenza dalle nuove: parte solo la nuova', array( 32 ), array_map( static fn( $e ) => $e->entry_id, vv_sheets_iscrizioni( 'corsi' )['da_inviare'] ) );
-$vv_opzioni['vv_corsi_ultimo'] = 32;
-uguale( 'Dopo un invio conta l\'ultima confermata', 32, vv_sheets_ultimo( 'corsi' ) );
-uguale( 'Soci: si parte da zero', 0, vv_sheets_ultimo( 'soci' ) );
-
-// Modulo dei corsi cambiato (anno nuovo): si parte dalla prima iscrizione del modulo nuovo, comprese
-// quelle arrivate prima del cambio nel pannello
-$vv_opzioni = array( 'vv_corsi_ultimo' => 32, 'vv_corsi_inizio' => 31 );
-vv_sheets_salva_impostazioni( 'corsi', array( 'url' => 'https://script.google.com/macros/s/abc/exec', 'token' => 't', 'form' => '1800' ) );
-Forminator_API::$entries = array( (object) array( 'entry_id' => 3, 'date_created_sql' => '2026-08-20 10:00:00' ), (object) array( 'entry_id' => 5, 'date_created_sql' => '2026-08-21 10:00:00' ) );
-uguale( 'Modulo cambiato: partono tutte le iscrizioni del nuovo', array( 3, 5 ), array_map( static fn( $e ) => $e->entry_id, vv_sheets_iscrizioni( 'corsi' )['da_inviare'] ) );
-
-// Iscrizioni passate oltre perché bozze o spam: ripartono quando tornano valide
-$vv_opzioni = array( 'vv_soci_ultimo' => 10 );
-Forminator_API::$entries = array(
-	(object) array( 'form_id' => 274, 'entry_id' => 8, 'date_created_sql' => '2026-09-10 10:00:00', 'draft_id' => 'abc' ),
-	(object) array( 'form_id' => 274, 'entry_id' => 11, 'date_created_sql' => '2026-09-12 10:00:00' ),
-);
-uguale( 'Bozza sotto il punto raggiunto: in attesa', array( 11 ), array_map( static fn( $e ) => $e->entry_id, vv_sheets_iscrizioni( 'soci' )['da_inviare'] ) );
-uguale( 'Bozza sotto il punto raggiunto: annotata', array( 8 ), vv_sheets_iscrizioni( 'soci' )['sospese'] );
-$vv_opzioni['vv_soci_sospese'] = array( 8 );
-Forminator_API::$entries[0]->draft_id = '';
-uguale( 'Bozza completata: parte', array( 8, 11 ), array_map( static fn( $e ) => $e->entry_id, vv_sheets_iscrizioni( 'soci' )['da_inviare'] ) );
-// Invio: la ripresa non fa tornare indietro il punto raggiunto; se il foglio non risponde resta annotata
-$vv_opzioni['vv_soci_impostazioni'] = array( 'url' => 'https://script.google.com/macros/s/abc/exec', 'token' => 't' );
-$vv_risposta = array( 'ok' => false, 'errore' => 'foglio occupato' );
-vv_sheets_sync( 'soci' );
-uguale( 'Invio non riuscito: la ripresa resta annotata', array( 8 ), $vv_opzioni['vv_soci_sospese'] );
-uguale( 'Invio non riuscito: punto raggiunto fermo', 10, $vv_opzioni['vv_soci_ultimo'] );
-$vv_risposta = array( 'ok' => true, 'rif' => array( 'F274-8', 'F274-11' ) );
-uguale( 'Invio riuscito: due iscrizioni', 2, vv_sheets_sync( 'soci' )['inviate'] );
-uguale( 'Invio riuscito: punto raggiunto avanti, mai indietro', 11, $vv_opzioni['vv_soci_ultimo'] );
-uguale( 'Invio riuscito: nessuna sospesa', array(), $vv_opzioni['vv_soci_sospese'] );
-Forminator_API::$entries = array();
-
-// ID del foglio dal pannello, mandato allo script a ogni chiamata
-$vv_id = '1TvSREeUfoeAcA1uI3Hx9qpytOVUOMQQc5664DqwxUOw';
-uguale( 'ID dall\'indirizzo del foglio', $vv_id, vv_sheets_id_foglio( "https://docs.google.com/spreadsheets/d/{$vv_id}/edit#gid=0" ) );
-uguale( 'ID nudo', $vv_id, vv_sheets_id_foglio( " {$vv_id} " ) );
-uguale( 'ID non valido', '', vv_sheets_id_foglio( 'Albo Soci' ) );
-$vv_opzioni = array();
-uguale( 'Foglio: nessun avviso', array(), vv_sheets_salva_impostazioni( 'corsi', array( 'url' => 'https://script.google.com/macros/s/abc/exec', 'token' => 't', 'foglio' => "https://docs.google.com/spreadsheets/d/{$vv_id}/edit" ) ) );
-uguale( 'Foglio: salvato come ID', $vv_id, vv_sheets_config( 'corsi' )['foglio_id'] );
-uguale( 'Foglio: nome leggibile invariato', 'Iscrizione Corsi', vv_sheets_config( 'corsi' )['foglio'] );
-uguale( 'Foglio non valido: un avviso', 1, count( vv_sheets_salva_impostazioni( 'corsi', array( 'url' => 'https://script.google.com/macros/s/abc/exec', 'foglio' => 'boh' ) ) ) );
-uguale( 'Foglio non valido: resta il precedente', $vv_id, vv_sheets_config( 'corsi' )['foglio_id'] );
-$vv_risposta = array( 'ok' => true, 'foglio' => 'PROVA Iscrizione Corsi', 'rif' => array() );
-uguale( 'Verifica: nome del foglio raggiunto', 'PROVA Iscrizione Corsi', vv_sheets_verifica( 'corsi' ) );
-uguale( 'Richiesta: codice, foglio, righe', array( 'token' => 't', 'foglio' => $vv_id, 'righe' => array() ), end( $vv_richieste ) );
-vv_sheets_salva_impostazioni( 'corsi', array( 'url' => 'https://script.google.com/macros/s/abc/exec', 'foglio' => '' ) );
-vv_sheets_verifica( 'corsi' );
-uguale( 'Senza foglio: la richiesta lo omette', false, array_key_exists( 'foglio', end( $vv_richieste ) ) );
-$vv_risposta = array( 'ok' => true, 'rif' => array() );
-uguale( 'Verifica con uno script precedente: nome vuoto', '', vv_sheets_verifica( 'corsi' ) );
-$vv_http = array( 'code' => 302, 'body' => '' );
-uguale( 'Reindirizzamento senza indirizzo: errore chiaro', 'Il foglio ha risposto: risposta inattesa (HTTP 302 senza indirizzo)', vv_sheets_verifica( 'corsi' )->get_error_message() );
-$vv_http     = array( 'code' => 302, 'body' => '', 'headers' => array( 'location' => 'https://script.googleusercontent.com/echo' ) );
-$vv_risposta = array( 'ok' => true, 'foglio' => 'Iscrizione Corsi', 'rif' => array() );
-uguale( 'Reindirizzamento seguito con una GET', 'Iscrizione Corsi', vv_sheets_verifica( 'corsi' ) );
-$vv_http     = null;
-$vv_risposta = array( 'ok' => false, 'errore' => 'foglio non raggiungibile' );
-uguale( 'Verifica: errore dello script', 'Il foglio ha risposto: foglio non raggiungibile', vv_sheets_verifica( 'corsi' )->get_error_message() );
-
-// Script da copiare nel pannello
-uguale( 'Script dei soci disponibile', true, false !== strpos( vv_sheets_script( 'soci' ), "var PROPRIETA = 'VV_SOCI';" ) );
-uguale( 'Script dei corsi con il tab configurazioni', true, false !== strpos( vv_sheets_script( 'corsi' ), "var CONFIGURAZIONI = 'configurazioni';" ) );
 
 // Date degli eventi e slug
 uguale( 'Data valida', '2026-10-06', vv_sanitize_date( ' 2026-10-06 ' ) );
@@ -592,64 +287,6 @@ uguale( 'Evento: senza fine, dura un giorno', '2026-10-14', vv_ds_evento( array(
 uguale( 'Evento: senza luogo niente evento', array(), vv_ds_evento( array( 'luogo' => ' ' ) + $vv_ev ) );
 uguale( 'Evento: data non valida niente evento', array(), vv_ds_evento( array( 'inizio' => '14/10/2026' ) + $vv_ev ) );
 
-// Recupera i dati dell'ultima iscrizione: email all'indirizzo dell'ultima iscrizione, a video sempre lo stesso
-$vv_adesso    = '2026-10-07 10:00:00';
-$vv_transient = array();
-$vv_email     = array();
-$vv_iscritto  = static function ( $id, $data, $cf, $email, $extra = array() ) {
-	return (object) ( array(
-		'entry_id'         => $id,
-		'form_id'          => 274,
-		'date_created_sql' => $data,
-		'meta_data'        => array(
-			'text-1'    => array( 'value' => $cf ),
-			'email-1'   => array( 'value' => $email ),
-			'name-1'    => array( 'value' => 'Laura' ),
-			'radio-6'   => array( 'value' => 'individuo' ),
-			'address-1' => array( 'value' => array( 'street_address' => 'Via Roma 1', 'city' => 'Pisa', 'zip' => '56125' ) ),
-			'upload-1'  => array( 'value' => array( 'file' => array( 'file_url' => 'https://wvoce.it/ricevuta.pdf' ) ) ),
-			'consent-1' => array( 'value' => 'checked' ),
-			'radio-4'   => array( 'value' => 'autorizzo' ),
-		),
-	) + $extra );
-};
-Forminator_API::$entries = array(
-	$vv_iscritto( 40, '2024-10-01 10:00:00', 'BNCLRA90A41G702N', 'vecchia@example.com' ),
-	$vv_iscritto( 41, '2025-09-15 10:00:00', 'bnclra90a41g702n ', 'laura@example.com' ),
-	$vv_iscritto( 42, '2025-11-15 10:00:00', 'BNCLRA90A41G702N', 'spam@example.com', array( 'is_spam' => 1 ) ),
-	$vv_iscritto( 43, '2026-09-10 10:00:00', 'RSSMRA85T10A562S', 'mario@example.com' ),
-	$vv_iscritto( 44, '2022-10-01 10:00:00', 'VRDGPP80A01H501U', 'troppo@example.com' ),
-);
-uguale( 'Recupera: l\'iscrizione più recente, non spam', 41, vv_socio_ultima_iscrizione( 'BNCLRA90A41G702N', $vv_adesso )->entry_id ?? 0 );
-uguale( 'Recupera: oltre tre anni sociali non si cerca', null, vv_socio_ultima_iscrizione( 'VRDGPP80A01H501U', $vv_adesso ) );
-$vv_ripresi = vv_socio_dati_recuperati( Forminator_API::$entries[1] );
-uguale( 'Recupera: anagrafica, CF maiuscolo, indirizzo per parti', array( 'radio-6' => 'individuo', 'name-1' => 'Laura', 'text-1' => 'BNCLRA90A41G702N', 'email-1' => 'laura@example.com', 'address-1-street_address' => 'Via Roma 1', 'address-1-city' => 'Pisa', 'address-1-zip' => '56125' ), $vv_ripresi );
-uguale( 'Recupera: ricevuta, accettazioni e autorizzazioni escluse', array(), array_intersect_key( $vv_ripresi, array_flip( array( 'upload-1', 'consent-1', 'radio-4' ) ) ) );
-uguale( 'Recupera: CF sbagliato', 'formato', vv_socio_richiesta( 'BNCLRA90A41G702X', '1.2.3.4', $vv_adesso ) );
-uguale( 'Recupera: CF sbagliato, nessuna email', array(), $vv_email );
-uguale( 'Recupera: CF sconosciuto, nessuna email', array( 'nessuno', array() ), array( vv_socio_richiesta( 'VRDGPP80A01H501U', '1.2.3.4', $vv_adesso ), $vv_email ) );
-uguale( 'Recupera: socio dell\'anno scorso, email con il link', 'link', vv_socio_richiesta( 'BNCLRA90A41G702N', '1.2.3.4', $vv_adesso ) );
-uguale( 'Recupera: all\'indirizzo dell\'ultima iscrizione', 'laura@example.com', $vv_email[0]['a'] ?? '' );
-$vv_codice = preg_match( '/vv-socio=([0-9a-f]{32})/', $vv_email[0]['testo'] ?? '', $vv_m ) ? $vv_m[1] : '';
-uguale( 'Recupera: nel link solo il codice', array( 32, false ), array( strlen( $vv_codice ), strpos( $vv_email[0]['testo'] ?? '', 'Via Roma' ) ) );
-uguale( 'Recupera: il link riapre il modulo con i dati', $vv_ripresi, vv_socio_dati( $vv_codice ) );
-uguale( 'Recupera: codice sconosciuto o malformato', array( null, null ), array( vv_socio_dati( str_repeat( 'b', 32 ) ), vv_socio_dati( '../x' ) ) );
-uguale( 'Recupera: seconda richiesta entro 5 minuti, nessuna email', array( 'attesa', 1 ), array( vv_socio_richiesta( 'BNCLRA90A41G702N', '1.2.3.4', $vv_adesso ), count( $vv_email ) ) );
-uguale( 'Recupera: già iscritto quest\'anno, email senza link', 'iscritto', vv_socio_richiesta( 'RSSMRA85T10A562S', '1.2.3.4', $vv_adesso ) );
-uguale( 'Recupera: email "già registrata" senza link', array( 'mario@example.com', false ), array( $vv_email[1]['a'] ?? '', strpos( $vv_email[1]['testo'] ?? '', 'vv-socio=' ) ) );
-Forminator_API::$entries[1]->is_spam = 1;
-uguale( 'Recupera: iscrizione spostata nello spam, il link non vale più', null, vv_socio_dati( $vv_codice ) );
-uguale( 'Recupera: quinta richiesta dallo stesso IP, ancora ammessa', 'nessuno', vv_socio_richiesta( 'VRDGPP80A01H501U', '1.2.3.4', $vv_adesso ) );
-uguale( 'Recupera: sesta richiesta dallo stesso IP, troppe', 'troppe', vv_socio_richiesta( 'VRDGPP80A01H501U', '1.2.3.4', $vv_adesso ) );
-uguale( 'Recupera: un altro IP può ancora', 'nessuno', vv_socio_richiesta( 'VRDGPP80A01H501U', '5.6.7.8', $vv_adesso ) );
-uguale( 'Recupera: stesso messaggio a video con o senza socio', vv_socio_messaggio( 'link' ), vv_socio_messaggio( 'nessuno' ) );
-uguale( 'Recupera: stesso messaggio anche se già iscritto o in attesa', array( vv_socio_messaggio( 'link' ), vv_socio_messaggio( 'link' ) ), array( vv_socio_messaggio( 'iscritto' ), vv_socio_messaggio( 'attesa' ) ) );
-$vv_admin = true;
-uguale( 'Recupera: agli amministratori l\'esito vero', array( true, true ), array( false !== strpos( vv_socio_messaggio( 'attesa' ), '5 minuti' ), vv_socio_messaggio( 'link' ) !== vv_socio_messaggio( 'nessuno' ) ) );
-$vv_admin = false;
-Forminator_API::$entries = array();
-$vv_transient = array();
-
 // Email con il marchio: modello HTML, versione in solo testo, Message-ID del dominio
 $vv_mail = vv_email_avvolgi( array( 'to' => 'a@example.com', 'subject' => 'Prova', 'message' => "Ciao <Laura>,\n\napri https://wvoce.it/x/?a=1\n\nVivaVoce", 'headers' => '' ) );
 uguale( 'Email di testo: documento HTML con lingua e titolo', array( true, true ), array( false !== strpos( $vv_mail['message'], '<html lang="it"' ), false !== strpos( $vv_mail['message'], '<title>Prova</title>' ) ) );
@@ -671,6 +308,24 @@ uguale( 'Email HTML: intestazioni tenute, un solo Content-Type', array( 'From: V
 uguale( 'Email HTML: testo ricavato con i link', "Nome: Laura\nSito (https://wvoce.it/)", strstr( vv_email_testo(), "\n\n--", true ) );
 $vv_doc = array( 'subject' => 'X', 'message' => '<html><body>già impaginata</body></html>', 'headers' => '' );
 uguale( 'Email già impaginata: invariata, senza testo alternativo', array( $vv_doc, '' ), array( vv_email_avvolgi( $vv_doc ), vv_email_testo() ) );
+
+// Passaggio delle iscrizioni al plugin: configurazione di VivaVoce e stato del tema
+$vv_opzioni = array(
+	'vv_soci_impostazioni'  => array( 'url' => 'https://script.google.com/macros/s/s/exec', 'token' => 'ts', 'form' => 274, 'dal' => '2026-09-01', 'foglio' => 'idsoci' ),
+	'vv_corsi_impostazioni' => array( 'url' => 'https://script.google.com/macros/s/c/exec', 'token' => 'tc', 'form' => 1617, 'foglio' => 'idcorsi' ),
+	'vv_soci_ultimo'        => 389,
+	'vv_corsi_ultimo'       => 1650,
+	'vv_corsi_inizio'       => 1600,
+	'vv_corsi_sospese'      => array( 1640 ),
+);
+$vv_conf    = vv_iscrizioni_configurazione();
+uguale( 'Passaggio: collegamenti con indirizzo, codice, foglio, modulo', array( 'ts', 'idsoci', 274, '2026-09-01', 'tc', 1617, '' ), array( $vv_conf['soci']['token'], $vv_conf['soci']['foglio'], $vv_conf['soci']['form'], $vv_conf['soci']['dal'], $vv_conf['corsi']['token'], $vv_conf['corsi']['form'], $vv_conf['corsi']['dal'] ) );
+uguale( 'Passaggio: stato dell\'invio, nessuna voce inventata', array( 'soci' => array( 'ultimo' => 389 ), 'corsi' => array( 'ultimo' => 1650, 'sospese' => array( 1640 ), 'inizio' => 1600 ) ), $vv_conf['stato'] );
+uguale( 'Passaggio: intestazioni del foglio dei soci di oggi', array( 21, array( 'address-2', 'state' ) ), array( count( $vv_conf['soci']['colonne'] ), $vv_conf['soci']['colonne']['ADDRESS - PROVINCIA DI NASCITA'] ) );
+uguale( 'Passaggio: tab e pagine di VivaVoce', array( 'DomandeAmmissione ', 'configurazioni', 'Da smistare', 9, 'https://wvoce.it/cosa-puoi-fare/diventa-socio/' ), array( $vv_conf['soci']['tab_prefisso'], $vv_conf['corsi']['tab_configurazioni'], $vv_conf['corsi']['tab_riserva'], $vv_conf['generali']['mese_inizio'], $vv_conf['generali']['pagina_soci'] ) );
+vv_iscrizioni_passaggio();
+uguale( 'Passaggio senza il plugin: niente da fare', false, isset( $vv_opzioni['vv_iscrizioni_passate'] ) );
+$vv_opzioni = array();
 
 // Lettere decorative incollate dai social
 uguale( 'Lettere decorative', '<strong class="vv-plain">Voce</strong> e testo', vv_plain_letters( '𝕍𝕠𝕔𝕖 e testo' ) );

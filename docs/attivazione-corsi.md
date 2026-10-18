@@ -1,5 +1,7 @@
 # Attivazione del foglio dei corsi: configurazione e collaudo
 
+> **Dalla 1.0.0 del tema** le iscrizioni sono del plugin wvoce-iscrizioni, pannello Strumenti → Iscrizioni. La procedura resta la stessa; i nomi `VV_CORSI_URL`, `VV_CORSI_TOKEN`, `VV_CORSI_FOGLIO`, `VV_CORSI_FORM`, `VV_CORSI_DAL` (e gli stessi con `VV_SOCI_`) corrispondono ai campi indirizzo dell'app web, codice segreto, foglio, modulo e data della scheda Collegamenti; il tab "Configurazione" è la scheda Collegamenti.
+
 Guida passo per passo per mettere in funzione la 0.9.1: le iscrizioni del modulo "Iscrizione ai corsi 2026-2027" (Forminator n. 1617, pagina `/iscrizione-corso/`) arrivano da sole nel foglio Google "VivaVoce / Iscrizione Corsi", un tab per corso, secondo il tab `configurazioni` del foglio.
 
 Il percorso ha tre tempi: collaudo su una copia del foglio, passaggio al foglio vero, controlli finali. Servono circa 45 minuti, con l'accesso da amministratore a WordPress e l'account Google che gestirà lo script (meglio quello dell'associazione). L'accesso FTP a `wp-config.php` serve solo per togliere le costanti delle versioni precedenti.
@@ -24,7 +26,7 @@ Il percorso ha tre tempi: collaudo su una copia del foglio, passaggio al foglio 
    | `messa-in-scena-2027` | Adulti: Laboratorio di messa in scena, gennaio-giugno 2027 (giovedì 18.30-20.30) |
    | `gioco-del-teatro-2026` | Bambini (elementari): Il gioco del teatro, ottobre-dicembre 2026 |
 
-   Il testo esatto delle opzioni si copia dal sito, Strumenti → Esporta iscrizioni → Iscrizioni corsi, tabella *Corsi e tab del foglio*.
+   Il testo esatto delle opzioni si copia dal sito, Strumenti → Iscrizioni → Invio corsi, tabella *Corsi e tab del foglio*.
 5. **Chi aggiorna dalla 0.8.** Annotare da `wp-config.php` i valori di `VV_SHEETS_URL`, `VV_SHEETS_TOKEN`, `VV_CORSI_URL`, `VV_CORSI_TOKEN`: dalla 0.9.0 il tema li ignora e vanno riscritti nel pannello.
 
 ## 1. Aggiornamento del tema sul sito
@@ -34,7 +36,7 @@ Il percorso ha tre tempi: collaudo su una copia del foglio, passaggio al foglio 
 2. WordPress → Aspetto → Temi → Aggiungi nuovo tema → Carica tema → scegliere lo zip → Installa ora.
 3. Alla domanda "Il tema è già installato", scegliere **Sostituisci quello attuale con quello caricato**.
 4. Controllo: Aspetto → Temi, il tema VivaVoce indica la versione **0.9.0**. Aprire la home e `/iscrizione-corso/`: l'aspetto resta quello di prima.
-5. Strumenti → **Esporta iscrizioni**: quattro tab (Configurazione, Iscrizioni soci, Iscrizioni corsi, Script Apps Script). Finché i valori mancano, i collegamenti risultano "spenti"; il punto raggiunto dalla 0.8 resta salvato.
+5. Strumenti → **Iscrizioni** (plugin wvoce-iscrizioni): schede Collegamenti, Campi e regole, Passaggio e recupero, Invio soci, Invio corsi, Script Apps Script. Finché i valori mancano, i collegamenti risultano "spenti".
 
 ## 2. Collaudo su una copia del foglio
 
@@ -44,7 +46,7 @@ Lo script è un **progetto autonomo nel Drive condiviso "VivaVoce - Archivio Dig
 
 1. Nel foglio vero (con il tab `configurazioni` del punto 0.4): File → Crea una copia. Nome, per esempio, "PROVA Iscrizione Corsi". Dall'indirizzo della copia annotare l'ID, cioè la parte fra `/d/` e `/edit`.
 2. In Google Drive → Drive condivisi → **VivaVoce - Archivio Digitale** (nella stessa cartella del progetto dei soci): Nuovo → Altro → **Google Apps Script**. Rinominare il progetto "wvoce.it - iscrizione corsi". In *Dettagli progetto* compare il proprietario "VivaVoce - Archivio Digitale" e nessun "Contenitore". Chi ha già il progetto dalla 0.8 lo riapre e passa al punto 3.
-3. Sul sito, Strumenti → Esporta iscrizioni → **Script Apps Script** → Foglio corsi → **Copia lo script**. Nell'editor, file `Codice.gs`: cancellare tutto e incollare così com'è (la riga `var ID_FOGLIO = '';` resta vuota). Salvare (icona del dischetto).
+3. Sul sito, Strumenti → Iscrizioni → **Script Apps Script** → Corsi → **Copia lo script**. Nell'editor, file `Codice.gs`: cancellare tutto e incollare così com'è (la riga `var ID_FOGLIO = '';` resta vuota). Salvare (icona del dischetto).
 4. Solo per un progetto nuovo: in alto, nel menu a tendina delle funzioni, scegliere **creaToken** e premere **Esegui**.
    - La prima volta Google chiede le autorizzazioni: Rivedi autorizzazioni → scegliere l'account → se compare "Google non ha verificato questa app": Avanzate → Vai a … (non sicuro) → Consenti. È lo script appena incollato, che chiede di modificare i fogli.
    - Nel registro di esecuzione, in basso, compare `VV_CORSI_TOKEN: …`: copiare il codice (64 caratteri).
@@ -58,7 +60,7 @@ Lo script è un **progetto autonomo nel Drive condiviso "VivaVoce - Archivio Dig
 
 ### 2.2 Valori nel pannello
 
-1. Strumenti → Esporta iscrizioni → **Configurazione** → riquadro *Foglio corsi*.
+1. Strumenti → Iscrizioni → **Collegamenti** → riquadro *Corsi*.
 2. `VV_CORSI_FOGLIO`: l'indirizzo della copia, copiato dalla barra del browser (basta anche il solo ID). `VV_CORSI_URL`: l'URL dell'app web. `VV_CORSI_TOKEN`: il codice di 64 caratteri. `VV_CORSI_FORM`: "n. 1617 — Iscrizione ai corsi 2026-2027". `VV_CORSI_DAL`: vuoto (i corsi partono comunque dalle iscrizioni nuove).
 3. Premere **Salva e verifica il collegamento**. Messaggio atteso: "risponde il foglio «PROVA Iscrizione Corsi», indirizzo, codice e foglio sono giusti": il nome conferma che il sito punta alla copia. Un errore indica la causa (foglio non raggiungibile, codice sbagliato, HTTP 401/403 per "Chi ha accesso", HTTP 404 per un URL errato).
 4. Stesso procedimento nel riquadro *Foglio soci* con l'indirizzo del foglio "Albo Soci" in `VV_SOCI_FOGLIO` e i valori di prima (`VV_SOCI_URL`, `VV_SOCI_TOKEN`). Se lo script dei soci era un progetto autonomo con `ID_FOGLIO` compilato, va incollata la versione nuova e pubblicata una Nuova versione del deployment.

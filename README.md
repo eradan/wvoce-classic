@@ -2,6 +2,8 @@
 
 Tema child di **Sydney 2.71** per wvoce.it, aspetto "classico" vicino al sito originale. Qui la guida d'uso; la storia delle versioni è in `CHANGELOG.md`.
 
+Le iscrizioni a socio e ai corsi (controlli sul codice fiscale, "Recupera i tuoi dati", copia nei fogli Google) sono del plugin **[wvoce-iscrizioni](https://github.com/eradan/wvoce-iscrizioni)**, configurato in Strumenti → Iscrizioni. Il tema ne adatta solo i colori (`assets/css/plugins.css`) e funziona anche senza.
+
 ## Struttura
 
 ```
@@ -23,10 +25,7 @@ inc/breadcrumbs.php       percorso in alto, dati strutturati, voce di menu della
 inc/single.php            articolo con colonna laterale, navigazione, altri soci fondatori
 inc/page.php              pagine con la colonna "In questa sezione", schemi a due colonne e con blocco finale
 inc/redirects.php         301 degli indirizzi spariti
-inc/forminator.php        codice fiscale e iscrizione a socio nei moduli Forminator, modulo dei corsi ricompilato dopo quello dei soci, "Recupera i tuoi dati" nel modulo dei soci
-inc/sheets.php            iscrizioni dei soci e dei corsi nei fogli Google
-inc/sheets-admin.php      Strumenti → Esporta iscrizioni (configurazione, stato, prova a secco, script)
-inc/apps-script/          script Apps Script dei fogli soci e corsi, da incollare nell'editor
+inc/iscrizioni.php        passaggio al plugin wvoce-iscrizioni della configurazione e dello stato delle iscrizioni (una volta)
 template-parts/           card.php, home-hero.php
 page-templates/           page-hub.php, page-elenco.php
 post-templates/           post_full.php ("Page builder ready" dei soci fondatori)
@@ -36,6 +35,6 @@ assets/fonts/             Poppins (self-hosted, licenza OFL)
 assets/img/               livelli dell'hero, faccine e scritta del footer, mano del "torna su"
 CHANGELOG.md              note di versione
 docs/                     bozza di informativa privacy, piani di lavoro
-tests/                    test senza WordPress (run.php) e senza Google (apps-script.js)
+tests/                    test senza WordPress (run.php)
 bin/build-zip.sh          zip del tema
 ```

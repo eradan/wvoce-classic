@@ -18,7 +18,7 @@ Dalla corrispondenza in `vv_soci_colonne()`:
 
 ## Cosa passa al foglio "Iscrizione Corsi"
 
-Dalla corrispondenza in `vv_corsi_colonne()` e `VV_CORSI_CAMPO`:
+Dalle colonne del foglio dei corsi impostate nel plugin wvoce-iscrizioni (Strumenti → Iscrizioni → Campi e regole):
 
 - **Dati anagrafici e di contatto:** nome, cognome, codice fiscale, email, cellulare.
 - **Corso scelto:** il tab in cui finisce la riga; per i corsi senza tab, il nome del corso (colonna "Corso" del tab "Da smistare").
@@ -53,4 +53,4 @@ Il passaggio avviene in HTTPS verso un'app web di Google Apps Script protetta da
 - **Registro dei trattamenti:** va aggiunta la voce "Google Sheets / Apps Script", con Google come responsabile.
 - **Ricevute di pagamento:** i file caricati con Forminator hanno un indirizzo pubblico. Per tenerle riservate conviene verificare le opzioni sui caricamenti della versione installata di Forminator, oppure proteggere `wp-content/uploads/forminator/` con una regola del server.
 - **Tab "Da smistare"** (corsi): va svuotato a mano, spostando le righe nel tab giusto; resta un tab del registro come gli altri.
-- **Fine del collegamento:** basta svuotare `VV_SOCI_URL` (soci) o `VV_CORSI_URL` (corsi) in Strumenti → Esporta iscrizioni → Configurazione e archiviare il deployment dell'app web.
+- **Fine del collegamento:** basta svuotare l'indirizzo dell'app web (soci o corsi) in Strumenti → Iscrizioni → Collegamenti e archiviare il deployment dell'app web.

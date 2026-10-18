@@ -2,21 +2,23 @@
 
 Storia del tema VivaVoce Classic, dalla versione più recente. La guida d'uso è nel README.
 
-## Versione 1.0.0: prima versione stabile
+## Versione 1.0.0: prima versione stabile, iscrizioni nel plugin wvoce-iscrizioni
 
 Il tema copre ormai tutto il sito di VivaVoce ed è in uso da settimane: da qui i numeri di versione seguono la regola consueta (1.0.x correzioni, 1.x novità compatibili, 2.0 cambiamenti che richiedono interventi sul sito).
 
-Novità di questa versione:
-- **"Recupera i tuoi dati": attesa fra due email allo stesso codice fiscale ridotta da 15 a 5 minuti**, per chi riprova subito pensando che qualcosa non abbia funzionato.
-- **Email più pulite per i filtri antispam:** tolto il testo d'anteprima nascosto, che SpamAssassin conta come trucco da spam (FONT_INVIS_MSGID, la penalità più pesante nella prova con mail-tester.com); un paragrafo che contiene solo un indirizzo diventa un pulsante giallo "Apri il link" (nella versione in solo testo resta l'indirizzo), così il testo del link non contrasta con l'indirizzo riscritto da un servizio che conta i clic. Da fare in Mailjet: disattivare il tracciamento di clic e aperture (Impostazioni account → Tracciamento).
-- **Esito vero per gli amministratori:** da loggati, dopo "Recupera i tuoi dati" il messaggio dice cosa è successo (link mandato, già iscritto quest'anno, email già mandata da pochi minuti, nessuna iscrizione trovata). I visitatori vedono sempre il messaggio neutro. Serve per le prove e per aiutare un socio che non riceve l'email.
+**Le iscrizioni passano al plugin [wvoce-iscrizioni](https://github.com/eradan/wvoce-iscrizioni)** (versione 1.0.0), indipendente dal tema e configurabile in Strumenti → Iscrizioni: codice fiscale controllato, socio richiesto per i corsi e unico per anno sociale, passaggio dal modulo dei soci a quello dei corsi, "Recupera i tuoi dati", copia nei fogli Google, compilazione automatica del browser. Dal tema escono `inc/forminator.php`, `inc/sheets.php`, `inc/sheets-admin.php`, `inc/apps-script/`, la parte dei moduli di `assets/js/vv.js` e i loro stili; restano la grafica dei moduli Forminator, il modello delle email (`inc/email.php`, che vale anche per le email del plugin) e i colori del plugin presi dai token del tema (`assets/css/plugins.css`). Il tema funziona anche senza il plugin.
 
-In sintesi, cosa fa il tema alla versione 1.0.0:
-- aspetto VivaVoce su Sydney, con tema chiaro e scuro, home con l'illustrazione animata, card, caroselli e archivi degli eventi;
-- moduli Forminator per soci e corsi: codice fiscale controllato, iscrizione a socio richiesta per i corsi e unica per anno sociale, passaggio dal modulo dei soci a quello dei corsi, "Recupera i tuoi dati" con conferma via email;
-- copia automatica delle iscrizioni nei fogli Google dei soci e dei corsi;
-- sito leggero (icone e immagini ottimizzate, miniature WebP) e descritto ai motori di ricerca (meta description, anteprime social, breadcrumb, dati strutturati di sito, associazione ed eventi);
-- email con il marchio VivaVoce e la versione in solo testo.
+- **Passaggio automatico** (`inc/iscrizioni.php`): al primo caricamento con il plugin attivo, il tema gli passa la configurazione di VivaVoce (moduli 274 e 1617, campi, le stesse colonne e gli stessi tab dei fogli, anno sociale da settembre, testi, pagine) e lo stato dell'invio ai fogli (punto raggiunto, iscrizioni sospese, partenza dei corsi), e spegne il vecchio giro del tema. Niente riparte da capo, i fogli non cambiano.
+- **"Recupera i tuoi dati"** (rispetto alla 0.13): attesa fra due email allo stesso codice fiscale ridotta da 15 a 5 minuti; esito vero per gli amministratori loggati; anteprima con `?wvi-socio-prova=` al posto di `?vv-socio-prova=`. I link mandati prima dell'aggiornamento (validi 24 ore) non valgono più: basta chiederne uno nuovo.
+- **Email più pulite per i filtri antispam:** tolto il testo d'anteprima nascosto, che SpamAssassin conta come trucco da spam (FONT_INVIS_MSGID, la penalità più pesante nella prova con mail-tester.com); un paragrafo che contiene solo un indirizzo diventa un pulsante giallo "Apri il link" (nella versione in solo testo resta l'indirizzo).
+- **Test:** 56 controlli nel tema; quelli sulle iscrizioni (124, più 21 sugli script Apps Script) sono passati al plugin.
+
+Da fare sul sito, nell'ordine:
+1. Plugin → Aggiungi nuovo → Carica plugin: `wvoce-iscrizioni.zip`, poi Attiva. Finché il tema è alla 0.13 il plugin resta fermo e lo segnala nel suo pannello.
+2. Aspetto → Temi: caricare il tema 1.0.0 (sostituisce quello installato). Al primo caricamento di una pagina il tema passa la configurazione al plugin.
+3. Strumenti → Iscrizioni: controllare le schede (collegamenti attivi, campi, colonne) e, in Invio soci / Invio corsi, la prova a secco.
+4. Facoltativo: incollare i nuovi script Apps Script (scheda Script) e pubblicare una Nuova versione del deployment. Gli script già pubblicati continuano a funzionare con gli stessi fogli.
+5. Mailjet: disattivare il tracciamento di clic e aperture (Impostazioni account → Tracciamento).
 
 ## Versione 0.13.2: "Recupera i tuoi dati"
 

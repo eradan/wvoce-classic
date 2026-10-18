@@ -260,50 +260,13 @@ body.vv-cookie-open {
 	color: var(--vv-testo-attivo) !important;
 }
 
-/* Modulo ricompilato: dall'iscrizione a socio ai corsi, o dall'ultima iscrizione (vv.js) */
-.vv-ricompila-avviso {
-	margin: 0 0 24px;
-	padding: 14px 18px;
-	background-color: var(--vv-fondo-card);
-	border-left: 4px solid var(--vv-link);
-	color: var(--vv-testo);
-	font-size: var(--vv-fs-piccolo);
-}
-
-/* Codice fiscale sbagliato, segnalato all'uscita dal campo (vv.js) */
-.vv-cf-errore {
-	margin: 6px 0 0;
-	color: var(--vv-errore);
-	font-size: var(--vv-fs-meta);
-}
-
-/* "Recupera i tuoi dati": link a destra sotto il codice fiscale del modulo dei soci; l'esito sotto la
- * riga, a tutta larghezza (vv.js) */
-.vv-recupera {
-	margin: 4px 0 0;
-	text-align: right;
-	font-size: var(--vv-fs-meta);
-	color: var(--vv-testo-2);
-}
-.vv-recupera__link {
-	color: var(--vv-link);
-	font-weight: 600;
-	text-decoration: underline;
-	text-underline-offset: 3px;
-}
-.vv-recupera__link:hover,
-.vv-recupera__link:focus-visible {
-	color: var(--vv-testo);
-}
-.vv-recupera__link[aria-disabled="true"] {
-	opacity: 0.6;
-	cursor: wait;
-}
-.vv-recupera__esito {
-	margin: 0 0 22px;
-	padding: 10px 14px;
-	background-color: var(--vv-fondo-card);
-	border-left: 3px solid var(--vv-link);
-	font-size: var(--vv-fs-meta);
-	color: var(--vv-testo);
+/* Plugin wvoce-iscrizioni (avvisi sopra i moduli, errore del codice fiscale, "Recupera i tuoi dati"):
+ * i suoi colori presi dai token del tema, chiaro e scuro */
+:root {
+	--wvi-accento: var(--vv-link);
+	--wvi-fondo: var(--vv-fondo-card);
+	--wvi-testo: var(--vv-testo);
+	--wvi-testo-2: var(--vv-testo-2);
+	--wvi-errore: var(--vv-errore);
+	--wvi-piccolo: var(--vv-fs-meta);
 }
