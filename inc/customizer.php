@@ -32,6 +32,7 @@ function vv_defaults() {
 		'vv_instagram'      => 'https://www.instagram.com/associazione_vivavoce/',
 		'vv_url_socio'      => home_url( '/cosa-puoi-fare/diventa-socio/' ),
 		'vv_url_donazione'  => home_url( '/cosa-puoi-fare/fai-una-donazione/' ),
+		'vv_img_5x1000'     => 0,
 	);
 }
 
@@ -129,6 +130,19 @@ function vv_customize_register( $wp_customize ) {
 		'section'     => 'vv_hero',
 		'label'       => 'Illustrazione',
 		'description' => 'Se vuota si usa la prima immagine dello slider di Sydney.',
+	) ) );
+
+	// "Diventa socio" e "Fai una donazione" in [vv_sostienici] usano l'immagine in evidenza delle loro pagine;
+	// il 5×1000 una pagina non ce l'ha.
+	$wp_customize->add_setting( 'vv_img_5x1000', array(
+		'default'           => 0,
+		'sanitize_callback' => 'absint',
+	) );
+	$wp_customize->add_control( new WP_Customize_Media_Control( $wp_customize, 'vv_img_5x1000', array(
+		'section'     => 'vv_dati',
+		'label'       => 'Immagine del 5×1000',
+		'description' => 'Nel riquadro del 5×1000 di "Sostienici". Gli altri due usano l\'immagine in evidenza delle pagine "Diventa socio" e "Fai una donazione".',
+		'mime_type'   => 'image',
 	) ) );
 }
 add_action( 'customize_register', 'vv_customize_register' );

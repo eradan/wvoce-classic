@@ -2,6 +2,22 @@
 
 Storia del tema VivaVoce Classic, dalla versione più recente. La guida d'uso è nel README.
 
+## Versione 1.1.0: agenda degli appuntamenti e rassegna stampa a titoli in home
+
+- **Agenda** (`[vv_cards … layout="agenda" lotto="3"]`): su telefono gli appuntamenti diventano righe compatte, miniatura a sinistra e titolo, data e luogo a destra, invece di un carosello che ne mostrava uno alla volta; da 768px restano le card a tre colonne. Si vedono le prime 3, il pulsante "Mostra altri appuntamenti" apre le successive 3 alla volta e porta il focus sulla prima comparsa; senza JavaScript si vedono tutte (`assets/js/vv.js`).
+- **Data a foglietto di calendario** sulla foto degli eventi con le date dell'evento: "13 NOV", "3–5 OTT", "OTT–DIC 2026" per i corsi (`vv_date_chip()` in `inc/cards.php`). Vale in home, in "In programma" e nelle pagine elenco; non nell'archivio per anno.
+- **Eventi conclusi riconoscibili:** una fascetta obliqua gialla "Completato" sull'angolo della foto, che resta a colori: d'estate, senza niente in programma, la home non sembra spenta. In home restano in coda, dopo quelli in programma (l'ordine c'era già).
+- **Rassegna stampa solo testo** (`variante="citazione"`): testata e data in alto, poi il titolo dell'articolo fra «». La scansione del ritaglio in miniatura non si leggeva; resta intera nella pagina dell'articolo.
+- **Una data sola sui ritagli:** anche nella pagina Rassegna stampa via la data dell'articolo, che spesso non coincideva con quella nella riga della testata.
+- **Foto nei riquadri di "Sostienici"** (`[vv_sostienici]`): "Diventa socio" e "Fai una donazione" mostrano in cima l'immagine in evidenza delle loro pagine (quelle del Customizer); il 5×1000, che una pagina non ce l'ha, la foto scelta nel nuovo campo Customizer → VivaVoce → Dati dell'associazione → "Immagine del 5×1000". Senza immagine il riquadro resta solo testo.
+- **Test:** 57 controlli.
+
+Da fare sul sito, nella pagina home (Pagine → Benvenuto):
+1. Appuntamenti: sostituire lo shortcode con `[vv_cards categoria="eventi" periodo="dal-3-mesi" numero="9" layout="agenda" lotto="3"]` e aggiungere sotto un paragrafo con il link "Tutto il programma →" a /in-programma/.
+2. Dicono di noi: sostituire lo shortcode con `[vv_cards categoria="rassegna-stampa" variante="citazione" numero="6" layout="carosello"]` (senza `autoplay`) e aggiungere sotto "Tutta la rassegna stampa →" a /category/rassegna-stampa/.
+3. Customizer → VivaVoce → Dati dell'associazione: scegliere l'"Immagine del 5×1000".
+4. Contenuti: l'estratto di "In viaggio con Marco Polo e Rustichello" è quello di "AI 2226"; "Corsi e laboratori 2026-2027" ripete i tre corsi in agenda (togliergli le date dell'evento se non deve comparire).
+
 ## Versione 1.0.1: tolti i pezzi di transizione
 
 - **Tolto il passaggio una tantum al plugin** (`inc/iscrizioni.php`): sul sito ha già passato configurazione e stato delle iscrizioni al plugin wvoce-iscrizioni, e il tema non conosce più l'interno del plugin. L'opzione `vv_iscrizioni_passate` resta nel database, innocua.

@@ -11,6 +11,11 @@
  *                                        anche quelli finiti da meno di 3 mesi, dopo i prossimi; senza nessuno, gli "In evidenza"
  *                                        (con periodo="futuro", invece, una frase "niente in programma").
  *                                        autoplay="si": il carosello scorre da solo (con pausa)
+ *   [vv_cards categoria="eventi" periodo="dal-3-mesi" numero="9" layout="agenda" lotto="3"]
+ *                                        agenda: righe compatte su telefono, griglia sopra; lotto="3" ne mostra 3 e poi
+ *                                        "Mostra altri" ne apre altre 3 alla volta
+ *   [vv_cards categoria="rassegna-stampa" variante="citazione" numero="6" layout="carosello"]
+ *                                        ritagli solo testo: testata e data, poi il titolo fra virgolette
  *   [vv_sottopagine]                     card delle pagine figlie della pagina corrente
  *   [vv_elenco categoria="laboratori"]   almeno 9 card grandi (in programma, poi le più recenti) + archivio per anno;
  *                                        senza date (progetti) un'unica griglia di schede
@@ -41,6 +46,7 @@ function vv_sc_cards( $atts ) {
 		'layout'      => 'griglia',
 		'periodo'     => '',
 		'autoplay'    => 'no',
+		'lotto'       => 0,
 	), $atts, 'vv_cards' );
 
 	// Articoli già mostrati da un [vv_cards] precedente nella stessa pagina.
@@ -96,8 +102,9 @@ function vv_sc_cards( $atts ) {
 	$shown = array_merge( $shown, wp_list_pluck( $posts, 'ID' ) );
 
 	$opts = array(
-		'layout'   => 'carosello' === $atts['layout'] ? 'carosello' : 'griglia',
+		'layout'   => in_array( $atts['layout'], array( 'carosello', 'agenda' ), true ) ? $atts['layout'] : 'griglia',
 		'autoplay' => 'si' === $atts['autoplay'],
+		'lotto'    => max( 0, (int) $atts['lotto'] ),
 	);
 	if ( $atts['colonne'] ) {
 		$opts['colonne'] = max( 1, min( 4, (int) $atts['colonne'] ) );
@@ -215,6 +222,18 @@ add_shortcode( 'vv_elenco', 'vv_sc_elenco' );
  * [vv_sostienici]
  */
 function vv_sc_sostienici() {
+	// Foto in cima ai riquadri: l'immagine in evidenza della pagina collegata; per il 5×1000 quella del Customizer.
+	$img  = array(
+		'class'   => 'vv-card__img',
+		'loading' => 'lazy',
+		'alt'     => '',
+		'sizes'   => '(max-width: 991px) 100vw, 380px',
+	);
+	$page = static function ( $url ) use ( $img ) {
+		$id = url_to_postid( $url );
+		return $id ? get_the_post_thumbnail( $id, 'vv-card', $img ) : '';
+	};
+
 	$items = array(
 		array(
 			'accento' => 'giallo',
@@ -222,6 +241,7 @@ function vv_sc_sostienici() {
 			'testo'   => 'La tessera vale da settembre ad agosto e apre le porte a tutte le nostre attività.',
 			'link'    => vv_mod( 'vv_url_socio' ),
 			'azione'  => 'Iscriviti',
+			'foto'    => $page( vv_mod( 'vv_url_socio' ) ),
 		),
 		array(
 			'accento' => 'turchese',
@@ -229,19 +249,25 @@ function vv_sc_sostienici() {
 			'testo'   => 'Anche un piccolo contributo ci aiuta a portare letture e laboratori in città.',
 			'link'    => vv_mod( 'vv_url_donazione' ),
 			'azione'  => 'Dona ora',
+			'foto'    => $page( vv_mod( 'vv_url_donazione' ) ),
 		),
 		array(
 			'accento' => 'rosso',
 			'titolo'  => 'Il tuo 5×1000',
 			'testo'   => 'Nella dichiarazione dei redditi scrivi il nostro codice fiscale:',
 			'cf'      => vv_mod( 'vv_cf' ),
+			'foto'    => wp_get_attachment_image( (int) vv_mod( 'vv_img_5x1000' ), 'vv-card', false, $img ),
 		),
 	);
 
 	ob_start();
 	echo '<div class="vv-grid vv-grid--3 vv-sostienici">';
 	foreach ( $items as $item ) {
-		printf( '<div class="vv-card vv-card--cta vv-accent--%s"><div class="vv-card__body">', esc_attr( $item['accento'] ) );
+		printf( '<div class="vv-card vv-card--cta vv-accent--%s">', esc_attr( $item['accento'] ) );
+		if ( $item['foto'] ) {
+			echo '<div class="vv-card__media">' . $item['foto'] . '</div>'; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+		}
+		echo '<div class="vv-card__body">';
 		printf( '<h3 class="vv-card__title">%s</h3><p class="vv-card__text">%s</p>', esc_html( $item['titolo'] ), esc_html( $item['testo'] ) );
 		if ( ! empty( $item['cf'] ) ) {
 			echo vv_copy_value( $item['cf'], 'Copia il codice fiscale' ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped

@@ -1,4 +1,4 @@
-/* VivaVoce: testata che si stringe, switcher del tema, pulsanti "Copia" (CF, P.IVA, IBAN), caroselli, menu mobile. I moduli delle iscrizioni sono del plugin wvoce-iscrizioni. */
+/* VivaVoce: testata che si stringe, switcher del tema, pulsanti "Copia" (CF, P.IVA, IBAN), caroselli, agenda a lotti, menu mobile. I moduli delle iscrizioni sono del plugin wvoce-iscrizioni. */
 (function () {
 	'use strict';
 
@@ -190,6 +190,38 @@
 			sync();
 		});
 	}
+
+	// Agenda a lotti (data-vv-lotto="3"): si vedono le prime card, "Mostra altri" apre le successive un lotto
+	// alla volta e porta il focus sulla prima appena comparsa; finite le card, il pulsante sparisce.
+	document.querySelectorAll('[data-vv-lotto]').forEach(function (grid, n) {
+		var size = parseInt(grid.getAttribute('data-vv-lotto'), 10) || 0;
+		var cards = Array.prototype.slice.call(grid.children);
+		if (size < 1 || cards.length <= size) {
+			return;
+		}
+		cards.slice(size).forEach(function (card) {
+			card.hidden = true;
+		});
+		grid.id = grid.id || 'vv-lotti-' + n;
+		var bar = document.createElement('p');
+		bar.className = 'vv-lotti';
+		bar.innerHTML = '<button type="button" class="vv-button vv-button--ghost vv-lotti__altri" aria-controls="' + grid.id + '">Mostra altri appuntamenti</button>';
+		grid.parentNode.insertBefore(bar, grid.nextSibling);
+
+		bar.firstChild.addEventListener('click', function () {
+			var hidden = cards.filter(function (card) { return card.hidden; });
+			hidden.slice(0, size).forEach(function (card) {
+				card.hidden = false;
+			});
+			var link = hidden[0].querySelector('.vv-card__link');
+			if (link) {
+				link.focus();
+			}
+			if (hidden.length <= size) {
+				bar.remove();
+			}
+		});
+	});
 
 	// Caroselli: frecce precedente/successivo e contatore "1–3 di 18"
 	var reduceMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;

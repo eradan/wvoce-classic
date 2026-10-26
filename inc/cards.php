@@ -66,6 +66,31 @@ function vv_date_range_label( $start_ts, $end_ts ) {
 }
 
 /**
+ * Data a foglietto di calendario sulla foto della card: due righe brevi. Un giorno "13 / nov",
+ * più giorni nello stesso mese "3–5 / ott", a cavallo di due mesi "28 set / 3 ott"; oltre un
+ * mese, per i corsi, i mesi e l'anno: "ott–dic / 2026", "ott–giu / 26–27".
+ *
+ * @param array $dates Risultato di vv_event_dates().
+ * @return array{alto:string,basso:string}|null Null senza le date dell'evento.
+ */
+function vv_date_chip( $dates ) {
+	if ( empty( $dates['has_meta'] ) ) {
+		return null;
+	}
+	list( $start, $end ) = array( $dates['start'], $dates['end'] );
+	if ( wp_date( 'Y-m-d', $start ) === wp_date( 'Y-m-d', $end ) ) {
+		return array( 'alto' => wp_date( 'j', $start ), 'basso' => wp_date( 'M', $start ) );
+	}
+	if ( $end - $start <= 31 * DAY_IN_SECONDS ) {
+		return wp_date( 'Y-n', $start ) === wp_date( 'Y-n', $end )
+			? array( 'alto' => wp_date( 'j', $start ) . '–' . wp_date( 'j', $end ), 'basso' => wp_date( 'M', $start ) )
+			: array( 'alto' => wp_date( 'j M', $start ), 'basso' => wp_date( 'j M', $end ) );
+	}
+	$anni = wp_date( 'Y', $start ) === wp_date( 'Y', $end ) ? wp_date( 'Y', $start ) : wp_date( 'y', $start ) . '–' . wp_date( 'y', $end );
+	return array( 'alto' => wp_date( 'M', $start ) . '–' . wp_date( 'M', $end ), 'basso' => $anni );
+}
+
+/**
  * Eventi di un periodo, dalle date dell'evento (vv_data, vv_data_fine), non da quella di pubblicazione.
  * Prima quelli in programma, dal più vicino; poi quelli già passati, dal più recente.
  *
@@ -168,7 +193,8 @@ function vv_accent( $index ) {
  *
  * @param WP_Post[] $posts    Contenuti da mostrare.
  * @param string    $variante evento | persona | stampa | pagina.
- * @param array     $opts     colonne (int), titolo_livello (h2|h3), layout (griglia|carosello), autoplay (bool, solo carosello).
+ * @param array     $opts     colonne (int), titolo_livello (h2|h3), layout (griglia|carosello|agenda), autoplay (bool, solo
+ *                            carosello), lotto (int, solo agenda: quante card alla volta, le altre con "Mostra altri").
  * @return string HTML.
  */
 function vv_render_cards( $posts, $variante = 'evento', $opts = array() ) {
@@ -180,6 +206,7 @@ function vv_render_cards( $posts, $variante = 'evento', $opts = array() ) {
 		'titolo_livello' => 'h3',
 		'layout'         => 'griglia',
 		'autoplay'       => false,
+		'lotto'          => 0,
 	) );
 	$carousel = 'carosello' === $opts['layout'];
 
@@ -189,6 +216,10 @@ function vv_render_cards( $posts, $variante = 'evento', $opts = array() ) {
 		// il carosello scorre comunque col dito o la rotella.
 		echo '<div class="vv-carousel" data-vv-carousel' . ( $opts['autoplay'] ? ' data-vv-autoplay' : '' ) . '>';
 		printf( '<div class="vv-grid vv-grid--carosello vv-grid--%1$s" style="--vv-visibili:%2$d" tabindex="0" role="region" aria-label="%3$s">', esc_attr( $variante ), (int) $opts['colonne'], esc_attr__( 'Carosello: scorri per vedere altri contenuti', 'vivavoce' ) );
+	} elseif ( 'agenda' === $opts['layout'] ) {
+		// Righe compatte su telefono, griglia sopra (components.css). Escono tutte: vv.js nasconde quelle oltre
+		// il primo lotto e aggiunge "Mostra altri"; senza JavaScript si vedono tutte.
+		printf( '<div class="vv-grid vv-grid--%1$d vv-grid--%2$s vv-grid--agenda"%3$s>', (int) $opts['colonne'], esc_attr( $variante ), $opts['lotto'] > 0 ? ' data-vv-lotto="' . (int) $opts['lotto'] . '"' : '' );
 	} else {
 		printf( '<div class="vv-grid vv-grid--%1$d vv-grid--%2$s">', (int) $opts['colonne'], esc_attr( $variante ) );
 	}

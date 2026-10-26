@@ -217,6 +217,15 @@ uguale( 'Mese intero', '1–31 ottobre 2026', $vv_giorni( '2026-10-01', '2026-10
 uguale( 'Corso di una stagione', 'ott–dic 2026', $vv_giorni( '2026-10-01', '2026-12-15' ) );
 uguale( 'Corso su due anni', 'ott 2026 – mag 2027', $vv_giorni( '2026-10-01', '2027-05-31' ) );
 
+// Data a foglietto sulle card degli eventi
+$vv_chip = static fn( $da, $a ) => vv_date_chip( array( 'start' => strtotime( $da ), 'end' => strtotime( $a . ' 23:59:59' ), 'has_meta' => true ) );
+uguale( 'Foglietto: un giorno', array( 'alto' => '13', 'basso' => 'nov' ), $vv_chip( '2026-11-13', '2026-11-13' ) );
+uguale( 'Foglietto: più giorni nel mese', array( 'alto' => '3–5', 'basso' => 'ott' ), $vv_chip( '2026-10-03', '2026-10-05' ) );
+uguale( 'Foglietto: due mesi', array( 'alto' => '28 set', 'basso' => '3 ott' ), $vv_chip( '2026-09-28', '2026-10-03' ) );
+uguale( 'Foglietto: corso di una stagione', array( 'alto' => 'ott–dic', 'basso' => '2026' ), $vv_chip( '2026-10-01', '2026-12-15' ) );
+uguale( 'Foglietto: corso su due anni', array( 'alto' => 'ott–giu', 'basso' => '26–27' ), $vv_chip( '2026-10-01', '2027-06-30' ) );
+uguale( 'Foglietto: senza date dell\'evento', null, vv_date_chip( array( 'start' => 0, 'end' => 0, 'has_meta' => false ) ) );
+
 // meta_query: le condizioni si sommano, nessuna va persa
 $date = array( array( 'key' => 'vv_data', 'value' => '2026-10-06', 'compare' => '>=' ) );
 uguale( 'meta_query su argomenti vuoti', array( 'meta_query' => $date ), vv_add_meta_query( array(), $date ) );

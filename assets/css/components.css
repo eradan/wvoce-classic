@@ -160,13 +160,174 @@
 	font-size: var(--vv-fs-meta);
 }
 
-/* Sostienici: il margine interno è del riquadro, il testo resta intero */
-.vv-card--cta {
+/* Ritagli solo testo (variante citazione, home): testata e data in alto, poi il titolo fra «» (card.php).
+ * Niente foto: la scansione in piccolo non si legge, il ritaglio intero è nella pagina dell'articolo. */
+.vv-card--citazione .vv-card__body {
 	padding: var(--vv-s-3);
 }
+.vv-card--citazione .vv-card__source {
+	order: 0;
+	margin-bottom: var(--vv-s-1);
+	font-size: 13px;
+	font-weight: 600;
+	letter-spacing: 1px;
+	text-transform: uppercase;
+	color: var(--vv-testo-meta);
+}
+.vv-grid .vv-card--citazione .vv-card__title {
+	margin: 0;
+	font-size: var(--vv-fs-h3);
+	font-style: italic;
+	font-weight: 500;
+	line-height: 1.35;
+}
+.vv-card--citazione .vv-card__link {
+	color: var(--vv-testo) !important;
+}
+.vv-card--citazione .vv-card__link:hover {
+	color: var(--vv-link) !important;
+}
+
+/* Data a foglietto di calendario sulla foto degli eventi (vv_date_chip() in inc/cards.php):
+ * la parte alta grande, sotto il mese o l'anno. Fondo un po' trasparente e sfocato, senza filetto: non
+ * ripete la barretta della card e lascia intravedere la foto. */
+.vv-data-chip {
+	position: absolute;
+	top: 12px;
+	left: 12px;
+	z-index: 2;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	min-width: 60px;
+	padding: 6px 10px 7px;
+	background: var(--vv-fondo);	
+	background: color-mix(in srgb, var(--vv-fondo) 65%, transparent);
+	-webkit-backdrop-filter: blur(4px);
+	backdrop-filter: blur(4px);
+	color: var(--vv-testo);
+	box-shadow: 0 2px 8px rgb(var(--vv-ombra) / 0.2);
+	line-height: 1.1;
+	text-align: center;
+	text-transform: uppercase;
+	white-space: nowrap;
+	pointer-events: none; /* il clic passa al link della card */
+}
+.vv-data-chip__alto {
+	font-size: 22px;
+	font-weight: 700;
+}
+.vv-data-chip__basso {
+	margin-top: 2px;
+	font-size: 12px;
+	font-weight: 600;
+	letter-spacing: 1px;
+}
+
+/* Eventi già finiti: fascetta obliqua "Completato" sull'angolo in alto a destra, la foto resta a colori
+ * (d'estate, senza niente in programma, la home non deve sembrare spenta) */
+.vv-fascetta {
+	position: absolute;
+	top: 26px;
+	right: -42px;
+	z-index: 2;
+	width: 170px;
+	padding: 5px 0;
+	background: var(--vv-giallo);
+	color: var(--vv-testo-su-giallo);
+	box-shadow: 0 2px 6px rgb(var(--vv-ombra) / 0.3);
+	font-size: 12px;
+	font-weight: 700;
+	line-height: 1.4;
+	letter-spacing: 1px;
+	text-align: center;
+	text-transform: uppercase;
+	transform: rotate(45deg);
+	pointer-events: none; /* il clic passa al link della card */
+}
+/* Nell'archivio per anno è tutto passato: bastano foto, titolo e data */
+.vv-elenco--archivio .vv-data-chip,
+.vv-elenco--archivio .vv-fascetta {
+	display: none;
+}
+
+/* Agenda (layout="agenda"): su telefono righe compatte, miniatura con la data a sinistra e titolo,
+ * data e luogo a destra; da 768px la griglia di card, così un lotto da 3 è una riga.
+ * Le card oltre il lotto le nasconde vv.js con hidden: il display:flex della card lo annullerebbe. */
+.vv-grid--agenda > .vv-card[hidden] {
+	display: none;
+}
+.vv-lotti {
+	display: flex;
+	justify-content: center;
+	margin: 0 0 var(--vv-gap);
+}
+.vv-lotti__altri.vv-button {
+	background: transparent;
+	color: var(--vv-testo) !important;
+	cursor: pointer;
+}
+@media (max-width: 767px) {
+	.vv-grid--agenda {
+		grid-template-columns: minmax(0, 1fr);
+		gap: var(--vv-s-2);
+	}
+	.vv-grid--agenda > .vv-card {
+		flex-direction: row;
+	}
+	.vv-grid--agenda .vv-card__media {
+		flex: none;
+		width: 112px;
+		aspect-ratio: auto;
+		min-height: 112px;
+	}
+	.vv-grid--agenda .vv-card__body {
+		justify-content: center;
+		min-width: 0;
+		padding: 12px 14px;
+	}
+	.vv-grid--agenda .vv-card .vv-card__title {
+		font-size: 17px;
+		line-height: 1.3;
+	}
+	.vv-grid--agenda .vv-card__meta {
+		margin: 0;
+		font-size: 13px;
+	}
+	.vv-grid--agenda .vv-card__text,
+	.vv-grid--agenda .vv-badge {
+		display: none;
+	}
+	.vv-grid--agenda .vv-data-chip {
+		top: 8px;
+		left: 8px;
+		min-width: 0;
+		max-width: calc(100% - 16px);
+		padding: 4px 6px 5px;
+	}
+	.vv-grid--agenda .vv-data-chip__alto {
+		font-size: 17px;
+	}
+	.vv-grid--agenda .vv-data-chip__basso {
+		font-size: 11px;
+	}
+	/* Nella miniatura la fascetta va sull'angolo in basso a destra: in alto c'è la data */
+	.vv-grid--agenda .vv-fascetta {
+		top: auto;
+		right: -52px;
+		bottom: 20px;
+		width: 160px;
+		padding: 2px 0;
+		font-size: 9px;
+		letter-spacing: 0.5px;
+		transform: rotate(-45deg);
+	}
+}
+
+/* Sostienici: foto in cima (se c'è), il margine interno è del testo, che resta intero */
 .vv-card--cta .vv-card__body {
 	gap: 12px;
-	padding: 0;
+	padding: var(--vv-s-3);
 }
 .vv-grid .vv-card--cta .vv-card__title {
 	color: var(--vv-testo);
