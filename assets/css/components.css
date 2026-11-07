@@ -224,7 +224,7 @@
 	letter-spacing: 1px;
 }
 
-/* Eventi già finiti: fascetta obliqua "Completato" sull'angolo in alto a destra, la foto resta a colori
+/* Eventi già finiti: fascetta obliqua "Concluso" sull'angolo in alto a destra, la foto resta a colori
  * (d'estate, senza niente in programma, la home non deve sembrare spenta) */
 .vv-fascetta {
 	position: absolute;

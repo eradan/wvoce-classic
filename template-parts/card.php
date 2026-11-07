@@ -45,7 +45,7 @@ if ( 'post' === $vv_post->post_type && 'persona' !== $vv_variante && ! $vv_ritag
 	}
 }
 
-// Eventi: data a foglietto sulla foto; quelli già finiti hanno la fascetta "Completato" sull'angolo.
+// Eventi: data a foglietto sulla foto; quelli già finiti hanno la fascetta "Concluso" sull'angolo.
 $vv_badge    = '';
 $vv_chip     = null;
 $vv_concluso = false;
@@ -78,7 +78,7 @@ if ( $vv_concluso ) {
 				<span class="vv-badge"><?php echo esc_html( $vv_badge ); ?></span>
 			<?php endif; ?>
 			<?php if ( $vv_concluso ) : ?>
-				<span class="vv-fascetta">Completato</span>
+				<span class="vv-fascetta">Concluso</span>
 			<?php endif; ?>
 		</div>
 	<?php endif; ?>
