@@ -144,9 +144,10 @@ function vv_sc_sottopagine( $atts ) {
 add_shortcode( 'vv_sottopagine', 'vv_sc_sottopagine' );
 
 /**
- * Elenco delle "Pagine elenco": in alto almeno 9 card grandi, prima gli eventi in programma (dal più
- * vicino) e, se non bastano, i più recenti già passati; sotto il resto, anno per anno. Se nessun
- * articolo ha le date dell'evento (i progetti) è un'unica griglia di schede, senza anni.
+ * Elenco delle "Pagine elenco": in alto almeno 9 card grandi, prima gli eventi in programma e in corso
+ * e, se non bastano, i più recenti già passati (l'ordine di vv_ordina_eventi(), come in home); sotto il
+ * resto, anno per anno, dal più recente inizio. Se nessun articolo ha le date dell'evento (i progetti)
+ * è un'unica griglia di schede, senza anni.
  *
  * @param string $slugs Categorie (slug separati da virgola).
  * @return string HTML.
@@ -167,15 +168,15 @@ function vv_render_elenco( $slugs ) {
 		return '<section class="vv-elenco vv-elenco--schede">' . vv_render_cards( $posts, 'evento' ) . '</section>';
 	}
 
-	$min      = 9; // Card grandi in alto, almeno.
-	$now      = time();
+	$min = 9; // Card grandi in alto, almeno.
+	$now = time();
+	// Lo stesso ordine della home; un articolo senza date finisce fra i conclusi (la sua "fine" è la pubblicazione).
+	$items    = array_column( vv_ordina_eventi( array_map( static fn( $i ) => array( $i, $i['dates']['start'], $i['dates']['end'] ), $items ), $now ), 0 );
 	$upcoming = array_values( array_filter( $items, static fn( $i ) => $i['dates']['has_meta'] && $i['dates']['end'] >= $now ) );
 	$past     = array_values( array_filter( $items, static fn( $i ) => ! ( $i['dates']['has_meta'] && $i['dates']['end'] >= $now ) ) );
-	usort( $upcoming, static fn( $a, $b ) => $a['dates']['start'] <=> $b['dates']['start'] );
-	usort( $past, static fn( $a, $b ) => $b['dates']['end'] <=> $a['dates']['end'] );
-	$fill = array_slice( $past, 0, max( 0, $min - count( $upcoming ) ) );
-	$big  = array_merge( $upcoming, $fill );
-	$rest = array_slice( $past, count( $fill ) );
+	$fill     = array_slice( $past, 0, max( 0, $min - count( $upcoming ) ) );
+	$big      = array_merge( $upcoming, $fill );
+	$rest     = array_slice( $past, count( $fill ) );
 
 	if ( $upcoming && ! $fill ) {
 		$title = 'In programma';
@@ -198,7 +199,6 @@ function vv_render_elenco( $slugs ) {
 	if ( $archive ) {
 		echo '<section class="vv-elenco vv-elenco--archivio"><h2 class="vv-section-title">Archivio</h2>';
 		foreach ( $archive as $year => $year_items ) {
-			usort( $year_items, static fn( $a, $b ) => $b['dates']['start'] <=> $a['dates']['start'] );
 			printf( '<h3 class="vv-year">%s</h3>', esc_html( $year ) );
 			echo vv_render_cards( wp_list_pluck( $year_items, 'post' ), 'evento', array( 'colonne' => 4, 'titolo_livello' => 'h4' ) ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
 		}

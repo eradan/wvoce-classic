@@ -85,8 +85,8 @@ body .entry-content a:not(.button):not(.elementor-button-link):not(.wp-block-but
 .vv-button {
 	display: inline-block;
 	padding: 12px 30px;
-	background: var(--vv-giallo);
-	color: var(--vv-testo-su-giallo) !important;
+	background: var(--vv-primario-fondo);
+	color: var(--vv-testo-su-primario) !important;
 	border: 0;
 	border-radius: 0;
 	font-size: var(--vv-fs-meta);
@@ -101,12 +101,13 @@ body .entry-content a:not(.button):not(.elementor-button-link):not(.wp-block-but
  * (5,1:1) e bordo giallo, che li stacca dal turchese dell'illustrazione */
 .vv-button--ghost {
 	background: var(--vv-bianco);
-	box-shadow: inset 0 0 0 2px var(--vv-giallo);
+	box-shadow: inset 0 0 0 2px var(--vv-primario);
+	color: var(--vv-ghost-testo) !important;
 }
 .vv-button:hover,
 .vv-button:focus-visible {
 	background: var(--vv-fondo-attivo);
-	box-shadow: inset 0 0 0 2px var(--vv-giallo);
+	box-shadow: inset 0 0 0 2px var(--vv-primario);
 	color: var(--vv-testo-attivo) !important;
 }
 

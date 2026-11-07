@@ -6,9 +6,74 @@
  * - testata mobile (fino a 1024px) alta 64px.
  * "body" e "#masthead" servono a superare il CSS inline del Customizer. */
 
-/* Nel Customizer il colore dell'header "sticky" è vuoto: Sydney lo farebbe blu scuro. Resta giallo. */
-.main-header.sticky-active {
-	background-color: var(--vv-giallo) !important;
+/* Colori della testata dai ruoli della palette, non da quelli scritti a mano nel Customizer di
+ * Sydney (giallo, sottomenu turchesi, menu mobile turchese con testo #333): così li cambiano il tema
+ * scuro e le palette alternative. Il colore dell'header "sticky", vuoto nel Customizer, Sydney lo farebbe blu scuro. */
+body .main-header,
+body .header-search-form {
+	background: var(--vv-header-fondo) !important; /* un colore o un gradiente */
+}
+body .sydney-offcanvas-menu {
+	background-color: var(--vv-sottomenu-fondo);
+}
+body .sydney-offcanvas-menu,
+body .sydney-offcanvas-menu #mainnav a:not(.button),
+body .sydney-offcanvas-menu a:not(.button) {
+	color: var(--vv-sottomenu-testo);
+}
+body .sydney-offcanvas-menu svg {
+	fill: var(--vv-sottomenu-testo);
+}
+
+/* --- Decorazioni delle palette (token --vv-pallina, --vv-festone*: spenti se la palette non li
+ * accende). La pallina copre il pallino giallo della O di VOCE nel logo (600×230: centro 440,158,
+ * raggio 21; la pallina ha raggio 22,5 perché il giallo non si veda sul bordo). --- */
+body .site-branding > a {
+	position: relative;
+	display: inline-block;
+	line-height: 0;
+	vertical-align: middle;
+}
+body .site-branding > a::after {
+	content: "";
+	position: absolute;
+	left: 69.02%;
+	top: 54.02%;
+	width: 8.625%;
+	height: 25.92%;
+	background: var(--vv-pallina) center / 100% 100% no-repeat;
+	transform-origin: 50% 6%;
+	pointer-events: none;
+}
+/* Festone appeso sotto la testata, con un secondo strato dietro che brilla */
+body #masthead-mobile {
+	position: relative;
+}
+body .main-header::before,
+body .main-header::after {
+	content: "";
+	position: absolute;
+	z-index: 5;
+	top: 100%;
+	left: 0;
+	right: 0;
+	height: var(--vv-festone-altezza);
+	background: left top / auto 100% repeat-x;
+	pointer-events: none;
+}
+body .main-header::before {
+	background-image: var(--vv-festone-luci);
+}
+body .main-header::after {
+	background-image: var(--vv-festone);
+}
+@media (prefers-reduced-motion: no-preference) {
+	body .site-branding > a::after {
+		animation: var(--vv-pallina-dondolo);
+	}
+	body .main-header::before {
+		animation: var(--vv-festone-brilla);
+	}
 }
 
 /* --- Altezza (desktop) --- */
@@ -58,7 +123,7 @@ body .main-header #mainnav .menu > li > a:focus-visible,
 body .main-header #mainnav .menu > li:hover > a,
 body .main-header #mainnav .menu > li.vv-current > a {
 	color: var(--vv-header-testo);
-	text-decoration: underline 2px var(--vv-rosso) !important;
+	text-decoration: underline 2px var(--vv-evidenza) !important;
 	text-underline-offset: 7px;
 }
 /* Freccine: piccole e sempre del colore del testo (Sydney al passaggio del mouse le colorava
@@ -80,7 +145,7 @@ body .main-header .header-search svg {
 	fill: var(--vv-header-testo) !important;
 }
 
-/* --- Sottomenu: il turchese del Customizer, con testo inchiostro (il bianco sul turchese è 2,6:1);
+/* --- Sottomenu: turchese (--vv-sottomenu-fondo), con testo inchiostro (il bianco sul turchese è 2,6:1);
  * al passaggio del mouse turchese scuro con testo bianco (5,1:1). Più aria, carattere normale
  * (il maiuscoletto resta al primo livello) e un'ombra leggera; drop-shadow segue solo le voci,
  * non i 10px trasparenti sopra l'elenco (il "ponte" per il mouse). --- */
@@ -91,6 +156,7 @@ body .main-header #mainnav ul ul {
 	filter: drop-shadow(0 6px 14px rgb(var(--vv-ombra) / 0.16));
 }
 body .main-header #mainnav ul ul li {
+	background-color: var(--vv-sottomenu-fondo);
 	float: none;
 	padding-left: 0;
 	padding-right: 0;
@@ -113,7 +179,7 @@ body .main-header #mainnav li:hover > .sub-menu > li > a {
 	line-height: 1.3;
 	letter-spacing: 0;
 	text-transform: none;
-	color: var(--vv-header-testo);
+	color: var(--vv-sottomenu-testo);
 }
 body .main-header #mainnav ul ul li:hover,
 body .main-header #mainnav ul ul li:focus-within,

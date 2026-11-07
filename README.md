@@ -29,6 +29,7 @@ template-parts/           card.php, home-hero.php
 page-templates/           page-hub.php, page-elenco.php
 post-templates/           post_full.php ("Page builder ready" dei soci fondatori)
 assets/css/               tokens, base, layout, header, footer, components, home, pages, plugins, scuro
+assets/css/palette/       palette da accendere nel Customizer (VivaVoce → Palette del sito): sabbia, natale
 assets/js/vv.js           testata, switcher del tema, caroselli, menu mobile, pulsanti "Copia"
 assets/fonts/             Poppins (self-hosted, licenza OFL)
 assets/img/               livelli dell'hero, faccine e scritta del footer, mano del "torna su"

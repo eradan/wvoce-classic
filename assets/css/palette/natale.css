@@ -1,0 +1,216 @@
+/* VivaVoce, palette "Natale": verde abete, rosso natalizio e oro al posto del giallo, con i riflessi
+ * su testata e pulsanti; una pallina prende il posto del pallino giallo nella O di VOCE, un festone di
+ * luci pende dalla testata e la neve scende ondeggiando. Si accende in Aspetto → Personalizza →
+ * VivaVoce → Palette del sito. Vale in entrambi i temi: nel chiaro cambia anche i fondi (pagina crema, card bianche), nello scuro
+ * restano i fondi blu notte. Ridefinisce soltanto i token di assets/css/tokens.css (le immagini sono
+ * SVG in data URI, "#" scritto %23), più le animazioni e la neve in fondo al file.
+ * Testo sempre ad almeno 4,5:1 sul suo fondo (fra parentesi). */
+
+:root {
+	--vv-natale-verde: #1a6b44;
+	--vv-natale-verde-scuro: #0f5c37;
+	--vv-natale-bosco: #0f3d27;
+	--vv-natale-rosso: #c8102e;
+	--vv-natale-oro: #d4a52a;
+	/* Oro con i riflessi, per testata e pulsanti: l'inchiostro resta ad almeno 7:1 anche sul punto più scuro */
+	--vv-natale-oro-riflessi: linear-gradient(100deg, #c8961e 0%, #e8c252 22%, #f4dc84 38%, #d4a52a 58%, #e8c252 78%, #c8961e 100%);
+	--vv-giallo: var(--vv-natale-oro);         /* il giallo diventa oro dappertutto */
+	--vv-testo-su-giallo: var(--vv-inchiostro); /* 8,3:1 sull'oro, 7:1 sul punto più scuro dei riflessi */
+	--vv-header-fondo: var(--vv-natale-oro-riflessi);
+	--vv-primario-fondo: var(--vv-natale-oro-riflessi);
+
+	/* Superfici e accenti: sottomenu e piè di pagina verdi, fascia del copyright rossa (testata e
+	 * pulsanti sono d'oro qui sopra; bordi e contorni dei pulsanti seguono --vv-giallo) */
+	--vv-fondo-attivo: var(--vv-natale-verde-scuro);
+	--vv-testo-attivo: #ffffff;                /* 8,1:1 */
+	--vv-evidenza: var(--vv-natale-rosso);
+	--vv-sottomenu-fondo: var(--vv-natale-verde);
+	--vv-sottomenu-testo: #ffffff;             /* 6,5:1 */
+	--vv-fascia-fondo: var(--vv-natale-rosso);
+	--vv-fascia-testo: #ffffff;                /* 5,9:1 */
+	--vv-footer-fondo: var(--vv-natale-bosco);
+	--vv-footer-testo: #e6f0ea;                /* 10,9:1 */
+	--vv-footer-titoli: var(--vv-natale-oro);  /* 5,4:1 */
+
+	/* Card: barretta più alta a righe bianche, oro / verde / rosso a rotazione */
+	--vv-accento-1: var(--vv-natale-oro);
+	--vv-accento-2: var(--vv-natale-verde);
+	--vv-accento-3: var(--vv-natale-rosso);
+	--vv-linguetta-spessore: 8px;
+	--vv-linguetta-righe: rgb(255 255 255 / 0.9);
+	--vv-filetto-sezione: repeating-linear-gradient(-45deg, var(--vv-natale-rosso) 0 5px, #ffffff 5px 10px);
+	--vv-filetto-sezione-altezza: 6px;
+
+	/* Fascette come nastri, con due righe d'oro */
+	--vv-fascetta-a-breve: var(--vv-natale-verde);
+	--vv-fascetta-a-breve-testo: #ffffff;      /* 6,5:1 */
+	--vv-fascetta-in-corso: var(--vv-natale-rosso);
+	--vv-fascetta-in-corso-testo: #ffffff;     /* 5,9:1 */
+	--vv-fascetta-concluso: #ffffff;
+	--vv-fascetta-concluso-testo: var(--vv-natale-rosso); /* 5,9:1 */
+	--vv-fascetta-bordo: var(--vv-natale-oro);
+
+	/* Pallina: rossa a righe turchesi, con il gancio in cima (cerchio di raggio 1, vedi tokens.css) */
+	--vv-pallina: url("data:image/svg+xml,\
+<svg xmlns='http://www.w3.org/2000/svg' viewBox='-1.15 -1.5 2.3 2.65'>\
+<filter id='p' x='-10%25' y='-10%25' width='120%25' height='120%25'>\
+<feTurbulence type='fractalNoise' baseFrequency='2.2' numOctaves='2' seed='4'/>\
+<feDisplacementMap in='SourceGraphic' scale='0.07'/></filter>\
+<clipPath id='c'><circle r='1'/></clipPath>\
+<g filter='url(%23p)'>\
+<circle cy='-1.33' r='0.13' fill='none' stroke='%2300102e' stroke-width='0.07'/>\
+<rect x='-0.3' y='-1.22' width='0.6' height='0.3' rx='0.05' fill='%2300102e'/>\
+<circle r='1' fill='%23e3121b'/>\
+<g clip-path='url(%23c)' fill='%2300b2c3'>\
+<path d='M-1 -0.42 Q-0.5 -0.52 0 -0.42 T1 -0.42 V-0.2 Q0.5 -0.1 0 -0.2 T-1 -0.2 Z'/>\
+<path d='M-1 0.18 Q-0.5 0.08 0 0.18 T1 0.18 V0.4 Q0.5 0.5 0 0.4 T-1 0.4 Z'/>\
+</g>\
+<ellipse cx='-0.42' cy='-0.5' rx='0.13' ry='0.22' transform='rotate(25 -0.42 -0.5)' fill='%23fff' opacity='0.75'/>\
+</g></svg>");
+	--vv-pallina-dondolo: vv-pallina-dondola 2.4s ease-in-out infinite alternate;
+
+	/* Festone: un filo verde con quattro lampadine (rossa, oro, verde, turchese) ogni 240px;
+	 * dietro, un alone che si accende e si spegne sulla rossa e sulla verde */
+	--vv-festone-altezza: 30px;
+	--vv-festone: url("data:image/svg+xml,\
+<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 240 30' width='240' height='30'>\
+<defs>\
+<radialGradient id='o'><stop offset='0' stop-color='%23f4dc84' stop-opacity='0.6'/><stop offset='1' stop-color='%23f4dc84' stop-opacity='0'/></radialGradient>\
+<radialGradient id='t'><stop offset='0' stop-color='%2300b2c3' stop-opacity='0.5'/><stop offset='1' stop-color='%2300b2c3' stop-opacity='0'/></radialGradient>\
+</defs>\
+<circle cx='90' cy='18' r='11' fill='url(%23o)'/><circle cx='210' cy='18' r='11' fill='url(%23t)'/>\
+<path d='M0 3 Q30 14 60 3 T120 3 T180 3 T240 3' fill='none' stroke='%231d3b2a' stroke-width='1.6'/>\
+<g fill='%232c3a4a'><rect x='27.5' y='7' width='5' height='4' rx='1'/><rect x='87.5' y='7' width='5' height='4' rx='1'/>\
+<rect x='147.5' y='7' width='5' height='4' rx='1'/><rect x='207.5' y='7' width='5' height='4' rx='1'/></g>\
+<ellipse cx='30' cy='17' rx='4.6' ry='6.8' fill='%23e3121b' transform='rotate(-10 30 10)'/>\
+<ellipse cx='90' cy='17' rx='4.6' ry='6.8' fill='%23e8c252' transform='rotate(8 90 10)'/>\
+<ellipse cx='150' cy='17' rx='4.6' ry='6.8' fill='%2323a35a' transform='rotate(-8 150 10)'/>\
+<ellipse cx='210' cy='17' rx='4.6' ry='6.8' fill='%2300b2c3' transform='rotate(10 210 10)'/>\
+<g fill='%23fff' opacity='0.6'><ellipse cx='28.5' cy='14.5' rx='1.2' ry='2'/><ellipse cx='88.5' cy='14.5' rx='1.2' ry='2'/>\
+<ellipse cx='148.5' cy='14.5' rx='1.2' ry='2'/><ellipse cx='208.5' cy='14.5' rx='1.2' ry='2'/></g>\
+</svg>");
+	--vv-festone-luci: url("data:image/svg+xml,\
+<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 240 30' width='240' height='30'>\
+<defs>\
+<radialGradient id='r'><stop offset='0' stop-color='%23ff3b30' stop-opacity='0.7'/><stop offset='1' stop-color='%23ff3b30' stop-opacity='0'/></radialGradient>\
+<radialGradient id='v'><stop offset='0' stop-color='%2346d17a' stop-opacity='0.7'/><stop offset='1' stop-color='%2346d17a' stop-opacity='0'/></radialGradient>\
+</defs>\
+<circle cx='30' cy='18' r='12' fill='url(%23r)'/><circle cx='150' cy='18' r='12' fill='url(%23v)'/>\
+</svg>");
+	--vv-festone-brilla: vv-festone-brilla 1.8s ease-in-out infinite;
+
+	/* Neve: fiocchi sfumati, bianchi sul blu notte e sulle foto */
+	--vv-neve: rgb(255 255 255 / 0.9);
+}
+
+/* --- Fondi, solo nel tema chiaro: pagina crema e card bianche con l'ombra --- */
+:root:not([data-vv-tema="scuro"]) {
+	--vv-fondo: #faf6ee;
+	--vv-fondo-card: #ffffff;
+	--vv-riquadro: #dfeae0;
+	--vv-placeholder: #ece6d8;
+	--vv-bordo: #d5e2d7;
+	--vv-ombra-card: 0 1px 2px rgb(var(--vv-ombra) / 0.06), 0 6px 18px rgb(var(--vv-ombra) / 0.09);
+
+	--vv-link: var(--vv-natale-verde);         /* 6:1 sul fondo, 6,5:1 sulla card */
+	--vv-neve: rgb(168 192 220 / 0.85);        /* azzurro ghiaccio: il bianco sparirebbe sulla crema */
+}
+
+/* --- Tema scuro: link verde chiaro sul blu notte --- */
+:root[data-vv-tema="scuro"] {
+	--vv-link: #5fd38d;                        /* 9,2:1 sul fondo, 8:1 sulla card */
+}
+
+/* --- Animazioni usate dai token qui sopra --- */
+/* La pallina dondola appesa al suo gancio */
+@keyframes vv-pallina-dondola {
+	from { rotate: -8deg; }
+	to   { rotate: 8deg; }
+}
+/* Le luci del festone si accendono e si spengono */
+@keyframes vv-festone-brilla {
+	0%, 100% { opacity: 0.2; }
+	50%      { opacity: 1; }
+}
+
+/* --- Neve che scende: tre strati di fiocchi (grandi e vicini, medi, piccoli e lontani), ognuno con la
+ * sua velocità di caduta e il suo ondeggiare di lato (ampiezza e ritmo diversi): non si muovono mai
+ * insieme, come la neve vera. I fiocchi sono radial-gradient sfumati ripetuti a piastrelle di misure
+ * "storte", perché non si mettano in fila come un tessuto a pois. Ogni strato è alto la finestra più una
+ * piastrella e scende di una piastrella per giro, così il giro ricomincia senza scatti; si muove solo con
+ * transform e translate, che la scheda video sposta senza ridisegnare (leggero anche sul telefono). Più
+ * largo della finestra, perché ondeggiando non lasci scoperti i bordi. Non intercetta i clic. Il terzo
+ * strato sta su html::after, libero nel tema. --- */
+body::before,
+body::after,
+html::after {
+	content: "";
+	position: fixed;
+	z-index: 9990;
+	top: calc(-1 * var(--vv-neve-passo));
+	left: -80px;
+	width: calc(100% + 160px);
+	height: calc(100vh + var(--vv-neve-passo));
+	background-size: var(--vv-neve-largo) var(--vv-neve-passo);
+	pointer-events: none;
+	will-change: transform, translate;
+	animation:
+		vv-neve var(--vv-neve-giro) linear infinite,
+		vv-neve-ondeggia var(--vv-neve-onda) ease-in-out infinite alternate;
+}
+/* Fiocchi grandi e vicini: cadono veloci e ondeggiano ampi */
+body::before {
+	--vv-neve-largo: 373px;
+	--vv-neve-passo: 331px;
+	--vv-neve-giro: 11s;
+	--vv-neve-onda: 3.8s;
+	--vv-neve-deriva: 42px;
+	background-image:
+		radial-gradient(circle at 14% 21%, var(--vv-neve) 0 2.5px, transparent 5px),
+		radial-gradient(circle at 61% 6%, color-mix(in srgb, var(--vv-neve) 80%, transparent) 0 2px, transparent 4.5px),
+		radial-gradient(circle at 87% 47%, var(--vv-neve) 0 3px, transparent 6px),
+		radial-gradient(circle at 36% 69%, color-mix(in srgb, var(--vv-neve) 70%, transparent) 0 2px, transparent 4.5px);
+}
+/* Fiocchi medi: velocità e ondeggiare di mezzo, verso l'altra parte */
+body::after {
+	--vv-neve-largo: 293px;
+	--vv-neve-passo: 307px;
+	--vv-neve-giro: 16s;
+	--vv-neve-onda: 5.3s;
+	--vv-neve-deriva: -28px;
+	background-image:
+		radial-gradient(circle at 72% 18%, color-mix(in srgb, var(--vv-neve) 90%, transparent) 0 2px, transparent 4px),
+		radial-gradient(circle at 21% 44%, color-mix(in srgb, var(--vv-neve) 80%, transparent) 0 1.5px, transparent 3.5px),
+		radial-gradient(circle at 55% 83%, var(--vv-neve) 0 2px, transparent 4px);
+}
+/* Fiocchi piccoli e lontani: lenti, ondeggiano poco e piano */
+html::after {
+	--vv-neve-largo: 241px;
+	--vv-neve-passo: 263px;
+	--vv-neve-giro: 24s;
+	--vv-neve-onda: 7.1s;
+	--vv-neve-deriva: 14px;
+	background-image:
+		radial-gradient(circle at 23% 13%, color-mix(in srgb, var(--vv-neve) 80%, transparent) 0 1.5px, transparent 3px),
+		radial-gradient(circle at 79% 31%, color-mix(in srgb, var(--vv-neve) 60%, transparent) 0 1px, transparent 2.5px),
+		radial-gradient(circle at 48% 57%, color-mix(in srgb, var(--vv-neve) 90%, transparent) 0 1.5px, transparent 3px),
+		radial-gradient(circle at 8% 82%, color-mix(in srgb, var(--vv-neve) 70%, transparent) 0 1px, transparent 2.5px);
+}
+/* Scende di una piastrella per giro */
+@keyframes vv-neve {
+	from { transform: translateY(0); }
+	to   { transform: translateY(var(--vv-neve-passo)); }
+}
+/* Ondeggia di lato, avanti e indietro */
+@keyframes vv-neve-ondeggia {
+	from { translate: calc(-1 * var(--vv-neve-deriva)) 0; }
+	to   { translate: var(--vv-neve-deriva) 0; }
+}
+/* Chi ha chiesto meno movimento vede i fiocchi fermi */
+@media (prefers-reduced-motion: reduce) {
+	body::before,
+	body::after,
+	html::after {
+		animation: none;
+	}
+}

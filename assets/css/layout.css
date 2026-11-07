@@ -97,9 +97,9 @@ body.page-template-page_fullwidth .content-area.no-sidebar .entry-content {
 	left: 50%;
 	bottom: 0;
 	width: 50px;
-	height: 3px;
+	height: var(--vv-filetto-sezione-altezza);
 	margin-left: -25px;
-	background: var(--vv-giallo);
+	background: var(--vv-filetto-sezione);
 }
 @media (max-width: 599px) {
 	.vv-section-title,

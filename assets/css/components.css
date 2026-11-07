@@ -21,10 +21,24 @@
 	display: flex;
 	flex-direction: column;
 	background: var(--vv-fondo-card);
-	border-top: 4px solid var(--vv-giallo);
+	border-top: var(--vv-linguetta-spessore) solid var(--vv-accento-1);
+	box-shadow: var(--vv-ombra-card);
 }
-.vv-card.vv-accent--turchese { border-top-color: var(--vv-turchese); }
-.vv-card.vv-accent--rosso { border-top-color: var(--vv-rosso); }
+.vv-card.vv-accent--turchese { border-top-color: var(--vv-accento-2); }
+.vv-card.vv-accent--rosso { border-top-color: var(--vv-accento-3); }
+/* Righe oblique sulla barretta (--vv-linguetta-righe, trasparenti se la palette non le vuole):
+ * sopra il bordo, che il fondo della card non può coprire */
+.vv-card::before {
+	content: "";
+	position: absolute;
+	z-index: 1;
+	top: calc(-1 * var(--vv-linguetta-spessore));
+	left: 0;
+	right: 0;
+	height: var(--vv-linguetta-spessore);
+	background: repeating-linear-gradient(-45deg, transparent 0 7px, var(--vv-linguetta-righe) 7px 14px);
+	pointer-events: none;
+}
 /* Il link copre tutta la card: il contorno del focus va sulla card, altrimenti non si vede */
 .vv-card:has(.vv-card__link:focus-visible) {
 	outline: 3px solid var(--vv-link);
@@ -233,9 +247,9 @@
 	z-index: 2;
 	width: 170px;
 	padding: 5px 0;
-	background: var(--vv-giallo);
-	color: var(--vv-testo-su-giallo);
-	box-shadow: 0 2px 6px rgb(var(--vv-ombra) / 0.3);
+	background: var(--vv-fascetta-concluso);
+	color: var(--vv-fascetta-concluso-testo);
+	box-shadow: inset 0 2px 0 var(--vv-fascetta-bordo), inset 0 -2px 0 var(--vv-fascetta-bordo), 0 2px 6px rgb(var(--vv-ombra) / 0.3);
 	font-size: 12px;
 	font-weight: 700;
 	line-height: 1.4;
@@ -244,6 +258,15 @@
 	text-transform: uppercase;
 	transform: rotate(45deg);
 	pointer-events: none; /* il clic passa al link della card */
+}
+/* La stessa fascetta per le altre fasi: verde "A breve" prima, arancione "In corso" durante */
+.vv-fascetta--a-breve {
+	background: var(--vv-fascetta-a-breve);
+	color: var(--vv-fascetta-a-breve-testo);
+}
+.vv-fascetta--in-corso {
+	background: var(--vv-fascetta-in-corso);
+	color: var(--vv-fascetta-in-corso-testo);
 }
 /* Nell'archivio per anno è tutto passato: bastano foto, titolo e data */
 .vv-elenco--archivio .vv-data-chip,
@@ -378,7 +401,8 @@
 	margin: 0 0 var(--vv-gap);
 	padding: var(--vv-s-4) var(--vv-s-3);
 	background: var(--vv-fondo-card);
-	border-top: 4px solid var(--vv-giallo);
+	border-top: 4px solid var(--vv-accento-1);
+	box-shadow: var(--vv-ombra-card);
 	font-size: var(--vv-fs-corpo);
 	text-align: center;
 	color: var(--vv-testo-2);

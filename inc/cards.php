@@ -91,8 +91,24 @@ function vv_date_chip( $dates ) {
 }
 
 /**
+ * Fase di un evento per la fascetta della card: "a-breve" prima del primo giorno, "in-corso"
+ * dall'inizio del primo giorno alla fine dell'ultimo (senza orario, per un evento di un giorno vale
+ * tutto il giorno), "concluso" dopo.
+ *
+ * @param array $dates Risultato di vv_event_dates().
+ * @param int   $now   Adesso.
+ * @return string a-breve | in-corso | concluso.
+ */
+function vv_fase_evento( $dates, $now ) {
+	if ( $dates['end'] < $now ) {
+		return 'concluso';
+	}
+	return $dates['start'] <= $now ? 'in-corso' : 'a-breve';
+}
+
+/**
  * Eventi di un periodo, dalle date dell'evento (vv_data, vv_data_fine), non da quella di pubblicazione.
- * Prima quelli in programma, dal più vicino; poi quelli già passati, dal più recente.
+ * Nell'ordine di vv_ordina_eventi(): in programma, in corso, conclusi.
  *
  * @param string $slugs   Categorie separate da virgola (le figlie sono comprese).
  * @param string $periodo futuro (non ancora finiti) | dal-3-mesi (finiti da meno di 3 mesi, o non ancora finiti).
@@ -128,7 +144,8 @@ function vv_posts_by_period( $slugs, $periodo, $number, $extra = array() ) {
  *    mese) in corso, dal più vicino;
  * 2. corsi e rassegne lunghi già cominciati, dal più recente inizio: restano visibili, ma un evento
  *    di domani non finisce dietro un corso partito una settimana fa;
- * 3. quelli già finiti, dal più recente.
+ * 3. quelli già finiti, dal più recente inizio, come nell'archivio per anno.
+ * È l'ordine di tutte le sezioni con gli eventi: home, "Prossimi appuntamenti", Pagine elenco.
  *
  * @param array $eventi array( contenuto, inizio, fine ) con i timestamp di vv_event_dates().
  * @param int   $now    Adesso.
@@ -151,7 +168,7 @@ function vv_ordina_eventi( $eventi, $now ) {
 	// Un evento breve già cominciato conta da adesso: davanti a quelli che cominciano dopo.
 	usort( $prossimi, static fn( $a, $b ) => array( max( $a[1], $now ), $a[2] ) <=> array( max( $b[1], $now ), $b[2] ) );
 	usort( $in_corso, static fn( $a, $b ) => $b[1] <=> $a[1] );
-	usort( $passati, static fn( $a, $b ) => $b[2] <=> $a[2] );
+	usort( $passati, static fn( $a, $b ) => array( $b[1], $b[2] ) <=> array( $a[1], $a[2] ) );
 	return array_merge( $prossimi, $in_corso, $passati );
 }
 

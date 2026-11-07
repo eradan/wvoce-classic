@@ -33,7 +33,29 @@ function vv_defaults() {
 		'vv_url_socio'      => home_url( '/cosa-puoi-fare/diventa-socio/' ),
 		'vv_url_donazione'  => home_url( '/cosa-puoi-fare/fai-una-donazione/' ),
 		'vv_img_5x1000'     => 0,
+		'vv_palette'        => '',
 	);
+}
+
+/**
+ * Palette del sito da accendere quando servono, una per file in assets/css/palette/ (chiave = nome
+ * del file). Per aggiungerne una basta il file e una riga qui.
+ */
+function vv_palette_disponibili() {
+	return array(
+		''       => 'Predefinita',
+		'sabbia' => 'Sabbia: pagina color carta e schede bianche',
+		'natale' => 'Natale: verde, rosso, oro e neve che scende',
+	);
+}
+
+/**
+ * Solo le palette conosciute: il valore finisce nel percorso del foglio di stile.
+ *
+ * @param string $value Valore scelto.
+ */
+function vv_sanitize_palette( $value ) {
+	return is_string( $value ) && array_key_exists( $value, vv_palette_disponibili() ) ? $value : '';
 }
 
 /**
@@ -72,6 +94,11 @@ function vv_customize_register( $wp_customize ) {
 		'panel'       => 'vv_panel',
 		'description' => 'Sostituisce lo slider di Sydney nella home.',
 	) );
+	$wp_customize->add_section( 'vv_palette', array(
+		'title'       => 'Palette del sito',
+		'panel'       => 'vv_panel',
+		'description' => 'Colori per un periodo (Natale) o una palette alternativa, per tutti i visitatori. Il tema scuro resta scuro: il Natale vi porta solo gli accenti e la neve, Sabbia non lo tocca. Con "Pianifica" (accanto a "Pubblica") si può programmare quando accenderla e quando tornare alla predefinita.',
+	) );
 	$wp_customize->add_section( 'vv_dati', array(
 		'title'       => 'Dati dell\'associazione',
 		'panel'       => 'vv_panel',
@@ -98,6 +125,17 @@ function vv_customize_register( $wp_customize ) {
 		'vv_url_socio'      => array( 'vv_dati', 'Pagina "Diventa socio"', 'url' ),
 		'vv_url_donazione'  => array( 'vv_dati', 'Pagina "Fai una donazione"', 'url' ),
 	);
+
+	$wp_customize->add_setting( 'vv_palette', array(
+		'default'           => $defaults['vv_palette'],
+		'sanitize_callback' => 'vv_sanitize_palette',
+	) );
+	$wp_customize->add_control( 'vv_palette', array(
+		'section' => 'vv_palette',
+		'label'   => 'Palette',
+		'type'    => 'select',
+		'choices' => vv_palette_disponibili(),
+	) );
 
 	$wp_customize->add_setting( 'vv_hero_enable', array(
 		'default'           => $defaults['vv_hero_enable'],

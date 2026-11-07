@@ -4,8 +4,8 @@
  * (regole in style.css). */
 
 .footer-widgets {
-	background: var(--vv-riquadro) !important;
-	color: var(--vv-testo-riquadro);
+	background: var(--vv-footer-fondo) !important;
+	color: var(--vv-footer-testo);
 	font-size: var(--vv-fs-piccolo);
 	line-height: 1.5;
 	padding: var(--vv-s-5) 0 !important;
@@ -17,7 +17,7 @@
 .footer-widgets,
 .footer-widgets .widget,
 .footer-widgets p {
-	color: var(--vv-testo-riquadro);
+	color: var(--vv-footer-testo);
 }
 .footer-widgets .widget-title,
 .footer-widgets .widget h2,
@@ -27,7 +27,7 @@
 	font-weight: 600;
 	letter-spacing: 1px;
 	text-transform: uppercase;
-	color: var(--vv-testo) !important;
+	color: var(--vv-footer-titoli) !important;
 }
 .footer-widgets .widget p {
 	margin: 0 0 12px;
@@ -40,13 +40,13 @@
 }
 .footer-widgets a,
 #sidebar-footer .widget a {
-	color: var(--vv-testo-riquadro) !important;
+	color: var(--vv-footer-testo) !important;
 	text-decoration: underline 1px !important;
 	text-underline-offset: 3px;
 }
 .footer-widgets a:hover,
 #sidebar-footer .widget a:hover {
-	color: var(--vv-testo) !important;
+	color: var(--vv-footer-titoli) !important;
 }
 /* Widget del footer scritti a mano (blocco "side-contacts", con le icone di components.css): icona
  * accanto al testo invece che sopra. Niente gap: nei widget c'è un "&nbsp;" prima del testo, che
@@ -65,7 +65,7 @@
 	width: 22px;
 	height: 18px;
 	margin-right: 6px;
-	color: var(--vv-testo);
+	color: var(--vv-footer-titoli);
 }
 /* Loghi di Facebook e Instagram un po' più grandi */
 .side-contacts i:is(.fa-facebook, .fa-facebook-f, .fa-facebook-square, .fa-instagram) {
@@ -136,7 +136,7 @@
 	width: var(--vv-disco);
 	height: var(--vv-disco);
 	border-radius: 50%;
-	background: var(--vv-giallo) url("../img/faccina.png") center / 68% auto no-repeat;
+	background: var(--vv-disco-fondo) url("../img/faccina.png") center / 68% auto no-repeat;
 }
 .site-footer .site-info::after {
 	transform: scaleX(-1);
@@ -182,6 +182,28 @@
 	width: auto;
 	height: 44px;
 }
+/* Pallina della palette (--vv-pallina) sul pallino giallo della O di VOCE (centro 99,107, raggio 18
+ * nella scritta da 236×140; la pallina ha raggio 19,5) */
+.site-footer .vv-credits__scritta {
+	position: relative;
+	display: block;
+}
+.site-footer .vv-credits__scritta::after {
+	content: "";
+	position: absolute;
+	left: 32.45%;
+	top: 55.54%;
+	width: 19%;
+	height: 36.91%;
+	background: var(--vv-pallina) center / 100% 100% no-repeat;
+	transform-origin: 50% 6%;
+	pointer-events: none;
+}
+@media (prefers-reduced-motion: no-preference) {
+	.site-footer .vv-credits__scritta::after {
+		animation: var(--vv-pallina-dondolo);
+	}
+}
 @media (max-width: 599px) {
 	.site-footer .vv-credits__logo {
 		height: 36px;
@@ -208,7 +230,7 @@
 	width: 56px;
 	height: 56px;
 	padding: 0 !important;
-	background: var(--vv-giallo) !important;
+	background: var(--vv-disco-fondo) !important;
 	border-radius: 50% !important;
 	box-shadow: 0 2px 8px rgb(var(--vv-ombra) / 0.3);
 	bottom: calc(14px + var(--vv-su)) !important;

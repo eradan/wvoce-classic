@@ -260,6 +260,39 @@ uguale(
 		0
 	)
 );
+uguale(
+	'Conclusi dal più recente inizio, come l\'archivio',
+	array( 'Corso autunnale', 'Festa', 'Corso primaverile' ),
+	array_column(
+		vv_ordina_eventi(
+			array(
+				$vv_ev( 'Corso primaverile', '2026-03-01', '2026-09-30' ),
+				$vv_ev( 'Festa', '2026-09-20', '2026-09-20' ),
+				$vv_ev( 'Corso autunnale', '2026-10-01', '2026-10-05' ),
+			),
+			$vv_oggi
+		),
+		0
+	)
+);
+
+// Fascetta della card: a breve, in corso dal primo all'ultimo giorno, poi conclusa
+$vv_fase = static fn( $da, $a ) => vv_fase_evento( array( 'start' => strtotime( $da ), 'end' => strtotime( $a . ' 23:59:59' ) ), $vv_oggi );
+uguale( 'Fascetta: evento di domani è a breve', 'a-breve', $vv_fase( '2026-10-11', '2026-10-11' ) );
+uguale( 'Fascetta: corso cominciato è in corso', 'in-corso', $vv_fase( '2026-10-01', '2027-06-30' ) );
+uguale( 'Fascetta: evento di oggi è in corso', 'in-corso', $vv_fase( '2026-10-10', '2026-10-10' ) );
+uguale( 'Fascetta: evento finito ieri è concluso', 'concluso', $vv_fase( '2026-10-09', '2026-10-09' ) );
+
+// Palette del sito: solo quelle dell'elenco, ognuna col suo foglio di stile
+uguale( 'Palette conosciuta', 'natale', vv_sanitize_palette( 'natale' ) );
+uguale( 'Palette predefinita', '', vv_sanitize_palette( '' ) );
+uguale( 'Palette sconosciuta o percorso: niente', '', vv_sanitize_palette( '../tokens' ) );
+uguale( 'Palette non testuale: niente', '', vv_sanitize_palette( array( 'natale' ) ) );
+uguale(
+	'Ogni palette ha il suo file in assets/css/palette/',
+	array(),
+	array_values( array_filter( array_keys( vv_palette_disponibili() ), static fn( $v ) => '' !== $v && ! is_readable( dirname( __DIR__ ) . "/assets/css/palette/{$v}.css" ) ) )
+);
 
 // Emoji incollate da Facebook e Gmail, immagini delle gallerie
 uguale( 'Emoji di Facebook diventa testo', 'Prenota 👉 qui', vv_emoji_esterne( 'Prenota <img decoding="async" data-src="https://static.xx.fbcdn.net/images/emoji.php/v9/t51/1/16/1f449.png" alt="👉" width="16" height="16" src="data:image/svg+xml;base64,AAA" class="lazyload" /> qui' ) );

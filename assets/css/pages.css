@@ -225,7 +225,7 @@
 /* Senza immagine: il grigio del riquadro con la barretta gialla delle card */
 .vv-aside-list__vuoto {
 	background: var(--vv-riquadro);
-	border-top: 3px solid var(--vv-giallo);
+	border-top: 3px solid var(--vv-accento-1);
 }
 
 /* Articolo precedente / successivo: due link, come la navigazione di Sydney */

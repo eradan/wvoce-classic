@@ -4,7 +4,7 @@ Theme URI: https://wvoce.it
 Template: sydney
 Author: Ivan Ricotti
 Description: Tema child di Sydney per il sito dell'associazione VivaVoce. Aspetto "classico" vicino al sito originale.
-Version: 1.1.0
+Version: 1.4.0
 Requires at least: 6.0
 Requires PHP: 7.4
 Text Domain: vivavoce
@@ -19,17 +19,20 @@ License: GNU General Public License v2 or later
  */
 
 .site-footer {
-	background-color: var(--vv-turchese);
+	background-color: var(--vv-fascia-fondo);
 }
 
 /* Testo inchiostro sulla fascia turchese: il bianco originale era 2,6:1 */
 .site-info, .site-info a {
-	color: var(--vv-inchiostro) !important;
+	color: var(--vv-fascia-testo) !important;
+}
+.site-info .sydney-svg-icon svg {
+	fill: var(--vv-fascia-testo);
 }
 
 div .sydney-credits {
 	font-weight: bold;
-	color: var(--vv-inchiostro);
+	color: var(--vv-fascia-testo);
 }
 
 .mobile-header-item .site-branding {

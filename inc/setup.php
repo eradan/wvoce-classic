@@ -111,7 +111,7 @@ add_filter( 'post_thumbnail_html', 'vv_senza_immagine_in_testa_html', 10, 2 );
  */
 function vv_footer_credits() {
 	return sprintf(
-		'<span class="vv-credits__anno">{copyright} {year}</span> <img class="vv-credits__logo" src="%s" width="236" height="140" alt="VivaVoce">',
+		'<span class="vv-credits__anno">{copyright} {year}</span> <span class="vv-credits__scritta"><img class="vv-credits__logo" src="%s" width="236" height="140" alt="VivaVoce"></span>',
 		esc_url( VV_URI . '/assets/img/viva-voce-scritta.png' )
 	);
 }

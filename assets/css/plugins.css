@@ -6,8 +6,13 @@
 input[type="submit"],
 button[type="submit"],
 .wpcf7 input[type="submit"] {
-	color: var(--vv-testo-su-giallo) !important;
+	background: var(--vv-primario-fondo); /* Sydney dà solo il colore: qui anche l'eventuale gradiente */
+	color: var(--vv-testo-su-primario) !important;
 	font-weight: 700;
+}
+/* Al passaggio del mouse Sydney cambia solo il colore di fondo: via il gradiente, perché si veda */
+:is(input[type="submit"], button[type="submit"]):is(:hover, :focus-visible) {
+	background-image: none;
 }
 
 /* Mentre il banner dei cookie è aperto (altezza misurata da vv.js) la fine della pagina resta visibile */
@@ -46,7 +51,7 @@ body.vv-cookie-open {
 	border-color: var(--vv-link) !important;
 }
 .forminator-ui.forminator-custom-form .forminator-has_error :is(.forminator-input, .forminator-textarea, .forminator-checkbox-box, .forminator-radio-bullet) {
-	border-color: var(--vv-rosso) !important;
+	border-color: var(--vv-errore) !important;
 }
 .forminator-ui.forminator-custom-form :is(.forminator-input, .forminator-textarea)::placeholder {
 	color: var(--vv-testo-meta) !important;
@@ -90,11 +95,11 @@ body.vv-cookie-open {
 /* Invio: il pulsante giallo del sito (.vv-button); "Scegli il file": come i pulsanti "Copia" */
 .forminator-ui.forminator-custom-form .forminator-button-submit {
 	padding: 12px 30px !important;
-	background-color: var(--vv-giallo) !important;
+	background: var(--vv-primario-fondo) !important;
 	border: 0 !important;
 	border-radius: 0 !important;
 	box-shadow: none !important;
-	color: var(--vv-testo-su-giallo) !important;
+	color: var(--vv-testo-su-primario) !important;
 	font-size: var(--vv-fs-meta) !important;
 	font-weight: 700 !important;
 	letter-spacing: 1px;
@@ -110,8 +115,8 @@ body.vv-cookie-open {
 	text-transform: uppercase;
 }
 .forminator-ui.forminator-custom-form :is(.forminator-button-submit, .forminator-button-upload):is(:hover, :focus-visible) {
-	background-color: var(--vv-fondo-attivo) !important;
-	box-shadow: inset 0 0 0 2px var(--vv-giallo) !important;
+	background: var(--vv-fondo-attivo) !important; /* "background" intero: il fondo del pulsante può essere un gradiente */
+	box-shadow: inset 0 0 0 2px var(--vv-primario) !important;
 	color: var(--vv-testo-attivo) !important;
 }
 
@@ -121,7 +126,7 @@ body.vv-cookie-open {
 #cookie-law-info-bar {
 	padding: var(--vv-s-2) !important;
 	background: var(--vv-fondo) !important;
-	border-top: 4px solid var(--vv-giallo) !important;
+	border-top: 4px solid var(--vv-accento-1) !important;
 	box-shadow: 0 -4px 18px rgb(var(--vv-ombra) / 0.16) !important;
 	color: var(--vv-testo) !important;
 	font-size: var(--vv-fs-piccolo) !important;
@@ -167,8 +172,8 @@ body.vv-cookie-open {
 	transition: background-color var(--vv-transizione), color var(--vv-transizione), box-shadow var(--vv-transizione);
 }
 #cookie-law-info-bar :is(#wt-cli-accept-all-btn, #cookie_action_close_header) {
-	background: var(--vv-giallo) !important;
-	color: var(--vv-testo-su-giallo) !important;
+	background: var(--vv-primario-fondo) !important;
+	color: var(--vv-testo-su-primario) !important;
 }
 #cookie-law-info-bar #cookie_action_close_header_reject {
 	background: transparent !important;
@@ -177,7 +182,7 @@ body.vv-cookie-open {
 }
 #cookie-law-info-bar .cli-plugin-button:not(.cli_settings_button):is(:hover, :focus-visible) {
 	background: var(--vv-fondo-attivo) !important;
-	box-shadow: inset 0 0 0 2px var(--vv-giallo) !important;
+	box-shadow: inset 0 0 0 2px var(--vv-primario) !important;
 	color: var(--vv-testo-attivo) !important;
 }
 #cookie-law-info-bar .cli_settings_button {
@@ -211,8 +216,8 @@ body.vv-cookie-open {
 	rotate: 180deg;
 	padding: 12px 9px !important;
 	border-radius: 6px 0 0 6px;
-	background: var(--vv-giallo) !important;
-	color: var(--vv-testo-su-giallo) !important;
+	background: var(--vv-primario-fondo) !important;
+	color: var(--vv-testo-su-primario) !important;
 	box-shadow: 0 0 8px rgb(var(--vv-ombra) / 0.3) !important;
 	font-size: var(--vv-fs-meta) !important;
 	font-weight: 600;
@@ -250,8 +255,8 @@ body.vv-cookie-open {
 }
 .cli-modal #wt-cli-privacy-save-btn {
 	border-radius: 0 !important;
-	background: var(--vv-giallo) !important;
-	color: var(--vv-testo-su-giallo) !important;
+	background: var(--vv-primario-fondo) !important;
+	color: var(--vv-testo-su-primario) !important;
 	font-weight: 700 !important;
 	letter-spacing: 0.06em;
 }

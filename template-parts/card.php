@@ -45,14 +45,17 @@ if ( 'post' === $vv_post->post_type && 'persona' !== $vv_variante && ! $vv_ritag
 	}
 }
 
-// Eventi: data a foglietto sulla foto; quelli già finiti hanno la fascetta "Concluso" sull'angolo.
+// Eventi: data a foglietto sulla foto; sull'angolo la fascetta della fase: "A breve" (verde)
+// prima del primo giorno, "In corso" (arancione) fino all'ultimo, "Concluso" (gialla) dopo.
 $vv_badge    = '';
 $vv_chip     = null;
-$vv_concluso = false;
+$vv_fascetta = '';
 if ( 'evento' === $vv_variante ) {
-	$vv_chip     = $vv_dates ? vv_date_chip( $vv_dates ) : null;
-	$vv_concluso = $vv_dates && $vv_dates['has_meta'] && $vv_dates['end'] < time();
-	$vv_cats     = vv_post_categories( $vv_post->ID );
+	$vv_chip = $vv_dates ? vv_date_chip( $vv_dates ) : null;
+	if ( $vv_dates && $vv_dates['has_meta'] ) {
+		$vv_fascetta = vv_fase_evento( $vv_dates, time() );
+	}
+	$vv_cats = vv_post_categories( $vv_post->ID );
 	if ( $vv_cats ) {
 		$vv_badge = $vv_cats[0]->name;
 	}
@@ -62,8 +65,8 @@ $vv_classes = array( 'vv-card', 'vv-card--' . $vv_variante, 'vv-accent--' . $vv_
 if ( ! $vv_img && 'citazione' !== $vv_variante ) {
 	$vv_classes[] = 'vv-card--no-img';
 }
-if ( $vv_concluso ) {
-	$vv_classes[] = 'vv-card--concluso';
+if ( $vv_fascetta ) {
+	$vv_classes[] = 'vv-card--' . $vv_fascetta;
 }
 ?>
 <article class="<?php echo esc_attr( implode( ' ', $vv_classes ) ); ?>">
@@ -77,8 +80,8 @@ if ( $vv_concluso ) {
 			<?php if ( $vv_badge ) : ?>
 				<span class="vv-badge"><?php echo esc_html( $vv_badge ); ?></span>
 			<?php endif; ?>
-			<?php if ( $vv_concluso ) : ?>
-				<span class="vv-fascetta">Concluso</span>
+			<?php if ( $vv_fascetta ) : ?>
+				<span class="vv-fascetta vv-fascetta--<?php echo esc_attr( $vv_fascetta ); ?>"><?php echo esc_html( array( 'a-breve' => 'A breve', 'in-corso' => 'In corso', 'concluso' => 'Concluso' )[ $vv_fascetta ] ); ?></span>
 			<?php endif; ?>
 		</div>
 	<?php endif; ?>

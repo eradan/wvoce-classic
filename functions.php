@@ -37,6 +37,12 @@ function vv_enqueue_assets() {
 		wp_enqueue_style( "vv-{$name}", VV_URI . $rel, array( $dep ), (string) filemtime( VV_DIR . $rel ) );
 		$dep = "vv-{$name}";
 	}
+	// Palette del sito (Customizer → VivaVoce → Palette del sito): solo i token, dopo tutto il resto.
+	$palette = vv_sanitize_palette( vv_mod( 'vv_palette' ) ); // una palette tolta dall'elenco non carica niente
+	if ( $palette ) {
+		$rel = "/assets/css/palette/{$palette}.css";
+		wp_enqueue_style( 'vv-palette', VV_URI . $rel, array( $dep ), (string) filemtime( VV_DIR . $rel ) );
+	}
 
 	// style.css del child lo carica Sydney ("sydney-style") con una versione fissa: dopo un
 	// aggiornamento i browser terrebbero la copia vecchia.

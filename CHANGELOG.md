@@ -2,6 +2,49 @@
 
 Storia del tema VivaVoce Classic, dalla versione più recente. La guida d'uso è nel README.
 
+## Versione 1.4.0: un Natale che si sente
+
+La palette **Natale** (Customizer → VivaVoce → Palette del sito) cambia molto di più, sempre e solo attraverso le variabili di `assets/css/tokens.css`; senza palette il sito è identico a prima.
+
+- **Il giallo diventa oro** dappertutto; testata e pulsanti (anche quelli sull'illustrazione della home, l'invio dei moduli e i pulsanti dei cookie) sono d'oro con i riflessi, un gradiente che si definisce una volta sola (`--vv-natale-oro-riflessi`). Sull'oro il testo è l'inchiostro, ad almeno 7:1 anche sul punto più scuro.
+- **Pallina** rossa a righe turchesi al posto del pallino giallo nella O di VOCE, nel logo e nella scritta del footer; dondola appesa al gancio.
+- **Festone di luci** appeso sotto la testata, con le lampadine che brillano.
+- **Card:** barretta più alta a righe bianche, oro, verde e rossa a rotazione; trattino a righe rosse e bianche sotto i titoli di sezione. **Fascette** come nastri con due righe d'oro: "A breve" verde, "In corso" rossa, "Concluso" bianca con la scritta rossa.
+- **Piè di pagina** verde bosco con titoli e icone d'oro, fascia del copyright rossa, faccine su dischi d'oro.
+- **Neve** su tre strati (fiocchi grandi e vicini, medi, piccoli e lontani), ognuno con la sua velocità di caduta e il suo ondeggiare di lato, per un movimento più naturale.
+- Chi ha chiesto al sistema meno animazioni vede tutto fermo: pallina immobile, luci accese, neve ferma.
+- **Nuove variabili**, spente se una palette non le usa: pallina, festone, fondo dei pulsanti (`--vv-primario-fondo`, che accetta un gradiente; `--vv-primario` resta il colore di bordi e contorni), spessore e righe della barretta delle card, trattino dei titoli, testo e bordo di ogni fascetta, colori del piè di pagina, testo del pulsante bianco. Anche la testata accetta un gradiente. Corretto `--vv-disco`, che nel footer era già il nome della misura delle faccine: il colore dei dischi ora è `--vv-disco-fondo`.
+- La scritta VIVA VOCE del footer è avvolta in un `<span class="vv-credits__scritta">` (`inc/setup.php`), che porta la pallina.
+
+Da fare: nessun passo manuale.
+
+## Versione 1.3.0: palette del sito da accendere quando servono
+
+- **Tema chiaro: schede grigio-azzurre su pagina bianca.** Torna la pagina bianca, con le schede di un grigio più deciso di prima (#e3eaf2 invece di #f1f5f9) e piè di pagina e riquadri in tinta (#cfd9e5): le schede staccano senza cambiare il carattere del sito. Link e testo secondario un poco più scuri (#00737f e #59687f), per restare ad almeno 4,5:1 sulle schede.
+- **Palette del sito** (Aspetto → Personalizza → VivaVoce → Palette del sito): da accendere quando servono, per tutti i visitatori, ognuna in un file di `assets/css/palette/` caricato solo se scelta. Con "Pianifica", accanto a "Pubblica", si programma quando accenderle e quando tornare alla predefinita.
+  - **Sabbia**: la palette della 1.2.0, pagina color carta e schede bianche con un'ombra leggera. Solo nel tema chiaro.
+  - **Natale**: testata e pulsanti restano gialli (l'oro), il turchese diventa verde abete (sottomenu, fascia in fondo, filetti) e il rosso un rosso natalizio; nel tema chiaro pagina crema e schede bianche. La neve scende leggera su tutta la pagina, solo CSS: due strati di fiocchi che si muovono senza ridisegnare la pagina, non intralciano i clic e restano fermi per chi ha chiesto al sistema meno animazioni. Nel tema scuro restano i fondi blu notte, cambiano accenti e link (verde chiaro) e la neve è bianca.
+- **Colori tutti tematizzabili:** giallo, turchese e rosso del logo hanno ora un ruolo ciascuno (testata, sottomenu e menu mobile, fascia del copyright, pulsanti, filetti, dischi del logo, fascette degli eventi: `assets/css/tokens.css`), e anche i colori che Sydney scrive a mano dal suo Customizer (testata, sottomenu turchesi, menu mobile) passano dai ruoli. Una palette cambia l'aspetto ridefinendo solo questi token. I bordi dei campi dei moduli con un errore usano il colore degli errori; nei risultati della ricerca il testo che Sydney colorava di turchese chiaro (2,6:1) prende il colore dei link.
+- **Test:** 67 controlli.
+
+Da fare: nessun passo manuale; la palette si sceglie nel Customizer quando serve.
+
+## Versione 1.2.0: tema chiaro color carta, card bianche
+
+- **Le card staccano dal fondo.** Nel tema chiaro la pagina era bianca e le card di un grigio quasi uguale (#f1f5f9): si distinguevano solo per il filetto colorato in alto. Ora la pagina è color carta (#f2efe6), le card sono bianche con un'ombra leggera e il piè di pagina, "In breve" e "In questa sezione" sono color sabbia (#e3ddcd). È lo stesso principio del tema scuro, pagina più scura e card più chiare. Anche i campi dei moduli, che hanno il colore delle card, diventano bianchi sulla carta.
+- **Testi sempre leggibili:** link e testo secondario sono un poco più scuri (#007582 e #5c6c83), così restano ad almeno 4,5:1 anche sul fondo color carta.
+- **Il tema scuro non cambia:** l'ombra delle card è un nuovo colore del tema (`--vv-ombra-card` in `assets/css/tokens.css`), spento nel tema scuro.
+
+Da fare: nessun passo manuale.
+
+## Versione 1.1.1: un solo ordine per gli eventi, fascette "A breve" e "In corso"
+
+- **Stesso ordine dappertutto:** in home ("…questo non potete perdervelo!"), in Cosa facciamo → "Prossimi appuntamenti" e nelle Pagine elenco (Eventi, In programma, Corsi e laboratori) gli eventi seguono la stessa regola, da oggi verso l'esterno: prima quelli in programma, dal più vicino (con quelli brevi già cominciati, fino a un mese); poi corsi e rassegne lunghi in corso, dal più recente inizio; infine i conclusi, dal più recente inizio, come nell'archivio per anno. Prima le Pagine elenco mettevano in testa i corsi cominciati a ottobre, davanti agli appuntamenti di novembre, e i conclusi seguivano la data di fine (`vv_ordina_eventi()` in `inc/cards.php`, ora usata anche da `vv_render_elenco()`).
+- **Fascette per ogni fase** sulle card di eventi e corsi, tutte uguali a quella gialla "Concluso": verde **"A breve"** prima del primo giorno, arancione **"In corso"** dal primo all'ultimo. Gli eventi non hanno l'orario: un evento di un giorno è "in corso" per tutto il giorno (`vv_fase_evento()` in `inc/cards.php`, colori `--vv-verde` e `--vv-arancio` in `assets/css/tokens.css`).
+- **Test:** 62 controlli.
+
+Da fare: nessun passo manuale. Facoltativo, nei contenuti: /cosa-facciamo/eventi/ e /in-programma/ mostrano la stessa lista; "Corsi e laboratori 2026-2027" ripete i tre corsi in agenda e, in corso fino a giugno, avrà sempre la fascetta "In corso" (togliergli le date dell'evento se non deve comparire).
+
 ## Versione 1.1.0: agenda degli appuntamenti e rassegna stampa a titoli in home
 
 - **Agenda** (`[vv_cards … layout="agenda" lotto="3"]`): su telefono gli appuntamenti diventano righe compatte, miniatura a sinistra e titolo, data e luogo a destra, invece di un carosello che ne mostrava uno alla volta; da 768px restano le card a tre colonne. Si vedono le prime 3, il pulsante "Mostra altri appuntamenti" apre le successive 3 alla volta e porta il focus sulla prima comparsa; senza JavaScript si vedono tutte (`assets/js/vv.js`).
