@@ -279,12 +279,15 @@ function vv_breadcrumbs() {
 		) );
 	}
 	$html .= '</ol></nav>';
-	$html .= '<script type="application/ld+json">' . wp_json_encode( array(
+	// Con un plugin SEO il BreadcrumbList lo scrive il plugin, come gli altri dati strutturati.
+	if ( vv_condivisione_plugin_seo() ) {
+		return $html;
+	}
+	return $html . '<script type="application/ld+json">' . wp_json_encode( array(
 		'@context'        => 'https://schema.org',
 		'@type'           => 'BreadcrumbList',
 		'itemListElement' => $ld,
 	), JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_HEX_TAG | JSON_HEX_AMP ) . '</script>';
-	return $html;
 }
 
 /**

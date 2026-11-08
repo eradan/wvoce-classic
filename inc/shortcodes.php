@@ -6,6 +6,7 @@
  *                                        (non ripete articoli già mostrati sopra; doppioni="si" per permetterlo)
  *   [vv_cards in_evidenza="si" numero="3"]                 solo gli articoli spuntati "In evidenza"
  *   [vv_cards fissati="si" numero="10" layout="carosello"] i fissati + i 10 più recenti, dal più recente, a carosello
+ *                                        (con periodo, i fissati davanti agli eventi, che restano nel loro ordine)
  *   [vv_cards categoria="eventi" periodo="futuro"]        solo gli eventi non ancora finiti (date dell'evento), dal più vicino
  *   [vv_cards categoria="eventi" periodo="dal-3-mesi" layout="carosello" autoplay="si"]
  *                                        anche quelli finiti da meno di 3 mesi, dopo i prossimi; senza nessuno, gli "In evidenza"
@@ -14,6 +15,8 @@
  *   [vv_cards categoria="eventi" periodo="dal-3-mesi" numero="9" layout="agenda" lotto="3"]
  *                                        agenda: righe compatte su telefono, griglia sopra; lotto="3" ne mostra 3 e poi
  *                                        "Mostra altri" ne apre altre 3 alla volta
+ *   [vv_cards ids="12,34,56"]            quegli articoli, nell'ordine scritto (al massimo numero); periodo,
+ *                                        fissati, ordine e doppioni non contano
  *   [vv_cards categoria="rassegna-stampa" variante="citazione" numero="6" layout="carosello"]
  *                                        ritagli solo testo: testata e data, poi il titolo fra virgolette
  *   [vv_sottopagine]                     card delle pagine figlie della pagina corrente
@@ -54,6 +57,8 @@ function vv_sc_cards( $atts ) {
 
 	$slugs   = sanitize_text_field( $atts['categoria'] );
 	$exclude = ( 'si' !== $atts['doppioni'] && ! $atts['ids'] ) ? $shown : array();
+	// Con ids gli articoli sono scelti uno per uno: niente periodo né fissati.
+	$periodo = in_array( $atts['periodo'], array( 'futuro', 'dal-3-mesi' ), true ) && ! $atts['ids'] ? $atts['periodo'] : '';
 
 	$extra = array();
 	if ( $atts['ids'] ) {
@@ -81,11 +86,11 @@ function vv_sc_cards( $atts ) {
 	if ( $exclude ) {
 		$extra['post__not_in'] = array_values( array_unique( $exclude ) );
 	}
-	if ( in_array( $atts['periodo'], array( 'futuro', 'dal-3-mesi' ), true ) && ! $atts['ids'] ) {
-		$posts = vv_posts_by_period( $slugs, $atts['periodo'], (int) $atts['numero'], $extra );
+	if ( $periodo ) {
+		$posts = vv_posts_by_period( $slugs, $periodo, (int) $atts['numero'], $extra );
 		// Niente in calendario: in home gli "In evidenza", perché la sezione non resti vuota; nella
 		// pagina "In programma" lo si dice (gli "In evidenza" sembrerebbero in programma).
-		if ( ! $posts && 'futuro' === $atts['periodo'] ) {
+		if ( ! $posts && 'futuro' === $periodo ) {
 			return '<p class="vv-empty">Al momento non ci sono appuntamenti in programma: torna a trovarci presto!</p>';
 		}
 		if ( ! $posts ) {
@@ -95,8 +100,9 @@ function vv_sc_cards( $atts ) {
 		$posts = vv_posts_in( $slugs, (int) $atts['numero'], $extra );
 	}
 	$posts = array_merge( $sticky, $posts );
-	// I fissati entrano nell'elenco ma in ordine di data, dal più recente.
-	if ( $sticky && 'data' === $atts['ordine'] ) {
+	// I fissati entrano nell'elenco ma in ordine di data, dal più recente; con un periodo restano
+	// davanti, per non disfare l'ordine del calendario.
+	if ( $sticky && ! $periodo && 'data' === $atts['ordine'] ) {
 		usort( $posts, static fn( $a, $b ) => strcmp( $b->post_date, $a->post_date ) );
 	}
 	$shown = array_merge( $shown, wp_list_pluck( $posts, 'ID' ) );
@@ -172,8 +178,9 @@ function vv_render_elenco( $slugs ) {
 	$now = time();
 	// Lo stesso ordine della home; un articolo senza date finisce fra i conclusi (la sua "fine" è la pubblicazione).
 	$items    = array_column( vv_ordina_eventi( array_map( static fn( $i ) => array( $i, $i['dates']['start'], $i['dates']['end'] ), $items ), $now ), 0 );
-	$upcoming = array_values( array_filter( $items, static fn( $i ) => $i['dates']['has_meta'] && $i['dates']['end'] >= $now ) );
-	$past     = array_values( array_filter( $items, static fn( $i ) => ! ( $i['dates']['has_meta'] && $i['dates']['end'] >= $now ) ) );
+	$upcoming = array_filter( $items, static fn( $i ) => $i['dates']['has_meta'] && 'concluso' !== vv_fase_evento( $i['dates'], $now ) );
+	$past     = array_values( array_diff_key( $items, $upcoming ) );
+	$upcoming = array_values( $upcoming );
 	$fill     = array_slice( $past, 0, max( 0, $min - count( $upcoming ) ) );
 	$big      = array_merge( $upcoming, $fill );
 	$rest     = array_slice( $past, count( $fill ) );

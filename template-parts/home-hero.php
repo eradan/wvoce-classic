@@ -10,7 +10,7 @@ defined( 'ABSPATH' ) || exit;
 $vv_image = vv_hero_image_url();
 $vv_ctas  = array(
 	array( vv_mod( 'vv_hero_cta1_text' ), vv_mod( 'vv_hero_cta1_url' ), 'vv-button' ),
-	array( vv_mod( 'vv_hero_cta2_text' ), vv_mod( 'vv_hero_cta2_url' ), 'vv-button vv-button--ghost' ),
+	array( vv_mod( 'vv_hero_cta2_text' ), vv_mod( 'vv_hero_cta2_url' ) ? vv_mod( 'vv_hero_cta2_url' ) : vv_mod( 'vv_url_socio' ), 'vv-button vv-button--ghost' ),
 );
 ?>
 <section class="vv-hero" aria-labelledby="vv-hero-title">

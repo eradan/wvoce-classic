@@ -179,6 +179,7 @@ function wp_date( $format, $ts ) {
 
 require dirname( __DIR__ ) . '/inc/customizer.php';
 require dirname( __DIR__ ) . '/inc/meta.php';
+require dirname( __DIR__ ) . '/inc/eventi.php';
 require dirname( __DIR__ ) . '/inc/cards.php';
 require dirname( __DIR__ ) . '/inc/contenuti.php';
 require dirname( __DIR__ ) . '/inc/condivisione.php';
@@ -306,6 +307,7 @@ uguale( 'Galleria senza link resta senza', 'none', vv_gallery_link_file( array( 
 // Descrizione per motori di ricerca e social
 uguale( 'Descrizione corta ripulita', 'Laboratorio di lettura & teatro.', vv_condivisione_taglia( "<p>Laboratorio  di lettura &amp; teatro.</p>\n[vv_cards]" ) );
 uguale( 'Descrizione lunga tagliata sulla parola', 'Uno due tre quattro…', vv_condivisione_taglia( 'Uno due tre quattro cinque sei', 22 ) );
+uguale( 'Descrizione senza lettere decorative', 'Laboratorio Viva Voce', vv_condivisione_taglia( 'Laboratorio 𝕍𝕚𝕧𝕒 𝕍𝕠𝕔𝕖' ) );
 
 // Dati strutturati: sito, associazione, eventi
 $vv_sito = vv_ds_sito();

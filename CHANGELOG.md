@@ -2,6 +2,17 @@
 
 Storia del tema VivaVoce Classic, dalla versione più recente. La guida d'uso è nel README.
 
+## Versione 1.4.1: correzioni dalla revisione del codice
+
+- **Pulsante "Diventa socio" della home:** se il suo link (Customizer → VivaVoce → Hero della home → Pulsante 2: link) è vuoto, porta alla pagina "Diventa socio" dei Dati dell'associazione, come diceva già la descrizione. Così l'indirizzo si cambia in un posto solo (più la copia nel plugin wvoce-iscrizioni).
+- **Anteprime social e titolo della scheda senza lettere decorative:** i 𝕍𝕠𝕔𝕖 incollati dai social diventano testo normale anche nel titolo della pagina, in og:title, nella descrizione e nei dati strutturati degli eventi, non solo nella pagina.
+- **Breadcrumb:** con un plugin SEO attivo (Yoast, Rank Math, AIOSEO, SEOPress) il tema non scrive più il suo BreadcrumbList, come già per gli altri dati strutturati: niente doppioni.
+- **[vv_cards] con fissati e periodo insieme:** i fissati stanno davanti e gli eventi restano nell'ordine del calendario (prima li rimescolava per data di pubblicazione). Documentato che con `ids` periodo e fissati non contano.
+- **Codice:** le date degli eventi in `inc/eventi.php` e gli schemi delle pagine (due colonne, blocco finale, "Da non perdere", sottopagine) in `inc/layout.php`; la soglia di un mese fra evento breve e corso è una costante sola (`VV_EVENTO_BREVE`); i dati dell'anteprima e i valori predefiniti del Customizer si calcolano una volta per pagina.
+- **Test:** 68 controlli.
+
+Da fare: se nel Customizer il link del pulsante 2 dell'hero è stato salvato, svuotarlo perché segua la pagina "Diventa socio" dei Dati.
+
 ## Versione 1.4.0: un Natale che si sente
 
 La palette **Natale** (Customizer → VivaVoce → Palette del sito) cambia molto di più, sempre e solo attraverso le variabili di `assets/css/tokens.css`; senza palette il sito è identico a prima.

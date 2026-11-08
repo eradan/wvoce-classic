@@ -11,13 +11,17 @@ defined( 'ABSPATH' ) || exit;
  * Valori predefiniti delle impostazioni del child.
  */
 function vv_defaults() {
-	return array(
+	static $defaults = null;
+	if ( null !== $defaults ) {
+		return $defaults;
+	}
+	$defaults = array(
 		'vv_hero_enable'    => true,
 		'vv_hero_title'     => 'Lettura ad alta voce, teatro e creatività',
 		'vv_hero_cta1_text' => 'Prossimi appuntamenti',
 		'vv_hero_cta1_url'  => '#appuntamenti',
 		'vv_hero_cta2_text' => 'Diventa socio',
-		'vv_hero_cta2_url'  => home_url( '/cosa-puoi-fare/diventa-socio/' ),
+		'vv_hero_cta2_url'  => '', // Vuoto: la pagina "Diventa socio" dei Dati dell'associazione.
 		'vv_hero_image'     => '',
 		'vv_cf'             => '93096450502',
 		'vv_piva'           => '02441190507',
@@ -35,6 +39,7 @@ function vv_defaults() {
 		'vv_img_5x1000'     => 0,
 		'vv_palette'        => '',
 	);
+	return $defaults;
 }
 
 /**
@@ -102,7 +107,7 @@ function vv_customize_register( $wp_customize ) {
 	$wp_customize->add_section( 'vv_dati', array(
 		'title'       => 'Dati dell\'associazione',
 		'panel'       => 'vv_panel',
-		'description' => 'Valgono per il sito: piè di pagina e modello delle email, dati strutturati, pulsante "Diventa socio" della home. Per le iscrizioni il plugin wvoce-iscrizioni ha la sua email di contatto e le sue pagine dei moduli (Strumenti → Iscrizioni → Collegamenti): se cambiano, vanno cambiate anche lì.',
+		'description' => 'Valgono per il sito: piè di pagina e modello delle email, dati strutturati, pulsante "Diventa socio" della home se il suo link è vuoto. Per le iscrizioni il plugin wvoce-iscrizioni ha la sua email di contatto e le sue pagine dei moduli (Strumenti → Iscrizioni → Collegamenti): se cambiano, vanno cambiate anche lì.',
 	) );
 
 	$text_fields = array(
@@ -110,7 +115,7 @@ function vv_customize_register( $wp_customize ) {
 		'vv_hero_cta1_text' => array( 'vv_hero', 'Pulsante 1: testo', 'text' ),
 		'vv_hero_cta1_url'  => array( 'vv_hero', 'Pulsante 1: link', 'url' ),
 		'vv_hero_cta2_text' => array( 'vv_hero', 'Pulsante 2: testo', 'text' ),
-		'vv_hero_cta2_url'  => array( 'vv_hero', 'Pulsante 2: link', 'url' ),
+		'vv_hero_cta2_url'  => array( 'vv_hero', 'Pulsante 2: link (vuoto: la pagina "Diventa socio" dei Dati dell\'associazione)', 'url' ),
 		'vv_cf'             => array( 'vv_dati', 'Codice fiscale (5×1000)', 'text' ),
 		'vv_piva'           => array( 'vv_dati', 'Partita IVA', 'text' ),
 		'vv_iban'           => array( 'vv_dati', 'IBAN', 'text' ),

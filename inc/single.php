@@ -95,46 +95,6 @@ function vv_aside_related( $post_id ) {
 	return vv_aside_list( 'Altre edizioni', $others ) . vv_aside_list( 'Ne hanno parlato', $clips );
 }
 
-/**
- * "Da non perdere": i prossimi 3 eventi; se non ce ne sono, gli "In evidenza", poi i più recenti.
- * Nella colonna laterale degli articoli e delle pagine.
- *
- * @param int $exclude_id Articolo da escludere (0 nelle pagine).
- * @return string HTML.
- */
-function vv_aside_more( $exclude_id = 0 ) {
-	$extra = $exclude_id ? array( 'post__not_in' => array( $exclude_id ) ) : array();
-	$more  = vv_posts_by_period( 'eventi', 'futuro', 3, $extra );
-	if ( ! $more ) {
-		$more = vv_posts_in( '', 3, vv_add_meta_query( $extra, vv_featured_clause() ) );
-	}
-	if ( ! $more ) {
-		$more = vv_posts_in( '', 3, $extra );
-	}
-	return vv_aside_list( 'Da non perdere', $more );
-}
-
-/**
- * Elenco di link con miniatura nella colonna laterale.
- *
- * @param string    $title Titolo del blocco.
- * @param WP_Post[] $posts Articoli.
- * @return string HTML (vuoto senza articoli).
- */
-function vv_aside_list( $title, $posts ) {
-	if ( ! $posts ) {
-		return '';
-	}
-	$html = '<div class="vv-aside-more"><h2 class="vv-info__title">' . esc_html( $title ) . '</h2><ul class="vv-aside-list">';
-	foreach ( $posts as $p ) {
-		// Senza immagine un riquadro della stessa misura, così i titoli restano in colonna.
-		$thumb = get_the_post_thumbnail( $p, 'thumbnail', array( 'alt' => '', 'loading' => 'lazy' ) );
-		$thumb = $thumb ? $thumb : '<span class="vv-aside-list__vuoto" aria-hidden="true"></span>';
-		$html .= '<li><a href="' . esc_url( get_permalink( $p ) ) . '">' . $thumb . '<span>' . esc_html( wp_strip_all_tags( get_the_title( $p ) ) ) . '</span></a></li>';
-	}
-	return $html . '</ul></div>';
-}
-
 /*
  * Navigazione precedente/successivo: funzione "pluggable" di Sydney, ridefinita qui
  * (il child si carica prima del padre): due link allineati con etichetta.

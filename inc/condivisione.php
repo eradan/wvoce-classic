@@ -9,14 +9,15 @@
 defined( 'ABSPATH' ) || exit;
 
 /**
- * Testo ripulito per una descrizione: niente tag né shortcode, spazi compressi, tagliato sulla
- * parola con "…" oltre $max caratteri.
+ * Testo ripulito per una descrizione: niente tag né shortcode, lettere decorative come testo normale,
+ * spazi compressi, tagliato sulla parola con "…" oltre $max caratteri.
  *
  * @param string $testo Testo di partenza.
  * @param int    $max   Lunghezza massima.
  */
 function vv_condivisione_taglia( $testo, $max = 160 ) {
 	$testo = html_entity_decode( wp_strip_all_tags( strip_shortcodes( (string) $testo ) ), ENT_QUOTES, 'UTF-8' );
+	$testo = vv_plain_letters( $testo, false );
 	$testo = trim( (string) preg_replace( '/\s+/u', ' ', $testo ) );
 	if ( mb_strlen( $testo, 'UTF-8' ) <= $max ) {
 		return $testo;
@@ -42,6 +43,10 @@ function vv_condivisione_plugin_seo() {
  * @return array{titolo:string,descrizione:string,url:string,tipo:string,immagine:array,pubblicato:string,modificato:string}
  */
 function vv_condivisione_dati() {
+	static $dati = null; // La chiedono sia i meta sia i dati strutturati.
+	if ( null !== $dati ) {
+		return $dati;
+	}
 	$dati = array(
 		'titolo'      => wp_get_document_title(),
 		'descrizione' => '',

@@ -17,13 +17,15 @@ inc/email.php             modello HTML con il marchio per tutte le email, versio
 inc/sicurezza.php         nomi utente fuori da sitemap e API pubblica, XML-RPC spento
 inc/customizer.php        pannello VivaVoce (hero, dati dell'associazione)
 inc/meta.php              date e luogo degli eventi, "In evidenza", opzioni delle pagine
-inc/cards.php             card, griglie, date degli eventi, eventi per periodo
+inc/eventi.php            date degli eventi: etichette, foglietto, fase, ordine in calendario
+inc/cards.php             card, griglie, eventi per periodo
 inc/shortcodes.php        [vv_cards], [vv_sottopagine], [vv_elenco], [vv_sostienici], [vv_dati_fiscali]
 inc/home.php              hero della home al posto dello slider
 inc/archive.php           archivi a card, 12 per pagina
 inc/breadcrumbs.php       percorso in alto, dati strutturati, voce di menu della sezione corrente
+inc/layout.php            schemi a due colonne e con blocco finale, "Da non perdere", sottopagine
 inc/single.php            articolo con colonna laterale, navigazione, altri soci fondatori
-inc/page.php              pagine con la colonna "In questa sezione", schemi a due colonne e con blocco finale
+inc/page.php              pagine con la colonna "In questa sezione"
 inc/redirects.php         301 degli indirizzi spariti
 template-parts/           card.php, home-hero.php
 page-templates/           page-hub.php, page-elenco.php

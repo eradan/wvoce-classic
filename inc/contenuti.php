@@ -96,6 +96,7 @@ function vv_plain_letters_title( $title ) {
 }
 add_filter( 'the_title', 'vv_plain_letters_title' );
 add_filter( 'get_the_excerpt', 'vv_plain_letters_title' );
+add_filter( 'single_post_title', 'vv_plain_letters_title' ); // <title>, og:title e nome dell'evento nei dati strutturati.
 
 /**
  * Voci di elenco "orfane": <li> rimasti fuori dopo un </ul> (HTML rotto nell'editor,

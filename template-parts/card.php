@@ -22,7 +22,8 @@ if ( ! $vv_post ) {
 $vv_link     = get_permalink( $vv_post );
 $vv_title    = get_the_title( $vv_post );
 $vv_ritaglio = in_array( $vv_variante, array( 'stampa', 'citazione' ), true );
-$vv_excerpt  = has_excerpt( $vv_post ) ? get_the_excerpt( $vv_post ) : wp_trim_words( wp_strip_all_tags( strip_shortcodes( $vv_post->post_content ) ), array( 'persona' => 18 )[ $vv_variante ] ?? ( $vv_ritaglio ? 12 : 22 ), '…' );
+$vv_parole   = 'persona' === $vv_variante ? 18 : ( $vv_ritaglio ? 12 : 22 ); // Parole del riassunto automatico.
+$vv_excerpt  = has_excerpt( $vv_post ) ? get_the_excerpt( $vv_post ) : wp_trim_words( wp_strip_all_tags( strip_shortcodes( $vv_post->post_content ) ), $vv_parole, '…' );
 $vv_excerpt  = vv_plain_letters( $vv_excerpt, false );
 $vv_size     = 'persona' === $vv_variante ? 'vv-persona' : 'vv-card';
 $vv_img      = 'citazione' === $vv_variante ? '' : get_the_post_thumbnail( $vv_post, $vv_size, array(
