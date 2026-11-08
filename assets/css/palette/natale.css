@@ -111,6 +111,15 @@
 [data-vv-natale] .vv-hero__tela {
 	scale: 0.89;
 	transform-origin: 70% 80%;
+	translate: -50% -59%; /* il pompon sale a metà sulla testata */
+}
+/* Il pompon passa sopra testata e festone (z-index 999 di Sydney) finché la pagina è in cima; scorrendo,
+ * l'hero torna sotto la testata. In orizzontale l'hero resta tagliato, niente scorrimento di lato. */
+[data-vv-natale] .vv-hero {
+	overflow: clip visible;
+}
+[data-vv-natale] body:not(.vv-scrolled) .vv-hero {
+	z-index: 1000;
 }
 @media (prefers-reduced-motion: no-preference) {
 	[data-vv-natale] .vv-hero__testa-natale {
