@@ -110,12 +110,14 @@
 }
 [data-vv-natale] .vv-hero__tela {
 	scale: 0.89;
-	transform-origin: 70% 80%;
+	transform-origin: 70% 80.25%; /* il fondo della testa */
 	translate: -50% -56%; /* il pompon sale sulla testata */
 }
+/* Su desktop la testa resta dov'è, con il fondo sui pulsanti; solo il cappello sale sulla testata */
 @media (min-width: 768px) {
 	[data-vv-natale] .vv-hero__tela {
-		translate: -50% -53%;
+		scale: 0.95;
+		translate: -50% -50%;
 	}
 }
 /* Solo l'illustrazione, non il fondo dell'hero, passa sopra testata e festone (z-index 999 di Sydney)
