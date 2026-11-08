@@ -1,7 +1,7 @@
 <?php
 /**
  * Test delle funzioni del tema che non hanno bisogno di WordPress (date e ordine degli eventi,
- * meta_query, contenuti, anteprime, dati strutturati, email).
+ * contenuti, anteprime, dati strutturati, email).
  * Si lanciano con: php tests/run.php
  *
  * Le poche funzioni di WordPress che servono sono imitate qui sotto, nel modo più semplice.
@@ -128,18 +128,6 @@ uguale( 'Foglietto: due mesi', array( 'alto' => '28 set', 'basso' => '3 ott' ), 
 uguale( 'Foglietto: corso di una stagione', array( 'alto' => 'ott–dic', 'basso' => '2026' ), $vv_chip( '2026-10-01', '2026-12-15' ) );
 uguale( 'Foglietto: corso su due anni', array( 'alto' => 'ott–giu', 'basso' => '26–27' ), $vv_chip( '2026-10-01', '2027-06-30' ) );
 uguale( 'Foglietto: senza date dell\'evento', null, vv_foglietto_data( array( 'inizio' => 0, 'fine' => 0, 'con_date' => false ) ) );
-
-// meta_query: le condizioni si sommano, nessuna va persa
-$date = array( array( 'key' => 'vv_data', 'value' => '2026-10-06', 'compare' => '>=' ) );
-uguale( 'meta_query su argomenti vuoti', array( 'meta_query' => $date ), vv_aggiungi_meta_query( array(), $date ) );
-uguale(
-	'meta_query in AND con quella che c\'era',
-	array(
-		'post__not_in' => array( 3 ),
-		'meta_query'   => array( 'relation' => 'AND', vv_condizione_in_evidenza(), $date ),
-	),
-	vv_aggiungi_meta_query( array( 'post__not_in' => array( 3 ), 'meta_query' => vv_condizione_in_evidenza() ), $date )
-);
 
 // Ordine degli eventi: il caso della home del 10 ottobre 2026
 $vv_ev   = static fn( $nome, $da, $a ) => array( $nome, strtotime( $da ), strtotime( $a . ' 23:59:59' ) );

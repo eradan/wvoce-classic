@@ -1,15 +1,12 @@
 <?php
 /**
- * Campi aggiuntivi e riquadri dell'editor: date e luogo degli eventi, "In evidenza", "Senza immagine in
- * testa", card nascosta e categorie collegate delle pagine.
+ * Campi aggiuntivi e riquadri dell'editor: date e luogo degli eventi, "Senza immagine in testa", card
+ * nascosta e categorie collegate delle pagine.
  *
  * @package VivaVoce
  */
 
 defined( 'ABSPATH' ) || exit;
-
-// Il campo del vecchio plugin Featured Post Creative: gli articoli segnati allora restano in evidenza.
-const VV_CHIAVE_IN_EVIDENZA = '_wpfp_featured_post';
 
 function vv_registra_campi() {
 	$campi = array(
@@ -57,10 +54,6 @@ add_action( 'add_meta_boxes', 'vv_aggiungi_riquadri' );
 
 function vv_riquadro_evento( WP_Post $articolo ) {
 	wp_nonce_field( 'vv_meta', 'vv_meta_nonce' );
-	printf(
-		'<p><label><input type="checkbox" name="vv_in_evidenza" value="1" %s> <strong>In evidenza</strong> (riserva: compare in home e in "Da non perdere" solo quando non ci sono eventi in calendario)</label></p>',
-		checked( (string) get_post_meta( $articolo->ID, VV_CHIAVE_IN_EVIDENZA, true ), '1', false )
-	);
 	vv_casella_senza_immagine( $articolo );
 	$campi = array(
 		'vv_data'      => array( 'Data (o inizio)', 'date' ),
@@ -109,21 +102,12 @@ function vv_salva_campi( $contenuto_id ) {
 	if ( ! $autorizzato || wp_is_post_revision( $contenuto_id ) || ( defined( 'DOING_AUTOSAVE' ) && DOING_AUTOSAVE ) ) {
 		return;
 	}
-	$pagina = 'page' === get_post_type( $contenuto_id );
-	// Campo del modulo => campo salvato.
-	$caselle = $pagina
-		? array(
-			'vv_nascondi'       => 'vv_nascondi',
-			'vv_senza_immagine' => 'vv_senza_immagine',
-		)
-		: array(
-			'vv_senza_immagine' => 'vv_senza_immagine',
-			'vv_in_evidenza'    => VV_CHIAVE_IN_EVIDENZA,
-		);
+	$pagina  = 'page' === get_post_type( $contenuto_id );
+	$caselle = $pagina ? array( 'vv_nascondi', 'vv_senza_immagine' ) : array( 'vv_senza_immagine' );
 	$testi   = $pagina ? array( 'vv_categoria' ) : array( 'vv_data', 'vv_data_fine', 'vv_luogo' );
 
-	foreach ( $caselle as $campo => $chiave ) {
-		if ( '1' === ( $_POST[ $campo ] ?? '' ) ) {
+	foreach ( $caselle as $chiave ) {
+		if ( '1' === ( $_POST[ $chiave ] ?? '' ) ) {
 			update_post_meta( $contenuto_id, $chiave, 1 );
 		} else {
 			delete_post_meta( $contenuto_id, $chiave );
@@ -142,20 +126,6 @@ function vv_salva_campi( $contenuto_id ) {
 	}
 }
 add_action( 'save_post', 'vv_salva_campi' );
-
-function vv_colonna_in_evidenza( $colonne ) {
-	$colonne['vv_in_evidenza'] = '<span class="dashicons dashicons-star-filled" title="In evidenza"></span><span class="screen-reader-text">In evidenza</span>';
-	return $colonne;
-}
-add_filter( 'manage_post_posts_columns', 'vv_colonna_in_evidenza' );
-
-function vv_valore_colonna_in_evidenza( $colonna, $articolo_id ) {
-	if ( 'vv_in_evidenza' === $colonna ) {
-		$in_evidenza = '1' === (string) get_post_meta( $articolo_id, VV_CHIAVE_IN_EVIDENZA, true );
-		printf( '<span class="dashicons %s" aria-label="%s"></span>', $in_evidenza ? 'dashicons-star-filled' : 'dashicons-star-empty', $in_evidenza ? 'In evidenza' : 'Non in evidenza' );
-	}
-}
-add_action( 'manage_post_posts_custom_column', 'vv_valore_colonna_in_evidenza', 10, 2 );
 
 /**
  * Immagine in evidenza e riassunto servono alle card: con l'editor classico restano visibili anche se

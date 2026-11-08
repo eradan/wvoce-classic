@@ -81,18 +81,11 @@ function vv_pagine_figlie( $madre_id ) {
 }
 
 /**
- * I prossimi 3 eventi; senza, gli "In evidenza"; senza, i più recenti.
+ * I prossimi 3 eventi; senza, il blocco non c'è.
  */
 function vv_da_non_perdere( $escluso_id = 0 ) {
-	$extra    = $escluso_id ? array( 'post__not_in' => array( $escluso_id ) ) : array();
-	$articoli = vv_eventi_del_periodo( 'eventi', 'futuro', 3, $extra );
-	if ( ! $articoli ) {
-		$articoli = vv_in_evidenza( 3, $extra );
-	}
-	if ( ! $articoli ) {
-		$articoli = vv_articoli( '', 3, $extra );
-	}
-	return vv_elenco_laterale( 'Da non perdere', $articoli );
+	$extra = $escluso_id ? array( 'post__not_in' => array( $escluso_id ) ) : array();
+	return vv_elenco_laterale( 'Da non perdere', vv_eventi_del_periodo( 'eventi', 'futuro', 3, $extra ) );
 }
 
 function vv_elenco_laterale( $titolo, $articoli ) {

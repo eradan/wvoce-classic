@@ -10,19 +10,25 @@ defined( 'ABSPATH' ) || exit;
 /**
  * Dalle date dell'evento, non da quella di pubblicazione, nell'ordine di vv_ordina_eventi().
  *
- * @param string $periodo futuro (non ancora finiti) | dal-3-mesi (anche finiti da meno di 3 mesi).
+ * @param string $periodo futuro (non ancora finiti) | dal-3-mesi (anche finiti da meno di 3 mesi) | tutti.
  * @param int    $numero  0 o meno: tutti.
  * @return WP_Post[]
  */
 function vv_eventi_del_periodo( $categorie, $periodo, $numero, $extra = array() ) {
 	$adesso = time();
-	$dal    = 'dal-3-mesi' === $periodo ? strtotime( '-3 months', $adesso ) : $adesso;
+	$dal    = match ( $periodo ) {
+		'futuro'     => $adesso,
+		'dal-3-mesi' => strtotime( '-3 months', $adesso ),
+		default      => 0,
+	};
 	$giorno = wp_date( 'Y-m-d', $dal );
 	// Prima il filtro nel database sulle date AAAA-MM-GG, confrontabili come testo; poi quello esatto.
-	$candidati = vv_articoli( $categorie, -1, vv_aggiungi_meta_query( $extra, array(
-		'relation' => 'OR',
-		array( 'key' => 'vv_data_fine', 'value' => $giorno, 'compare' => '>=' ),
-		array( 'key' => 'vv_data', 'value' => $giorno, 'compare' => '>=' ),
+	$candidati = vv_articoli( $categorie, -1, array_merge( $extra, array(
+		'meta_query' => array( // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_query
+			'relation' => 'OR',
+			array( 'key' => 'vv_data_fine', 'value' => $giorno, 'compare' => '>=' ),
+			array( 'key' => 'vv_data', 'value' => $giorno, 'compare' => '>=' ),
+		),
 	) ) );
 
 	$eventi = array();
@@ -34,29 +40,6 @@ function vv_eventi_del_periodo( $categorie, $periodo, $numero, $extra = array() 
 	}
 	$ordinati = array_column( vv_ordina_eventi( $eventi, $adesso ), 0 );
 	return (int) $numero > 0 ? array_slice( $ordinati, 0, (int) $numero ) : $ordinati;
-}
-
-/**
- * In AND con la condizione che c'è già: con $extra + array( 'meta_query' => … ) una andrebbe persa.
- */
-function vv_aggiungi_meta_query( $argomenti, $condizione ) {
-	$argomenti['meta_query'] = empty( $argomenti['meta_query'] ) // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_query
-		? $condizione
-		: array( 'relation' => 'AND', $argomenti['meta_query'], $condizione );
-	return $argomenti;
-}
-
-function vv_condizione_in_evidenza() {
-	return array( array( 'key' => VV_CHIAVE_IN_EVIDENZA, 'value' => '1' ) );
-}
-
-/**
- * La riserva quando non ci sono eventi in calendario.
- *
- * @return WP_Post[]
- */
-function vv_in_evidenza( $numero, $extra = array() ) {
-	return vv_articoli( '', $numero, vv_aggiungi_meta_query( $extra, vv_condizione_in_evidenza() ) );
 }
 
 /**

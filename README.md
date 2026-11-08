@@ -16,7 +16,7 @@ inc/dati-strutturati.php  dati strutturati schema.org: sito e associazione in ho
 inc/email.php             modello HTML con il marchio per tutte le email, versione in solo testo, Message-ID del dominio
 inc/sicurezza.php         nomi utente fuori da sitemap e API pubblica, XML-RPC spento
 inc/customizer.php        pannello VivaVoce (hero, palette, dati dell'associazione, pagine socio e donazione)
-inc/meta.php              date e luogo degli eventi, "In evidenza", opzioni delle pagine
+inc/meta.php              date e luogo degli eventi, opzioni delle pagine
 inc/eventi.php            date degli eventi: etichette, foglietto, fase, ordine in calendario
 inc/cards.php             card, griglie, eventi per periodo
 inc/shortcodes.php        [vv_cards], [vv_sottopagine], [vv_elenco], [vv_sostienici], [vv_dati_fiscali]

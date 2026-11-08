@@ -2,6 +2,15 @@
 
 Storia del tema VivaVoce Classic, dalla versione più recente. La guida d'uso è nel README.
 
+## Versione 1.7.0: via "In evidenza"
+
+- **Tolta la spunta "In evidenza"** dal riquadro degli articoli e la stellina dall'elenco articoli: bastano le date degli eventi.
+- **Home senza eventi recenti** (per esempio d'estate): la sezione degli appuntamenti mostra gli ultimi eventi, anche finiti da più di tre mesi, invece degli articoli spuntati.
+- **"Da non perdere"**, nella colonna di articoli e pagine, compare solo quando ci sono eventi in programma.
+- `[vv_cards]` non ha più l'attributo `in_evidenza` (nessuna pagina lo usava).
+
+Da fare: nessun passo obbligatorio. Facoltativo: cancellare il campo rimasto negli articoli, che non ha più effetto, con `wp db query "DELETE FROM $(wp db prefix)postmeta WHERE meta_key = '_wpfp_featured_post'"`.
+
 ## Versione 1.6.0: Natale scuro a scelta, fascette con i colori del logo, codice più leggibile
 
 - **Natale sempre scuro, e si può spegnere.** Con la palette Natale il sito è scuro con oro, verde, rosso e neve. Il pulsante del tema in testata ha l'icona di una pallina e passa a chiaro, scuro e di nuovo Natale: chi lo spegne vede il sito di sempre. Il Natale è la scelta predefinita per tutti finché la palette è accesa; alla fine torna la preferenza che ognuno aveva prima.

@@ -4,20 +4,18 @@
  *
  *   [vv_cards categoria="appuntamenti" numero="3" variante="evento" colonne="3"]
  *                                        (non ripete articoli già mostrati sopra; doppioni="si" per permetterlo)
- *   [vv_cards in_evidenza="si" numero="3"]                 solo gli articoli spuntati "In evidenza"
  *   [vv_cards fissati="si" numero="10" layout="carosello"] i fissati + i 10 più recenti, dal più recente, a carosello
  *                                        (con periodo, i fissati davanti agli eventi, che restano nel loro ordine)
  *   [vv_cards categoria="eventi" periodo="futuro"]        solo gli eventi non ancora finiti (date dell'evento), dal più vicino
  *   [vv_cards categoria="eventi" periodo="dal-3-mesi" layout="carosello" autoplay="si"]
- *                                        anche quelli finiti da meno di 3 mesi, dopo i prossimi; senza nessuno, gli "In evidenza"
+ *                                        anche quelli finiti da meno di 3 mesi, dopo i prossimi; senza nessuno, gli ultimi eventi
  *                                        (con periodo="futuro", invece, una frase "niente in programma").
  *                                        autoplay="si": il carosello scorre da solo (con pausa)
  *   [vv_cards categoria="eventi" periodo="dal-3-mesi" numero="9" layout="agenda" lotto="3"]
  *                                        agenda: righe compatte su telefono, griglia sopra; lotto="3" ne mostra 3 e poi
  *                                        "Mostra altri" ne apre altre 3 alla volta
- *   [vv_cards ids="12,34,56"]            quegli articoli, nell'ordine scritto (al massimo numero, e solo quelli di
- *                                        categoria e in_evidenza se indicati); periodo, fissati, ordine e doppioni
- *                                        non contano
+ *   [vv_cards ids="12,34,56"]            quegli articoli, nell'ordine scritto (al massimo numero, e della categoria
+ *                                        se indicata); periodo, fissati, ordine e doppioni non contano
  *   [vv_cards categoria="rassegna-stampa" variante="citazione" numero="6" layout="carosello"]
  *                                        ritagli solo testo: testata e data, poi il titolo fra virgolette
  *   [vv_sottopagine]                     card delle pagine figlie della pagina corrente
@@ -33,19 +31,18 @@ defined( 'ABSPATH' ) || exit;
 
 function vv_sc_cards( $atts ) {
 	$atts = shortcode_atts( array(
-		'categoria'   => '',
-		'numero'      => 6,
-		'variante'    => 'evento',
-		'colonne'     => '',
-		'ordine'      => 'data',
-		'ids'         => '',
-		'doppioni'    => 'no',
-		'in_evidenza' => 'no',
-		'fissati'     => 'no',
-		'layout'      => 'griglia',
-		'periodo'     => '',
-		'autoplay'    => 'no',
-		'lotto'       => 0,
+		'categoria' => '',
+		'numero'    => 6,
+		'variante'  => 'evento',
+		'colonne'   => '',
+		'ordine'    => 'data',
+		'ids'       => '',
+		'doppioni'  => 'no',
+		'fissati'   => 'no',
+		'layout'    => 'griglia',
+		'periodo'   => '',
+		'autoplay'  => 'no',
+		'lotto'     => 0,
 	), $atts, 'vv_cards' );
 
 	static $gia_mostrati = array(); // dai [vv_cards] precedenti nella stessa pagina
@@ -64,12 +61,11 @@ function vv_sc_cards( $atts ) {
 
 	if ( $periodo ) {
 		$articoli = vv_eventi_del_periodo( $categorie, $periodo, $numero, $extra );
-		// Nella pagina "In programma" gli "In evidenza" sembrerebbero in programma: meglio dirlo.
 		if ( ! $articoli && 'futuro' === $periodo ) {
 			return '<p class="vv-empty">Al momento non ci sono appuntamenti in programma: torna a trovarci presto!</p>';
 		}
 		if ( ! $articoli ) {
-			$articoli = vv_in_evidenza( $numero, $extra );
+			$articoli = vv_eventi_del_periodo( $categorie, 'tutti', $numero, $extra );
 		}
 	} else {
 		$articoli = vv_articoli( $categorie, $numero, $extra );
@@ -94,9 +90,6 @@ function vv_argomenti_cards( $atts ) {
 	} elseif ( 'titolo' === $atts['ordine'] ) {
 		$argomenti['orderby'] = 'title';
 		$argomenti['order']   = 'ASC';
-	}
-	if ( 'si' === $atts['in_evidenza'] ) {
-		$argomenti = vv_aggiungi_meta_query( $argomenti, vv_condizione_in_evidenza() );
 	}
 	return $argomenti;
 }
