@@ -27,7 +27,6 @@ require VV_DIR . '/inc/breadcrumbs.php';
 require VV_DIR . '/inc/layout.php';
 require VV_DIR . '/inc/single.php';
 require VV_DIR . '/inc/page.php';
-require VV_DIR . '/inc/redirects.php';
 
 function vv_carica_stili_e_script() {
 	$dipende_da = 'sydney-style-min';

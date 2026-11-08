@@ -242,9 +242,6 @@
 		var cardInVista = function () {
 			return Math.max(1, Math.round((binario.clientWidth + spazio()) / passo()));
 		};
-		var allaFine = function () {
-			return binario.scrollLeft + binario.clientWidth >= binario.scrollWidth - 2;
-		};
 
 		var aggiorna = function () {
 			if (!passo()) {
@@ -253,7 +250,7 @@
 			var prima = Math.round(binario.scrollLeft / passo());
 			var ultima = Math.min(card.length, prima + cardInVista());
 			indietro.disabled = binario.scrollLeft <= 2;
-			avanti.disabled = allaFine();
+			avanti.disabled = binario.scrollLeft + binario.clientWidth >= binario.scrollWidth - 2;
 			contatore.textContent = (prima + 1) + (ultima > prima + 1 ? '–' + ultima : '') + ' di ' + card.length;
 			comandi.hidden = indietro.disabled && avanti.disabled;
 		};
@@ -267,84 +264,12 @@
 		addEventListener('resize', perFotogramma(aggiorna));
 		aggiorna();
 
-		var ripartiDaCapo = function () {};
-		if (carosello.hasAttribute('data-vv-autoplay') && !menoMovimento.matches) {
-			ripartiDaCapo = autoplay(carosello, binario, contatore, passo, allaFine);
-		}
 		comandi.addEventListener('click', function (e) {
 			var freccia = e.target.closest('[data-dir]');
 			if (freccia && !freccia.disabled) {
 				binario.scrollBy({ left: Number(freccia.getAttribute('data-dir')) * passo() * cardInVista(), behavior: comeScorrere() });
-				ripartiDaCapo();
 			}
 		});
 	});
 
-	// Una card ogni 5 secondi, in fondo si riparte. Si ferma con il mouse sopra, il focus dentro, il dito
-	// sul binario, fuori schermo e a scheda nascosta; il pulsante lo ferma del tutto. Restituisce la
-	// funzione che fa ripartire l'intervallo, perché dopo una freccia il salto non arrivi subito.
-	function autoplay(carosello, binario, contatore, passo, allaFine) {
-		var pausa = document.createElement('button');
-		pausa.type = 'button';
-		pausa.className = 'vv-carousel__btn vv-carousel__play';
-		contatore.before(pausa);
-
-		var fermo = false;
-		var sopra = false;
-		var focus = false;
-		var tocco = false;
-		var inVista = true;
-		var intervallo = 0;
-		var iconaFermo = null;
-
-		var scorre = function () {
-			return !fermo && !sopra && !focus && !tocco && inVista && !document.hidden;
-		};
-		var avanza = function () {
-			if (scorre() && binario.scrollWidth > binario.clientWidth + 2) {
-				binario.scrollTo({ left: allaFine() ? 0 : binario.scrollLeft + passo(), behavior: 'smooth' });
-			}
-		};
-		var aggiornaScorrimento = function () {
-			clearInterval(intervallo);
-			intervallo = scorre() ? setInterval(avanza, 5000) : 0;
-			// Mentre scorre da solo il contatore non si annuncia a ogni card.
-			contatore.setAttribute('aria-live', scorre() ? 'off' : 'polite');
-			// L'icona si ridisegna solo quando cambia: sostituirla fra pressione e rilascio farebbe perdere il clic.
-			if (iconaFermo !== fermo) {
-				iconaFermo = fermo;
-				pausa.innerHTML = fermo
-					? svg('0 0 16 16', '<path d="M4 2l10 6-10 6z" fill="currentColor"/>')
-					: svg('0 0 16 16', '<rect x="3" y="2" width="3.5" height="12" fill="currentColor"/><rect x="9.5" y="2" width="3.5" height="12" fill="currentColor"/>');
-				pausa.setAttribute('aria-label', fermo ? 'Riprendi lo scorrimento automatico' : 'Ferma lo scorrimento automatico');
-			}
-		};
-		var fineTocco = function () {
-			tocco = false;
-			aggiornaScorrimento();
-		};
-
-		pausa.addEventListener('click', function () {
-			fermo = !fermo;
-			aggiornaScorrimento();
-		});
-		carosello.addEventListener('mouseenter', function () { sopra = true; aggiornaScorrimento(); });
-		carosello.addEventListener('mouseleave', function () { sopra = false; aggiornaScorrimento(); });
-		// Il focus sul pulsante di pausa non conta: dopo "riprendi" deve ripartire.
-		carosello.addEventListener('focusin', function (e) { focus = e.target !== pausa; aggiornaScorrimento(); });
-		carosello.addEventListener('focusout', function (e) {
-			focus = carosello.contains(e.relatedTarget) && e.relatedTarget !== pausa;
-			aggiornaScorrimento();
-		});
-		binario.addEventListener('touchstart', function () { tocco = true; aggiornaScorrimento(); }, { passive: true });
-		binario.addEventListener('touchend', fineTocco, { passive: true });
-		binario.addEventListener('touchcancel', fineTocco, { passive: true });
-		document.addEventListener('visibilitychange', aggiornaScorrimento);
-		new IntersectionObserver(function (voci) {
-			inVista = voci[0].isIntersecting;
-			aggiornaScorrimento();
-		}, { threshold: 0.5 }).observe(binario);
-		aggiornaScorrimento();
-		return aggiornaScorrimento;
-	}
 })();

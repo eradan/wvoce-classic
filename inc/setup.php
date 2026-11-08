@@ -25,21 +25,17 @@ function vv_miniature_webp( $formati ) {
 }
 add_filter( 'image_editor_output_format', 'vv_miniature_webp' );
 
-/*
+/**
  * Sydney accende da solo il costruttore header/footer quando arriva da un tema che non ha "sydney" nel
  * nome: markup che il CSS del child non conosce e footer senza widget. Resta spento senza toccare
- * l'opzione salvata; per usarlo, define( 'VV_SYDNEY_BUILDER', true ); in wp-config.php.
+ * l'opzione salvata.
  */
-if ( ! defined( 'VV_SYDNEY_BUILDER' ) || ! VV_SYDNEY_BUILDER ) {
-	add_filter(
-		'option_sydney-modules',
-		static function ( $moduli ) {
-			$moduli               = (array) $moduli;
-			$moduli['hf-builder'] = false;
-			return $moduli;
-		}
-	);
+function vv_senza_costruttore_sydney( $moduli ) {
+	$moduli               = (array) $moduli;
+	$moduli['hf-builder'] = false;
+	return $moduli;
 }
+add_filter( 'option_sydney-modules', 'vv_senza_costruttore_sydney' );
 
 add_filter( 'sydney_show_sidebar', '__return_false' );
 

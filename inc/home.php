@@ -7,16 +7,8 @@
 
 defined( 'ABSPATH' ) || exit;
 
-function vv_hero_attivo() {
-	return is_front_page() && vv_mod( 'vv_hero_enable' );
-}
-
-/**
- * Quella del pannello VivaVoce o la prima slide di Sydney.
- */
 function vv_immagine_hero() {
-	$url = vv_mod( 'vv_hero_image' );
-	return $url ? $url : (string) get_theme_mod( 'slider_image_1', '' );
+	return (string) vv_mod( 'vv_hero_image' );
 }
 
 /**
@@ -24,10 +16,8 @@ function vv_immagine_hero() {
  */
 function vv_id_immagine_hero() {
 	static $id = null;
-	if ( null === $id ) {
-		$url = vv_immagine_hero();
-		$id  = $url ? attachment_url_to_postid( $url ) : 0;
-	}
+
+	$id ??= vv_immagine_hero() ? attachment_url_to_postid( vv_immagine_hero() ) : 0;
 	return $id;
 }
 
@@ -39,12 +29,12 @@ function vv_hero_animata() {
 }
 
 function vv_niente_slider_home( $tipo ) {
-	return vv_hero_attivo() ? 'nothing' : $tipo;
+	return is_front_page() ? 'nothing' : $tipo;
 }
 add_filter( 'theme_mod_front_header_type', 'vv_niente_slider_home' );
 
 function vv_classe_hero( $classi ) {
-	if ( vv_hero_attivo() ) {
+	if ( is_front_page() ) {
 		$classi[] = 'vv-has-hero';
 	}
 	return $classi;
@@ -52,7 +42,7 @@ function vv_classe_hero( $classi ) {
 add_filter( 'body_class', 'vv_classe_hero' );
 
 function vv_stampa_hero() {
-	if ( vv_hero_attivo() ) {
+	if ( is_front_page() ) {
 		get_template_part( 'template-parts/home-hero' );
 	}
 }
@@ -62,7 +52,7 @@ add_action( 'sydney_after_hero', 'vv_stampa_hero' );
  * L'h1 della home è quello dell'hero; con un titolo vuoto the_title() non stampa neanche i tag.
  */
 function vv_home_senza_titolo( $titolo, $id = 0 ) {
-	if ( in_the_loop() && is_main_query() && (int) get_option( 'page_on_front' ) === (int) $id && vv_hero_attivo() ) {
+	if ( in_the_loop() && is_main_query() && (int) get_option( 'page_on_front' ) === (int) $id ) {
 		return '';
 	}
 	return $titolo;

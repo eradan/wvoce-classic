@@ -24,7 +24,7 @@ function vv_pagina_con_colonna( $pagina_id ) {
 	return $pagina
 		&& (int) get_option( 'wp_page_for_privacy_policy' ) !== $pagina->ID
 		&& ! preg_match( '/privacy|cookie/', $pagina->post_name )
-		&& ! preg_match( '/\[(vv_cards|vv_elenco|vv_sottopagine|vv_sostienici)\b/', $pagina->post_content );
+		&& ! preg_match( '/\[(vv_cards|vv_sottopagine|vv_sostienici)\b/', $pagina->post_content );
 }
 
 function vv_modello_pagina() {
@@ -45,10 +45,6 @@ function vv_in_questa_sezione( $pagina_id ) {
 	$madre_id = (int) $pagina->post_parent;
 	$figlie   = vv_pagine_figlie( $pagina_id );
 	$sorelle  = $madre_id ? vv_pagine_figlie( $madre_id ) : array();
-	// La corrente compare anche se è nascosta fra le card della madre.
-	if ( $madre_id && ! in_array( $pagina_id, wp_list_pluck( $sorelle, 'ID' ), true ) ) {
-		$sorelle[] = $pagina;
-	}
 	if ( count( $sorelle ) < 2 && ! $figlie ) {
 		return '';
 	}

@@ -521,10 +521,6 @@
 	cursor: pointer;
 }
 @media (min-width: 600px) {
-	.vv-carousel__play {
-		width: 32px;
-		height: 32px;
-	}
 	.vv-carousel__btn[data-dir] {
 		position: absolute;
 		top: 18%;

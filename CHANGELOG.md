@@ -2,14 +2,17 @@
 
 Storia del tema VivaVoce Classic, dalla versione più recente. La guida d'uso è nel README.
 
-## Versione 1.7.0: via "In evidenza"
+## Versione 1.7.0: via "In evidenza" e le funzioni mai usate
 
-- **Tolta la spunta "In evidenza"** dal riquadro degli articoli e la stellina dall'elenco articoli: bastano le date degli eventi.
-- **Home senza eventi recenti** (per esempio d'estate): la sezione degli appuntamenti mostra gli ultimi eventi, anche finiti da più di tre mesi, invece degli articoli spuntati.
-- **"Da non perdere"**, nella colonna di articoli e pagine, compare solo quando ci sono eventi in programma.
-- `[vv_cards]` non ha più l'attributo `in_evidenza` (nessuna pagina lo usava).
+Il tema perde le funzioni che nessuna pagina usava; il sito resta com'è.
 
-Da fare: nessun passo obbligatorio. Facoltativo: cancellare il campo rimasto negli articoli, che non ha più effetto, con `wp db query "DELETE FROM $(wp db prefix)postmeta WHERE meta_key = '_wpfp_featured_post'"`.
+- **Tolta la spunta "In evidenza"** dal riquadro degli articoli e la stellina dall'elenco articoli: bastano le date degli eventi. In home, se non ci sono eventi recenti (per esempio d'estate), la sezione degli appuntamenti mostra gli ultimi eventi; "Da non perdere", nella colonna di articoli e pagine, compare solo quando ci sono eventi in programma.
+- **`[vv_cards]`** perde l'autoplay del carosello, i fissati in cima e gli attributi `in_evidenza`, `ids`, `colonne` e `doppioni`; un `[vv_cards]` continua a non ripetere gli articoli di quelli prima nella stessa pagina. `[vv_sottopagine]` perde `padre`, e lo shortcode `[vv_elenco]` non c'è più: le Pagine elenco usano il loro modello.
+- **Pagine:** tolta la casella "Non mostrare fra le card della pagina madre", che nessuna pagina usava.
+- **Customizer:** tolte la palette Sabbia e la casella "Usa l'hero VivaVoce"; l'illustrazione dell'hero è solo quella scelta nel pannello VivaVoce, senza più il ripiego sullo slider di Sydney.
+- **Tolti i redirect** degli indirizzi spariti con la riorganizzazione del 2022.
+
+Da fare prima di trasferire: in Customizer → VivaVoce → Hero della home controllare che "Illustrazione" sia impostata (il file vivavoce-logo-pearl perché l'animazione resti); se era vuota, l'immagine veniva dallo slider di Sydney. Facoltativo: cancellare il vecchio campo "In evidenza" rimasto negli articoli con `wp db query "DELETE FROM $(wp db prefix)postmeta WHERE meta_key = '_wpfp_featured_post'"`.
 
 ## Versione 1.6.0: Natale scuro a scelta, fascette con i colori del logo, codice più leggibile
 

@@ -2,25 +2,15 @@
 /**
  * Shortcode per le pagine e i widget del footer.
  *
- *   [vv_cards categoria="appuntamenti" numero="3" variante="evento" colonne="3"]
- *                                        (non ripete articoli già mostrati sopra; doppioni="si" per permetterlo)
- *   [vv_cards fissati="si" numero="10" layout="carosello"] i fissati + i 10 più recenti, dal più recente, a carosello
- *                                        (con periodo, i fissati davanti agli eventi, che restano nel loro ordine)
- *   [vv_cards categoria="eventi" periodo="futuro"]        solo gli eventi non ancora finiti (date dell'evento), dal più vicino
- *   [vv_cards categoria="eventi" periodo="dal-3-mesi" layout="carosello" autoplay="si"]
- *                                        anche quelli finiti da meno di 3 mesi, dopo i prossimi; senza nessuno, gli ultimi eventi
- *                                        (con periodo="futuro", invece, una frase "niente in programma").
- *                                        autoplay="si": il carosello scorre da solo (con pausa)
+ *   [vv_cards categoria="eventi" periodo="futuro"]       gli eventi non ancora finiti, dal più vicino (o una frase "niente in programma")
+ *   [vv_cards categoria="eventi" periodo="dal-3-mesi" layout="carosello"]
+ *                                        anche quelli finiti da meno di 3 mesi; senza nessuno, gli ultimi eventi
  *   [vv_cards categoria="eventi" periodo="dal-3-mesi" numero="9" layout="agenda" lotto="3"]
- *                                        agenda: righe compatte su telefono, griglia sopra; lotto="3" ne mostra 3 e poi
- *                                        "Mostra altri" ne apre altre 3 alla volta
- *   [vv_cards ids="12,34,56"]            quegli articoli, nell'ordine scritto (al massimo numero, e della categoria
- *                                        se indicata); periodo, fissati, ordine e doppioni non contano
- *   [vv_cards categoria="rassegna-stampa" variante="citazione" numero="6" layout="carosello"]
- *                                        ritagli solo testo: testata e data, poi il titolo fra virgolette
+ *                                        righe compatte su telefono; "Mostra altri" apre 3 card alla volta
+ *   [vv_cards categoria="soci" variante="persona" ordine="titolo"]
+ *   [vv_cards categoria="rassegna-stampa" variante="citazione" layout="carosello"]   ritagli solo testo
+ *                                        Un [vv_cards] non ripete gli articoli di quelli prima nella stessa pagina.
  *   [vv_sottopagine]                     card delle pagine figlie della pagina corrente
- *   [vv_elenco categoria="laboratori"]   almeno 9 card grandi (in programma, poi le più recenti) + archivio per anno;
- *                                        senza date (progetti) un'unica griglia di schede
  *   [vv_sostienici]                      socio / donazione / 5×1000
  *   [vv_dati_fiscali]                    CF, P.IVA, IBAN con pulsante "copia" (mostra="iban" o "cf": uno solo)
  *
@@ -34,34 +24,24 @@ function vv_sc_cards( $atts ) {
 		'categoria' => '',
 		'numero'    => 6,
 		'variante'  => 'evento',
-		'colonne'   => '',
 		'ordine'    => 'data',
-		'ids'       => '',
-		'doppioni'  => 'no',
-		'fissati'   => 'no',
 		'layout'    => 'griglia',
 		'periodo'   => '',
-		'autoplay'  => 'no',
 		'lotto'     => 0,
 	), $atts, 'vv_cards' );
 
-	static $gia_mostrati = array(); // dai [vv_cards] precedenti nella stessa pagina
+	static $gia_mostrati = array();
 
 	$categorie = sanitize_text_field( $atts['categoria'] );
 	$numero    = (int) $atts['numero'];
-	$scelti    = '' !== $atts['ids']; // articoli scelti uno per uno: niente periodo, fissati né doppioni
-	$periodo   = ! $scelti && in_array( $atts['periodo'], array( 'futuro', 'dal-3-mesi' ), true ) ? $atts['periodo'] : '';
-	$esclusi   = ! $scelti && 'si' !== $atts['doppioni'] ? $gia_mostrati : array();
-	$extra     = vv_argomenti_cards( $atts );
-	$fissati   = ! $scelti && 'si' === $atts['fissati'] ? vv_fissati( $categorie, $extra, $esclusi ) : array();
-	$esclusi   = array_merge( $esclusi, wp_list_pluck( $fissati, 'ID' ) );
-	if ( $esclusi ) {
-		$extra['post__not_in'] = array_values( array_unique( $esclusi ) );
+	$extra     = 'titolo' === $atts['ordine'] ? array( 'orderby' => 'title', 'order' => 'ASC' ) : array();
+	if ( $gia_mostrati ) {
+		$extra['post__not_in'] = $gia_mostrati;
 	}
 
-	if ( $periodo ) {
-		$articoli = vv_eventi_del_periodo( $categorie, $periodo, $numero, $extra );
-		if ( ! $articoli && 'futuro' === $periodo ) {
+	if ( in_array( $atts['periodo'], array( 'futuro', 'dal-3-mesi' ), true ) ) {
+		$articoli = vv_eventi_del_periodo( $categorie, $atts['periodo'], $numero, $extra );
+		if ( ! $articoli && 'futuro' === $atts['periodo'] ) {
 			return '<p class="vv-empty">Al momento non ci sono appuntamenti in programma: torna a trovarci presto!</p>';
 		}
 		if ( ! $articoli ) {
@@ -70,120 +50,21 @@ function vv_sc_cards( $atts ) {
 	} else {
 		$articoli = vv_articoli( $categorie, $numero, $extra );
 	}
-
-	$articoli = array_merge( $fissati, $articoli );
-	// I fissati in ordine di data con gli altri; con un periodo restano davanti, per non disfare il calendario.
-	if ( $fissati && ! $periodo && 'data' === $atts['ordine'] ) {
-		usort( $articoli, static fn( $a, $b ) => strcmp( $b->post_date, $a->post_date ) );
-	}
 	$gia_mostrati = array_merge( $gia_mostrati, wp_list_pluck( $articoli, 'ID' ) );
 
-	return vv_griglia_card( $articoli, sanitize_key( $atts['variante'] ), vv_opzioni_cards( $atts ) );
+	return vv_griglia_card( $articoli, sanitize_key( $atts['variante'] ), array(
+		'layout' => in_array( $atts['layout'], array( 'carosello', 'agenda' ), true ) ? $atts['layout'] : 'griglia',
+		'lotto'  => max( 0, (int) $atts['lotto'] ),
+	) );
 }
 add_shortcode( 'vv_cards', 'vv_sc_cards' );
 
-function vv_argomenti_cards( $atts ) {
-	$argomenti = array();
-	if ( $atts['ids'] ) {
-		$argomenti['post__in'] = array_map( 'absint', explode( ',', $atts['ids'] ) );
-		$argomenti['orderby']  = 'post__in';
-	} elseif ( 'titolo' === $atts['ordine'] ) {
-		$argomenti['orderby'] = 'title';
-		$argomenti['order']   = 'ASC';
-	}
-	return $argomenti;
-}
-
-/**
- * Gli articoli "Fissati in cima al blog" delle categorie, come nel vecchio carosello.
- *
- * @return WP_Post[]
- */
-function vv_fissati( $categorie, $extra, $esclusi ) {
-	$fissati_id = array_diff( array_map( 'absint', (array) get_option( 'sticky_posts', array() ) ), $esclusi );
-	return $fissati_id ? vv_articoli( $categorie, -1, array_merge( $extra, array( 'post__in' => array_values( $fissati_id ) ) ) ) : array();
-}
-
-function vv_opzioni_cards( $atts ) {
-	$opzioni = array(
-		'layout'   => in_array( $atts['layout'], array( 'carosello', 'agenda' ), true ) ? $atts['layout'] : 'griglia',
-		'autoplay' => 'si' === $atts['autoplay'],
-		'lotto'    => max( 0, (int) $atts['lotto'] ),
-	);
-	if ( $atts['colonne'] ) {
-		$opzioni['colonne'] = max( 1, min( 4, (int) $atts['colonne'] ) );
-	}
-	return $opzioni;
-}
-
-function vv_sc_sottopagine( $atts ) {
-	$atts  = shortcode_atts( array( 'padre' => get_the_ID() ), $atts, 'vv_sottopagine' );
-	$madre = absint( $atts['padre'] );
+function vv_sc_sottopagine() {
+	$madre = (int) get_the_ID();
 	// Fuori da una pagina la madre sarebbe 0: tutte le pagine di primo livello.
 	return $madre ? vv_card_sottopagine( $madre ) : '';
 }
 add_shortcode( 'vv_sottopagine', 'vv_sc_sottopagine' );
-
-/**
- * Almeno 9 card grandi in alto, nell'ordine di vv_ordina_eventi(): prima quelli in programma, poi se
- * non bastano i più recenti; sotto il resto, anno per anno. Senza date (i progetti) una sola griglia.
- */
-function vv_elenco_html( $categorie ) {
-	$articoli = vv_articoli( $categorie, -1 );
-	if ( ! $articoli ) {
-		return '';
-	}
-	$adesso = time();
-	$eventi = array();
-	foreach ( $articoli as $articolo ) {
-		$date     = vv_date_articolo( $articolo );
-		$eventi[] = array( $articolo, $date['inizio'], $date['fine'], $date );
-	}
-	if ( ! array_filter( $eventi, static fn( $e ) => $e[3]['con_date'] ) ) {
-		return '<section class="vv-elenco vv-elenco--schede">' . vv_griglia_card( $articoli, 'evento' ) . '</section>';
-	}
-
-	$minimo       = 9;
-	$ordinati     = vv_ordina_eventi( $eventi, $adesso ); // senza date un articolo finisce fra i conclusi
-	$in_programma = array_filter( $ordinati, static fn( $e ) => $e[3]['con_date'] && 'concluso' !== vv_fase_evento( $e[3], $adesso ) );
-	$passati      = array_values( array_diff_key( $ordinati, $in_programma ) );
-	$riempitivi   = array_slice( $passati, 0, max( 0, $minimo - count( $in_programma ) ) );
-	$titolo       = match ( true ) {
-		! $in_programma => 'Ultimi appuntamenti',
-		! $riempitivi   => 'In programma',
-		default         => 'In programma e ultimi appuntamenti',
-	};
-
-	$html = '<section class="vv-elenco vv-elenco--prossimi"><h2 class="vv-section-title">' . esc_html( $titolo ) . '</h2>'
-		. vv_griglia_card( array_column( array_merge( $in_programma, $riempitivi ), 0 ), 'evento' ) . '</section>';
-	return $html . vv_archivio_per_anno( array_slice( $passati, count( $riempitivi ) ) );
-}
-
-/**
- * @param array $eventi array( contenuto, inizio, fine ), già in ordine.
- */
-function vv_archivio_per_anno( $eventi ) {
-	if ( ! $eventi ) {
-		return '';
-	}
-	$per_anno = array();
-	foreach ( $eventi as $evento ) {
-		$per_anno[ wp_date( 'Y', $evento[1] ) ][] = $evento[0];
-	}
-	krsort( $per_anno );
-	$html = '<section class="vv-elenco vv-elenco--archivio"><h2 class="vv-section-title">Archivio</h2>';
-	foreach ( $per_anno as $anno => $articoli ) {
-		$html .= '<h3 class="vv-year">' . esc_html( $anno ) . '</h3>'
-			. vv_griglia_card( $articoli, 'evento', array( 'colonne' => 4, 'titolo_livello' => 'h4' ) );
-	}
-	return $html . '</section>';
-}
-
-function vv_sc_elenco( $atts ) {
-	$atts = shortcode_atts( array( 'categoria' => '' ), $atts, 'vv_elenco' );
-	return vv_elenco_html( vv_pulisci_slug( $atts['categoria'] ) );
-}
-add_shortcode( 'vv_elenco', 'vv_sc_elenco' );
 
 /**
  * "Diventa socio" e "Fai una donazione" con titolo, riassunto e immagine delle pagine scelte nel

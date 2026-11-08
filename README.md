@@ -26,12 +26,11 @@ inc/breadcrumbs.php       percorso in alto, dati strutturati, voce di menu della
 inc/layout.php            schemi a due colonne e con blocco finale, "Da non perdere", sottopagine
 inc/single.php            articolo con colonna laterale, navigazione, altri soci fondatori
 inc/page.php              pagine con la colonna "In questa sezione"
-inc/redirects.php         301 degli indirizzi spariti
 template-parts/           card.php, home-hero.php
 page-templates/           page-hub.php, page-elenco.php
 post-templates/           post_full.php ("Page builder ready" dei soci fondatori)
 assets/css/               tokens, base, layout, header, footer, components, home, pages, plugins, scuro
-assets/css/palette/       palette da accendere nel Customizer (VivaVoce → Palette del sito): sabbia, natale
+assets/css/palette/       palette da accendere nel Customizer (VivaVoce → Palette del sito): natale
 assets/js/vv.js           testata, switcher del tema, pulsanti "Copia", banner dei cookie, "torna su", menu mobile, agenda, caroselli
 assets/fonts/             Poppins (self-hosted, licenza OFL)
 assets/img/               livelli dell'hero, faccine e scritta del footer, mano del "torna su"

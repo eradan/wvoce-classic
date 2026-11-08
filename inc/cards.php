@@ -50,12 +50,12 @@ function vv_accento( $posizione ) {
 }
 
 /**
- * Carosello e agenda li completa vv.js (frecce, autoplay, "Mostra altri"); senza JavaScript il
- * carosello scorre col dito e l'agenda mostra tutte le card.
+ * Carosello e agenda li completa vv.js (frecce, "Mostra altri"); senza JavaScript il carosello
+ * scorre col dito e l'agenda mostra tutte le card.
  *
  * @param string $variante evento | persona | stampa | citazione | pagina.
  * @param array  $opzioni  colonne, titolo_livello (h2|h3|h4), layout (griglia|carosello|agenda),
- *                         autoplay (carosello), lotto (agenda: quante card alla volta).
+ *                         lotto (agenda: quante card alla volta).
  */
 function vv_griglia_card( $contenuti, $variante = 'evento', $opzioni = array() ) {
 	if ( ! $contenuti ) {
@@ -65,7 +65,6 @@ function vv_griglia_card( $contenuti, $variante = 'evento', $opzioni = array() )
 		'colonne'        => 'persona' === $variante ? 4 : 3,
 		'titolo_livello' => 'h3',
 		'layout'         => 'griglia',
-		'autoplay'       => false,
 		'lotto'          => 0,
 	) );
 	$colonne = (int) $opzioni['colonne'];
@@ -73,8 +72,7 @@ function vv_griglia_card( $contenuti, $variante = 'evento', $opzioni = array() )
 
 	$apertura = match ( $opzioni['layout'] ) {
 		'carosello' => sprintf(
-			'<div class="vv-carousel" data-vv-carousel%1$s><div class="vv-grid vv-grid--carosello vv-grid--%2$s" style="--vv-visibili:%3$d" tabindex="0" role="region" aria-label="Carosello: scorri per vedere altri contenuti">',
-			$opzioni['autoplay'] ? ' data-vv-autoplay' : '',
+			'<div class="vv-carousel" data-vv-carousel><div class="vv-grid vv-grid--carosello vv-grid--%1$s" style="--vv-visibili:%2$d" tabindex="0" role="region" aria-label="Carosello: scorri per vedere altri contenuti">',
 			esc_attr( $variante ),
 			$colonne
 		),

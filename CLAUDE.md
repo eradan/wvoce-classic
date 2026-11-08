@@ -6,7 +6,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 WordPress child theme of **Sydney 2.71** (`Template: sydney` in `style.css`) for wvoce.it, site of the VivaVoce association. No build step: PHP, plain CSS and one vanilla JS file are served as-is. PHP **8.3** (the site's WordPress image; CI and phpcs `testVersion` target 8.3, so `str_contains`, `match` etc. are fine), WordPress ≥ 6.0.
 
-Everything is written in **Italian**: identifiers (`vv_date_articolo`, `vv_hero_attivo`, also local variables and array keys), comments, test names, CHANGELOG, commit messages, UI strings. Keep it that way. Functions use the `vv_` prefix (the PrefixAllGlobals sniff is disabled because WPCS rejects a 2-letter prefix); text domain is `vivavoce`.
+Everything is written in **Italian**: identifiers (`vv_date_articolo`, `vv_immagine_hero`, also local variables and array keys), comments, test names, CHANGELOG, commit messages, UI strings. Keep it that way. Functions use the `vv_` prefix (the PrefixAllGlobals sniff is disabled because WPCS rejects a 2-letter prefix); text domain is `vivavoce`.
 
 ## Commands
 

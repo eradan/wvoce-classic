@@ -1,7 +1,7 @@
 <?php
 /**
- * Campi aggiuntivi e riquadri dell'editor: date e luogo degli eventi, "Senza immagine in testa", card
- * nascosta e categorie collegate delle pagine.
+ * Campi aggiuntivi e riquadri dell'editor: date e luogo degli eventi, "Senza immagine in testa",
+ * categorie collegate delle pagine.
  *
  * @package VivaVoce
  */
@@ -16,7 +16,6 @@ function vv_registra_campi() {
 		array( 'post', 'vv_luogo', 'string', 'sanitize_text_field', 'edit_posts' ),
 		array( 'post', 'vv_senza_immagine', 'boolean', 'rest_sanitize_boolean', 'edit_posts' ),
 		array( 'page', 'vv_senza_immagine', 'boolean', 'rest_sanitize_boolean', 'edit_pages' ),
-		array( 'page', 'vv_nascondi', 'boolean', 'rest_sanitize_boolean', 'edit_pages' ),
 		array( 'page', 'vv_categoria', 'string', 'vv_pulisci_slug', 'edit_pages' ),
 	);
 	foreach ( $campi as list( $tipo_contenuto, $chiave, $tipo, $pulisci, $permesso ) ) {
@@ -83,10 +82,6 @@ function vv_riquadro_pagina( WP_Post $pagina ) {
 	wp_nonce_field( 'vv_meta', 'vv_meta_nonce' );
 	echo '<p class="description">L\'<strong>immagine in evidenza</strong> e il <strong>riassunto</strong> di questa pagina sono quelli della sua card nella pagina madre (per esempio in Cosa facciamo). Nelle "Pagine elenco" l\'immagine non compare in testa alla pagina, ma solo nella card.</p>';
 	vv_casella_senza_immagine( $pagina );
-	printf(
-		'<p><input type="hidden" name="vv_nascondi" value="0"><label><input type="checkbox" name="vv_nascondi" value="1" %s> Non mostrare fra le card della pagina madre</label></p>',
-		checked( (bool) get_post_meta( $pagina->ID, 'vv_nascondi', true ), true, false )
-	);
 	echo '<p><label for="vv_categoria"><strong>Categorie collegate</strong></label><br>';
 	printf( '<input type="text" id="vv_categoria" name="vv_categoria" value="%s" class="widefat" placeholder="es. laboratori"></p>', esc_attr( get_post_meta( $pagina->ID, 'vv_categoria', true ) ) );
 	echo '<p class="description">Slug separati da virgola. Con il modello "Pagina elenco" la pagina elenca questi articoli; in ogni caso gli articoli di queste categorie mostrano la pagina nel percorso in alto. Disponibili: ';
@@ -95,24 +90,19 @@ function vv_riquadro_pagina( WP_Post $pagina ) {
 }
 
 /**
- * Le caselle si salvano solo spuntate; i testi passano dalla sanificazione di register_post_meta().
+ * La casella si salva solo spuntata; i testi passano dalla sanificazione di register_post_meta().
  */
 function vv_salva_campi( $contenuto_id ) {
 	$autorizzato = wp_verify_nonce( sanitize_key( $_POST['vv_meta_nonce'] ?? '' ), 'vv_meta' ) && current_user_can( 'edit_post', $contenuto_id );
 	if ( ! $autorizzato || wp_is_post_revision( $contenuto_id ) || ( defined( 'DOING_AUTOSAVE' ) && DOING_AUTOSAVE ) ) {
 		return;
 	}
-	$pagina  = 'page' === get_post_type( $contenuto_id );
-	$caselle = $pagina ? array( 'vv_nascondi', 'vv_senza_immagine' ) : array( 'vv_senza_immagine' );
-	$testi   = $pagina ? array( 'vv_categoria' ) : array( 'vv_data', 'vv_data_fine', 'vv_luogo' );
-
-	foreach ( $caselle as $chiave ) {
-		if ( '1' === ( $_POST[ $chiave ] ?? '' ) ) {
-			update_post_meta( $contenuto_id, $chiave, 1 );
-		} else {
-			delete_post_meta( $contenuto_id, $chiave );
-		}
+	if ( '1' === ( $_POST['vv_senza_immagine'] ?? '' ) ) {
+		update_post_meta( $contenuto_id, 'vv_senza_immagine', 1 );
+	} else {
+		delete_post_meta( $contenuto_id, 'vv_senza_immagine' );
 	}
+	$testi = 'page' === get_post_type( $contenuto_id ) ? array( 'vv_categoria' ) : array( 'vv_data', 'vv_data_fine', 'vv_luogo' );
 	foreach ( $testi as $chiave ) {
 		if ( ! isset( $_POST[ $chiave ] ) ) {
 			continue;

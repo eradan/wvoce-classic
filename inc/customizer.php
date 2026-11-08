@@ -11,7 +11,6 @@ function vv_predefiniti() {
 	static $predefiniti = null;
 
 	$predefiniti ??= array(
-		'vv_hero_enable'    => true,
 		'vv_hero_title'     => 'Lettura ad alta voce, teatro e creatività',
 		'vv_hero_cta1_text' => 'Prossimi appuntamenti',
 		'vv_hero_cta1_url'  => '#appuntamenti',
@@ -41,7 +40,6 @@ function vv_predefiniti() {
 function vv_palette_disponibili() {
 	return array(
 		''       => 'Predefinita',
-		'sabbia' => 'Sabbia: pagina color carta e schede bianche',
 		'natale' => 'Natale: verde, rosso, oro e neve che scende',
 	);
 }
@@ -101,12 +99,12 @@ function vv_registra_customizer( WP_Customize_Manager $wp_customize ) {
 	$wp_customize->add_section( 'vv_hero', array(
 		'title'       => 'Hero della home',
 		'panel'       => 'vv_panel',
-		'description' => 'Sostituisce lo slider di Sydney nella home.',
+		'description' => 'In cima alla home, al posto dello slider di Sydney.',
 	) );
 	$wp_customize->add_section( 'vv_palette', array(
 		'title'       => 'Palette del sito',
 		'panel'       => 'vv_panel',
-		'description' => 'Colori per un periodo o una palette alternativa, per tutti i visitatori. Natale: sito scuro con oro, verde, rosso e neve; chi vuole lo spegne dal pulsante del tema in testata e torna al chiaro o allo scuro di sempre. Sabbia vale solo nel tema chiaro. Con "Pianifica" (accanto a "Pubblica") si programma quando accenderla e quando tornare alla predefinita.',
+		'description' => 'Colori per un periodo o una palette alternativa, per tutti i visitatori. Natale: sito scuro con oro, verde, rosso e neve; chi vuole lo spegne dal pulsante del tema in testata e torna al chiaro o allo scuro di sempre. Con "Pianifica" (accanto a "Pubblica") si programma quando accenderla e quando tornare alla predefinita.',
 	) );
 	$wp_customize->add_section( 'vv_dati', array(
 		'title'       => 'Dati dell\'associazione',
@@ -151,16 +149,6 @@ function vv_registra_customizer( WP_Customize_Manager $wp_customize ) {
 		'choices' => vv_palette_disponibili(),
 	) );
 
-	$wp_customize->add_setting( 'vv_hero_enable', array(
-		'default'           => $predefiniti['vv_hero_enable'],
-		'sanitize_callback' => 'wp_validate_boolean',
-	) );
-	$wp_customize->add_control( 'vv_hero_enable', array(
-		'section' => 'vv_hero',
-		'label'   => 'Usa l\'hero VivaVoce',
-		'type'    => 'checkbox',
-	) );
-
 	foreach ( $text_fields as $id => list( $section, $label, $type, $description ) ) {
 		$wp_customize->add_setting( $id, array(
 			'default'           => $predefiniti[ $id ],
@@ -198,7 +186,7 @@ function vv_registra_customizer( WP_Customize_Manager $wp_customize ) {
 	$wp_customize->add_control( new WP_Customize_Image_Control( $wp_customize, 'vv_hero_image', array(
 		'section'     => 'vv_hero',
 		'label'       => 'Illustrazione',
-		'description' => 'Se vuota si usa la prima immagine dello slider di Sydney. Testa, mano e trattini si animano solo con l\'illustrazione originale (il file vivavoce-logo-pearl); con un\'altra immagine resta ferma.',
+		'description' => 'Testa, mano e trattini si animano solo con l\'illustrazione originale (il file vivavoce-logo-pearl); con un\'altra immagine resta ferma.',
 	) ) );
 
 	$wp_customize->add_setting( 'vv_img_5x1000', array(
