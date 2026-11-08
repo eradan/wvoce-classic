@@ -93,8 +93,8 @@
 }
 
 /* Hero: la testa con il cappello e senza i capelli rossi al posto di quella normale, con lo stesso perno
- * sul collo. Il cappello esce a sinistra e in alto: l'illustrazione si rimpicciolisce quanto basta perché
- * ci stia, ferma sul fondo, dove ci sono i pulsanti. */
+ * sul collo. Il cappello esce a sinistra e in alto: l'illustrazione si rimpicciolisce attorno al fondo
+ * della testa, che resta dov'è, e il pompon passa appena sotto la testata. */
 .vv-hero__testa-natale {
 	display: none;
 }
@@ -111,23 +111,17 @@
 [data-vv-natale] .vv-hero__tela {
 	scale: 0.89;
 	transform-origin: 70% 80.25%; /* il fondo della testa */
-	translate: -50% -56%; /* il pompon sale sulla testata */
+	translate: -50% -52%;
 }
-/* Su desktop la testa resta dov'è, con il fondo sui pulsanti; solo il cappello sale sulla testata */
+/* Su desktop home.css ingrandisce la tela del 108% dal bordo in alto. Con il perno sul fondo della testa
+ * quell'ingrandimento non la abbassa più: la si sposta di quanto l'avrebbe abbassata (0,08 × 1296/1615
+ * = 6,42%), così finisce dove finisce di solito, sotto i pulsanti. */
 @media (min-width: 768px) {
 	[data-vv-natale] .vv-hero__tela {
-		scale: 0.95;
-		translate: -50% -50%;
+		scale: 0.92;
+		transform-origin: 50% 80.25%;
+		translate: -50% -43.58%;
 	}
-}
-/* Solo l'illustrazione, non il fondo dell'hero, passa sopra testata e festone (z-index 999 di Sydney)
- * finché la pagina è in cima; scorrendo torna sotto. L'hero resta tagliato solo ai lati. */
-[data-vv-natale] .vv-hero {
-	overflow: clip visible;
-}
-[data-vv-natale] body:not(.vv-scrolled) .vv-hero__art--animata {
-	z-index: 1000;
-	pointer-events: none; /* i pulsanti sotto restano cliccabili */
 }
 @media (prefers-reduced-motion: no-preference) {
 	[data-vv-natale] .vv-hero__testa-natale {
