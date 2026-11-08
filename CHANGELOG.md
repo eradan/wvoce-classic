@@ -2,6 +2,41 @@
 
 Storia del tema VivaVoce Classic, dalla versione più recente. La guida d'uso è nel README.
 
+## Versione 1.5.0: Customizer più chiaro, codice più semplice, PHP 8.3
+
+**Richiede PHP 8.3** (quello dell'immagine WordPress del sito): il codice usa le sue funzioni ed è più lineare.
+
+**Customizer → VivaVoce**
+- **"Diventa socio" e "Fai una donazione"** si scelgono da un elenco di pagine invece di scrivere l'indirizzo: se la pagina cambia indirizzo il collegamento resta. Finché non le si sceglie valgono gli indirizzi di prima.
+- **[vv_sostienici]**: titolo, testo e immagine dei riquadri socio e donazione vengono dalle due pagine (titolo, riassunto e immagine in evidenza), non più dal codice. Il riquadro del 5×1000 resta com'era.
+- **Descrizioni giuste**: la sezione "Dati dell'associazione" dice dove finisce ogni dato (email, dati strutturati, shortcode); i contatti del piè di pagina del sito sono nei widget. Spiegati anche il titolo nascosto dell'hero, l'ancora #appuntamenti, l'animazione legata all'illustrazione originale e il telefono, che serve solo ai motori di ricerca.
+- L'email si salva solo se è un indirizzo valido; i campi di indirizzi web ed email hanno il controllo adatto.
+
+**Correzioni**
+- Una data dell'evento inesistente (per esempio 30 febbraio o mese 13) non blocca più le pagine: conta come assente.
+- **Email dei moduli**: un testo scritto da un visitatore che contiene tag HTML (per esempio un link) resta testo e non diventa un link vero nell'email con il marchio. Un'email è HTML solo se lo dichiara.
+- I contenuti protetti da password non mostrano più il testo nelle card, nella descrizione per i motori di ricerca, nelle anteprime social e nei dati strutturati.
+- Le righe di trattini bassi diventano il divisore solo se ci sono davvero i trattini: un paragrafo di spazi o un'immagine seguita da spazi resta com'è. Se il testo ha caratteri non validi, il contenuto non sparisce più.
+- Una pagina madre privata o in bozza non è più un link (darebbe 404) nel percorso in alto e in "In questa sezione".
+- [vv_sottopagine] fuori da una pagina non elenca più tutte le pagine del sito; [vv_cards numero="0"] mostra tutti gli articoli, come con periodo.
+- Le pagine con [vv_sostienici] restano a tutta larghezza, senza colonna laterale.
+- La spunta "In evidenza" tolta cancella il campo; il link "wvoce.it" nelle email prende il dominio del sito; il redirect di /privacy-policy/ porta all'informativa scelta in Impostazioni → Privacy.
+- **Carosello**: il contatore "1–3 di 3" sparisce quando le card ci stanno tutte; mentre scorre da solo non si annuncia agli screen reader a ogni card; dopo un tocco interrotto lo scorrimento riparte.
+- **Pulsanti**: "Copiato!" si sente anche con gli screen reader; "Mostra altri appuntamenti" cambia colore al passaggio del mouse; dopo "torna su" il focus va in cima alla pagina.
+- Il riquadro "niente in programma" ha la barretta della palette (a righe con il Natale). Chi ha chiesto meno animazioni non vede più lo zoom delle foto delle card né il movimento del "torna su".
+
+**Codice**
+- Meno query: le miniature delle card e i campi delle sottopagine si leggono con una query sola.
+- Un solo posto per la regola delle date dell'evento, per il ripiego "In evidenza", per il testo semplice di titoli e descrizioni e per il dominio del sito.
+- JavaScript: tolto lo sfondo del menu mobile, che non aveva più stile; un solo modo di limitare il lavoro durante lo scorrimento.
+- CSS: le regole stanno nel file del loro componente (`style.css` ha solo l'intestazione); pulsanti del carosello, titoli della home e archivio senza doppioni; meno `!important`.
+- Test: 81 controlli; tolti gli stub rimasti dal vecchio codice delle iscrizioni.
+
+Da fare sul sito:
+1. Customizer → VivaVoce → Dati dell'associazione: scegliere le pagine "Diventa socio" e "Fai una donazione".
+2. Scrivere il **riassunto** delle due pagine: è il testo del loro riquadro in "Sostienici".
+3. Pagina Chi siamo, riquadro VivaVoce: "Categorie collegate: soci" (il tema non la trova più da solo per gli articoli dei soci fondatori).
+
 ## Versione 1.4.1: correzioni dalla revisione del codice
 
 - **Pulsante "Diventa socio" della home:** se il suo link (Customizer → VivaVoce → Hero della home → Pulsante 2: link) è vuoto, porta alla pagina "Diventa socio" dei Dati dell'associazione, come diceva già la descrizione. Così l'indirizzo si cambia in un posto solo (più la copia nel plugin wvoce-iscrizioni).

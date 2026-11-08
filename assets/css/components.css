@@ -68,13 +68,20 @@
 .vv-card:hover .vv-card__img {
 	transform: scale(1.04);
 }
+@media (prefers-reduced-motion: reduce) {
+	.vv-card__img {
+		transition: none;
+	}
+	.vv-card:hover .vv-card__img {
+		transform: none;
+	}
+}
 .vv-card__body {
 	display: flex;
 	flex: 1;
 	flex-direction: column;
 	padding: var(--vv-s-2) 20px 20px;
 }
-.vv-grid .vv-card .vv-card__title,
 .vv-card .vv-card__title {
 	order: 1;
 	margin: 0 0 var(--vv-s-1);
@@ -143,9 +150,6 @@
 /* Soci: foto quadrata, nome turchese (come il vecchio carosello dei fondatori) */
 .vv-card--persona .vv-card__media {
 	aspect-ratio: 1;
-}
-.vv-card--persona .vv-card__img {
-	border-radius: 0 !important;
 }
 .vv-grid .vv-card--persona .vv-card__title {
 	font-size: 20px;
@@ -268,11 +272,6 @@
 	background: var(--vv-fascetta-in-corso);
 	color: var(--vv-fascetta-in-corso-testo);
 }
-/* Nell'archivio per anno è tutto passato: bastano foto, titolo e data */
-.vv-elenco--archivio .vv-data-chip,
-.vv-elenco--archivio .vv-fascetta {
-	display: none;
-}
 
 /* Agenda (layout="agenda"): su telefono righe compatte, miniatura con la data a sinistra e titolo,
  * data e luogo a destra; da 768px la griglia di card, così un lotto da 3 è una riga.
@@ -286,9 +285,12 @@
 	margin: 0 0 var(--vv-gap);
 }
 .vv-lotti__altri.vv-button {
+	cursor: pointer;
+}
+/* Trasparente solo a riposo: al passaggio del mouse e col focus resta quello di .vv-button */
+.vv-lotti__altri.vv-button:not(:hover, :focus-visible) {
 	background: transparent;
 	color: var(--vv-testo) !important;
-	cursor: pointer;
 }
 @media (max-width: 767px) {
 	.vv-grid--agenda {
@@ -396,12 +398,40 @@
 	background: var(--vv-fondo-attivo);
 }
 
+/* [vv_dati_fiscali]: etichetta sopra, poi valore e "Copia". I valori sono larghi quanto il più lungo
+ * (l'IBAN), così i pulsanti stanno in colonna; con l'etichetta sopra l'IBAN entra in una colonna da 320px. */
+.vv-dati {
+	display: grid;
+	grid-template-columns: max-content max-content;
+	align-items: center;
+	gap: 4px 0;
+	margin: 0;
+}
+.vv-dati dt {
+	grid-column: 1 / -1;
+	font-weight: 600;
+}
+.vv-dati dd + dt {
+	margin-top: 12px;
+}
+.vv-dati dd,
+.vv-dati .vv-copy {
+	display: contents;
+}
+.vv-dati .vv-copy__btn {
+	margin-left: var(--vv-s-1);
+}
+/* Nel testo di una pagina (es. Fai una donazione) lo stacco dal paragrafo che segue */
+.entry-content .vv-dati {
+	margin: 0 0 1.1em;
+}
+
 /* [vv_cards periodo="futuro"] senza appuntamenti: un riquadro come le card, non una riga persa */
 .vv-empty {
 	margin: 0 0 var(--vv-gap);
 	padding: var(--vv-s-4) var(--vv-s-3);
 	background: var(--vv-fondo-card);
-	border-top: 4px solid var(--vv-accento-1);
+	border-top: var(--vv-linguetta-spessore) solid var(--vv-accento-1);
 	box-shadow: var(--vv-ombra-card);
 	font-size: var(--vv-fs-corpo);
 	text-align: center;
@@ -447,9 +477,11 @@
 	font-size: 17px;
 	line-height: 1.35;
 }
-/* Nell'archivio bastano foto, titolo e data */
+/* Nell'archivio per anno è tutto passato: bastano foto, titolo e data */
 .vv-elenco--archivio .vv-card .vv-card__text,
-.vv-elenco--archivio .vv-badge {
+.vv-elenco--archivio .vv-badge,
+.vv-elenco--archivio .vv-data-chip,
+.vv-elenco--archivio .vv-fascetta {
 	display: none;
 }
 .vv-elenco--archivio .vv-card__body {
@@ -473,13 +505,10 @@
 	margin: 0 0 var(--vv-s-5);
 }
 .vv-grid--carosello {
-	display: grid;
 	grid-auto-flow: column;
 	grid-template-columns: none;
 	grid-auto-columns: calc((100% - (var(--vv-visibili, 3) - 1) * var(--vv-gap)) / var(--vv-visibili, 3));
-	gap: var(--vv-gap);
 	margin: 0;
-	padding: 0;
 	overflow-x: auto;
 	overscroll-behavior-x: contain;
 	scroll-snap-type: x mandatory;
@@ -500,22 +529,43 @@
 .vv-carousel__nav {
 	display: contents;
 }
+/* Pulsanti del carosello: tondi nella riga sotto le card (la pausa sempre, le frecce su telefono,
+ * dove ai lati coprirebbero il bordo delle foto) */
 .vv-carousel__btn {
-	position: absolute;
-	top: 18%;
-	z-index: 3;
-	width: 30px;
-	height: 50px;
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	width: 36px;
+	height: 36px;
 	padding: 0;
-	background: rgb(var(--vv-velo) / 0.7);
-	color: var(--vv-testo-su-scuro);
-	border: 0;
-	border-radius: 0;
+	background: transparent;
+	color: var(--vv-testo);
+	border: 1px solid var(--vv-testo-2);
+	border-radius: 50%;
 	line-height: 1;
 	cursor: pointer;
 }
-.vv-carousel__btn[data-dir="-1"] { left: -15px; }
-.vv-carousel__btn[data-dir="1"] { right: -15px; }
+/* Da 600px le frecce escono dalla riga e stanno ai lati delle card, scure come il vecchio slider */
+@media (min-width: 600px) {
+	.vv-carousel__play {
+		width: 32px;
+		height: 32px;
+	}
+	.vv-carousel__btn[data-dir] {
+		position: absolute;
+		top: 18%;
+		z-index: 3;
+		display: block;
+		width: 30px;
+		height: 50px;
+		background: rgb(var(--vv-velo) / 0.7);
+		color: var(--vv-testo-su-scuro);
+		border: 0;
+		border-radius: 0;
+	}
+	.vv-carousel__btn[data-dir="-1"] { left: -15px; }
+	.vv-carousel__btn[data-dir="1"] { right: -15px; }
+}
 /* Sydney toglie il fondo ai pulsanti al passaggio del mouse (button:hover): la freccia spariva */
 .vv-carousel__btn svg {
 	display: block;
@@ -537,8 +587,8 @@
 	opacity: 0.3;
 	cursor: default;
 }
-.vv-carousel__btn[hidden],
-.vv-carousel__nav[hidden] .vv-carousel__btn {
+/* Tutte le card in vista: niente frecce né contatore (display: contents annullerebbe hidden) */
+.vv-carousel__nav[hidden] {
 	display: none;
 }
 /* Riga sotto il carosello, nel flusso della pagina (così non finisce addosso al titolo che segue):
@@ -556,57 +606,6 @@
 	font-size: var(--vv-fs-meta);
 	text-align: center;
 	color: var(--vv-testo-2);
-}
-.vv-carousel__btn.vv-carousel__play {
-	position: static;
-	display: inline-flex;
-	align-items: center;
-	justify-content: center;
-	width: 32px;
-	height: 32px;
-	background: transparent;
-	color: var(--vv-testo);
-	border: 1px solid var(--vv-testo-2);
-	border-radius: 50%;
-}
-.vv-carousel__btn.vv-carousel__play:hover,
-.vv-carousel__btn.vv-carousel__play:focus-visible {
-	background: var(--vv-testo);
-	color: var(--vv-fondo);
-}
-/* Su telefono le frecce stanno nella riga, tonde come la pausa: ai lati coprivano il bordo delle foto */
-@media (max-width: 599px) {
-	.vv-carousel__bar .vv-carousel__btn[data-dir] {
-		position: static;
-		display: inline-flex;
-		align-items: center;
-		justify-content: center;
-		width: 36px;
-		height: 36px;
-		background: transparent;
-		color: var(--vv-testo);
-		border: 1px solid var(--vv-testo-2);
-		border-radius: 50%;
-	}
-	.vv-carousel__bar .vv-carousel__btn[data-dir]:not(:disabled):hover,
-	.vv-carousel__bar .vv-carousel__btn[data-dir]:focus-visible {
-		background: var(--vv-testo);
-		color: var(--vv-fondo);
-	}
-	.vv-carousel__btn.vv-carousel__play {
-		width: 36px;
-		height: 36px;
-	}
-}
-
-/* Link generati dal tema fuori dal contenuto (archivio per anno delle "Pagine elenco"):
- * Sydney li colorerebbe col colore 1 del Customizer (giallo su bianco). */
-.vv-page-extra a:not(.vv-card__link) {
-	color: var(--vv-link);
-	text-decoration: none;
-}
-.vv-page-extra a:not(.vv-card__link):hover {
-	color: var(--vv-testo);
 }
 
 /* Soci su mobile: due per riga (una sola colonna di foto enormi era lunghissima) */

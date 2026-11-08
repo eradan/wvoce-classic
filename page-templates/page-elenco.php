@@ -3,7 +3,7 @@
  * Template Name: Pagina elenco (in programma + archivio)
  *
  * Contenuto della pagina come introduzione, poi gli articoli delle categorie indicate
- * nel riquadro "VivaVoce: Pagina elenco": prima quelli in programma, poi l'archivio per anno.
+ * nel campo "Categorie collegate" del riquadro "VivaVoce": prima quelli in programma, poi l'archivio per anno.
  *
  * @package VivaVoce
  */

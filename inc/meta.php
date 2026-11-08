@@ -1,6 +1,7 @@
 <?php
 /**
- * Campi aggiuntivi: date e luogo degli articoli-evento, categoria delle "Pagine elenco".
+ * Campi aggiuntivi e riquadri nell'editor: date e luogo degli articoli-evento, "In evidenza" (con la
+ * stellina nell'elenco articoli), "Senza immagine in testa", card nascosta e categorie collegate delle pagine.
  *
  * @package VivaVoce
  */
@@ -23,7 +24,7 @@ function vv_register_meta() {
 		array( 'post', 'vv_data_fine', 'string', 'vv_sanitize_date', 'edit_posts' ),
 		array( 'post', 'vv_luogo', 'string', 'sanitize_text_field', 'edit_posts' ),
 		array( 'post', 'vv_senza_immagine', 'boolean', 'rest_sanitize_boolean', 'edit_posts' ),
-		array( 'page', 'vv_senza_immagine', 'boolean', 'rest_sanitize_boolean', 'edit_posts' ),
+		array( 'page', 'vv_senza_immagine', 'boolean', 'rest_sanitize_boolean', 'edit_pages' ),
 		array( 'page', 'vv_nascondi', 'boolean', 'rest_sanitize_boolean', 'edit_pages' ),
 		array( 'page', 'vv_categoria', 'string', 'vv_sanitize_slugs', 'edit_pages' ),
 	);
@@ -40,13 +41,16 @@ function vv_register_meta() {
 add_action( 'init', 'vv_register_meta' );
 
 /**
- * Data nel formato AAAA-MM-GG, altrimenti vuota.
+ * Data esistente nel formato AAAA-MM-GG, altrimenti vuota (anche 2026-13-01 o 2026-02-30).
  *
  * @param string $value Valore inserito.
  */
 function vv_sanitize_date( $value ) {
 	$value = trim( (string) $value );
-	return preg_match( '/^\d{4}-\d{2}-\d{2}$/', $value ) ? $value : '';
+	if ( ! preg_match( '/^(\d{4})-(\d{2})-(\d{2})$/', $value, $m ) ) {
+		return '';
+	}
+	return checkdate( (int) $m[2], (int) $m[3], (int) $m[1] ) ? $value : '';
 }
 
 /**
@@ -134,14 +138,18 @@ function vv_save_meta( $post_id ) {
 	if ( ! isset( $_POST['vv_meta_nonce'] ) || ! wp_verify_nonce( sanitize_key( $_POST['vv_meta_nonce'] ), 'vv_meta' ) ) {
 		return;
 	}
-	if ( defined( 'DOING_AUTOSAVE' ) && DOING_AUTOSAVE ) {
+	if ( ( defined( 'DOING_AUTOSAVE' ) && DOING_AUTOSAVE ) || wp_is_post_revision( $post_id ) ) {
 		return;
 	}
 	if ( ! current_user_can( 'edit_post', $post_id ) ) {
 		return;
 	}
 	if ( 'post' === get_post_type( $post_id ) ) {
-		update_post_meta( $post_id, VV_FEATURED_KEY, empty( $_POST['vv_in_evidenza'] ) ? 0 : 1 );
+		if ( empty( $_POST['vv_in_evidenza'] ) ) {
+			delete_post_meta( $post_id, VV_FEATURED_KEY );
+		} else {
+			update_post_meta( $post_id, VV_FEATURED_KEY, 1 );
+		}
 	}
 	$keys = 'page' === get_post_type( $post_id ) ? array( 'vv_categoria', 'vv_nascondi', 'vv_senza_immagine' ) : array( 'vv_data', 'vv_data_fine', 'vv_luogo', 'vv_senza_immagine' );
 	foreach ( $keys as $key ) {

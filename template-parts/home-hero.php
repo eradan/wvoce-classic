@@ -8,16 +8,18 @@
 defined( 'ABSPATH' ) || exit;
 
 $vv_image = vv_hero_image_url();
+$vv_cta2  = vv_mod( 'vv_hero_cta2_url' );
 $vv_ctas  = array(
 	array( vv_mod( 'vv_hero_cta1_text' ), vv_mod( 'vv_hero_cta1_url' ), 'vv-button' ),
-	array( vv_mod( 'vv_hero_cta2_text' ), vv_mod( 'vv_hero_cta2_url' ) ? vv_mod( 'vv_hero_cta2_url' ) : vv_mod( 'vv_url_socio' ), 'vv-button vv-button--ghost' ),
+	// Senza link: la pagina "Diventa socio" dei Dati dell'associazione.
+	array( vv_mod( 'vv_hero_cta2_text' ), $vv_cta2 ? $vv_cta2 : vv_pagina_url( 'socio' ), 'vv-button vv-button--ghost' ),
 );
 ?>
 <section class="vv-hero" aria-labelledby="vv-hero-title">
 	<div class="vv-hero__inner">
 		<div class="vv-hero__text">
 			<?php // Il titolo non si vede, come nel sito originale: resta per screen reader e motori di ricerca. ?>
-			<h1 id="vv-hero-title" class="vv-hero__title"><?php echo esc_html( vv_mod( 'vv_hero_title' ) ); ?></h1>
+			<h1 id="vv-hero-title" class="vv-hero__title screen-reader-text"><?php echo esc_html( vv_mod( 'vv_hero_title' ) ); ?></h1>
 			<p class="vv-hero__actions">
 				<?php foreach ( $vv_ctas as list( $vv_label, $vv_url, $vv_class ) ) : ?>
 					<?php if ( $vv_label && $vv_url ) : ?>
@@ -47,7 +49,7 @@ $vv_ctas  = array(
 		<?php elseif ( $vv_image ) : ?>
 			<div class="vv-hero__art">
 				<?php
-				$vv_media = attachment_url_to_postid( $vv_image );
+				$vv_media = vv_hero_media_id();
 				if ( $vv_media ) {
 					// Dalla libreria dei media: larghezza, altezza e srcset, la pagina non salta mentre carica.
 					echo wp_get_attachment_image( $vv_media, 'full', false, array( 'alt' => '', 'fetchpriority' => 'high', 'decoding' => 'async', 'loading' => false ) );

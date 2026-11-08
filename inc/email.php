@@ -41,7 +41,9 @@ function vv_email_righe( $headers ) {
 }
 
 /**
- * Le intestazioni dicono che il messaggio è HTML?
+ * Il messaggio è HTML? Lo dicono le intestazioni o, per i plugin che lo dichiarano così, il filtro
+ * wp_mail_content_type. Un testo semplice che contiene tag resta testo: potrebbero averli scritti i
+ * visitatori in un modulo, e non devono diventare link veri nel modello con il marchio.
  *
  * @param string|string[] $headers Intestazioni di wp_mail().
  */
@@ -51,7 +53,7 @@ function vv_email_intestazioni_html( $headers ) {
 			return true;
 		}
 	}
-	return false;
+	return str_contains( strtolower( (string) apply_filters( 'wp_mail_content_type', 'text/plain' ) ), 'text/html' );
 }
 
 /**
@@ -87,8 +89,7 @@ function vv_email_da_html( $html ) {
 		(string) $html
 	);
 	$html  = preg_replace( '#<br\s*/?>|</(p|div|tr|h[1-6]|li)>#i', "\n", $html );
-	$testo = html_entity_decode( wp_strip_all_tags( $html ), ENT_QUOTES, 'UTF-8' );
-	$testo = preg_replace( "/[ \t]+/", ' ', $testo );
+	$testo = preg_replace( "/[ \t]+/", ' ', vv_testo_semplice( $html ) );
 	return trim( (string) preg_replace( "/\n\s*\n\s*\n+/", "\n\n", $testo ) );
 }
 
@@ -98,13 +99,14 @@ function vv_email_da_html( $html ) {
  * @return array{html:string,testo:string}
  */
 function vv_email_piede() {
-	$sede  = trim( vv_mod( 'vv_indirizzo' ) . ', ' . trim( vv_mod( 'vv_cap' ) . ' ' . vv_mod( 'vv_citta' ) ), ', ' );
+	$citta = trim( vv_mod( 'vv_cap' ) . ' ' . vv_mod( 'vv_citta' ) );
+	$sede  = implode( ', ', array_filter( array( vv_mod( 'vv_indirizzo' ), $citta ) ) );
 	$email = vv_mod( 'vv_email' );
 	$link  = array_filter( array(
-		'wvoce.it'  => home_url( '/' ),
-		'Facebook'  => vv_mod( 'vv_facebook' ),
-		'Instagram' => vv_mod( 'vv_instagram' ),
-		'Privacy'   => get_privacy_policy_url(),
+		vv_dominio() => home_url( '/' ),
+		'Facebook'   => vv_mod( 'vv_facebook' ),
+		'Instagram'  => vv_mod( 'vv_instagram' ),
+		'Privacy'    => get_privacy_policy_url(),
 	) );
 
 	$html = array();
@@ -129,10 +131,10 @@ function vv_email_piede() {
  *
  * @param string $oggetto Oggetto, anche come <title>.
  * @param string $corpo   Corpo, frammento HTML.
+ * @param string $piede   Piè di pagina, HTML di vv_email_piede().
  */
-function vv_email_documento( $oggetto, $corpo ) {
-	$piede = vv_email_piede();
-	$nome  = get_bloginfo( 'name' );
+function vv_email_documento( $oggetto, $corpo, $piede ) {
+	$nome = get_bloginfo( 'name' );
 	return '<!DOCTYPE html>
 <html lang="it" xmlns="http://www.w3.org/1999/xhtml">
 <head>
@@ -155,7 +157,7 @@ function vv_email_documento( $oggetto, $corpo ) {
 ' . $corpo . '
 </td></tr>
 <tr><td style="padding:18px 32px;background-color:#d7e0e9;font-family:Arial,Helvetica,sans-serif;font-size:13px;line-height:1.6;color:#384a5e;">
-' . $piede['html'] . '
+' . $piede . '
 </td></tr>
 </table>
 </td></tr>
@@ -173,11 +175,11 @@ function vv_email_avvolgi( $atts ) {
 	$messaggio = (string) ( $atts['message'] ?? '' );
 	$headers   = $atts['headers'] ?? '';
 	vv_email_testo( '' );
-	if ( '' === trim( $messaggio ) || false !== stripos( $messaggio, '<html' ) ) {
+	if ( '' === trim( $messaggio ) || str_contains( strtolower( $messaggio ), '<html' ) ) {
 		return $atts;
 	}
 
-	if ( vv_email_intestazioni_html( $headers ) || preg_match( '#<(p|br|div|table|a|strong|ul|ol)\b#i', $messaggio ) ) {
+	if ( vv_email_intestazioni_html( $headers ) ) {
 		$corpo = $messaggio;
 		$testo = vv_email_da_html( $messaggio );
 	} else {
@@ -195,15 +197,17 @@ function vv_email_avvolgi( $atts ) {
 	}
 	$corpo = str_replace( '<p>', '<p style="margin:0 0 14px;">', $corpo );
 
-	$atts['message'] = vv_email_documento( (string) ( $atts['subject'] ?? '' ), $corpo );
+	$piede           = vv_email_piede();
+	$atts['message'] = vv_email_documento( (string) ( $atts['subject'] ?? '' ), $corpo, $piede['html'] );
 	$atts['headers'] = vv_email_intestazioni( $headers );
-	vv_email_testo( $testo . "\n\n" . vv_email_piede()['testo'] );
+	vv_email_testo( $testo . "\n\n" . $piede['testo'] );
 	return $atts;
 }
 add_filter( 'wp_mail', 'vv_email_avvolgi', 20 );
 
 /**
- * Versione in solo testo e Message-ID con il dominio del sito. PHPMailer è lo stesso oggetto per
+ * Versione in solo testo e nome dell'host del sito (usato nel Message-ID e, con SMTP, nel saluto
+ * HELO) invece di quello del container. PHPMailer è lo stesso oggetto per
  * tutte le email della richiesta: si riscrive sempre, anche vuoto, per non lasciare il testo di
  * un'email alla successiva.
  *

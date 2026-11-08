@@ -146,7 +146,7 @@ body::after,
 html::after {
 	content: "";
 	position: fixed;
-	z-index: 9990;
+	z-index: 9990; /* davanti a tutto il sito, sotto la barra di amministrazione di WordPress (99999); non intercetta i clic */
 	top: calc(-1 * var(--vv-neve-passo));
 	left: -80px;
 	width: calc(100% + 160px);

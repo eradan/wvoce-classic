@@ -2,7 +2,8 @@
 /**
  * Card di articoli e pagine (griglie, caroselli, archivi).
  *
- * Argomenti: post (WP_Post), variante (evento|persona|stampa|citazione|pagina), accento (giallo|turchese|rosso), hx (h2|h3|h4).
+ * Argomenti: post (WP_Post), variante (evento|persona|stampa|citazione|pagina), accento (giallo|turchese|rosso),
+ * titolo_livello (h2|h3|h4).
  * citazione: ritaglio di giornale solo testo (testata e data, poi il titolo), senza immagine.
  *
  * @package VivaVoce
@@ -13,7 +14,7 @@ defined( 'ABSPATH' ) || exit;
 $vv_post     = get_post( $args['post'] ?? null );
 $vv_variante = $args['variante'] ?? 'evento';
 $vv_accento  = $args['accento'] ?? 'giallo';
-$vv_hx       = $args['hx'] ?? 'h3';
+$vv_hx       = $args['titolo_livello'] ?? 'h3';
 
 if ( ! $vv_post ) {
 	return;
@@ -22,11 +23,20 @@ if ( ! $vv_post ) {
 $vv_link     = get_permalink( $vv_post );
 $vv_title    = get_the_title( $vv_post );
 $vv_ritaglio = in_array( $vv_variante, array( 'stampa', 'citazione' ), true );
-$vv_parole   = 'persona' === $vv_variante ? 18 : ( $vv_ritaglio ? 12 : 22 ); // Parole del riassunto automatico.
-$vv_excerpt  = has_excerpt( $vv_post ) ? get_the_excerpt( $vv_post ) : wp_trim_words( wp_strip_all_tags( strip_shortcodes( $vv_post->post_content ) ), $vv_parole, '…' );
-$vv_excerpt  = vv_plain_letters( $vv_excerpt, false );
-$vv_size     = 'persona' === $vv_variante ? 'vv-persona' : 'vv-card';
-$vv_img      = 'citazione' === $vv_variante ? '' : get_the_post_thumbnail( $vv_post, $vv_size, array(
+if ( has_excerpt( $vv_post ) ) {
+	$vv_excerpt = get_the_excerpt( $vv_post ); // Lettere decorative già sistemate dal filtro.
+} elseif ( post_password_required( $vv_post ) ) {
+	$vv_excerpt = ''; // Il testo protetto non esce nemmeno nel riassunto.
+} else {
+	$vv_parole = match ( true ) {
+		'persona' === $vv_variante => 18,
+		$vv_ritaglio               => 12,
+		default                    => 22,
+	};
+	$vv_excerpt = vv_plain_letters( wp_trim_words( wp_strip_all_tags( strip_shortcodes( $vv_post->post_content ) ), $vv_parole, '…' ), false );
+}
+$vv_size = 'persona' === $vv_variante ? 'vv-persona' : 'vv-card';
+$vv_img  = 'citazione' === $vv_variante ? '' : get_the_post_thumbnail( $vv_post, $vv_size, array(
 	'class'   => 'vv-card__img',
 	'loading' => 'lazy',
 	'alt'     => '',
@@ -46,8 +56,13 @@ if ( 'post' === $vv_post->post_type && 'persona' !== $vv_variante && ! $vv_ritag
 	}
 }
 
-// Eventi: data a foglietto sulla foto; sull'angolo la fascetta della fase: "A breve" (verde)
-// prima del primo giorno, "In corso" (arancione) fino all'ultimo, "Concluso" (gialla) dopo.
+// Eventi: data a foglietto sulla foto; sull'angolo la fascetta della fase: "A breve" prima del
+// primo giorno, "In corso" fino all'ultimo, "Concluso" dopo (colori in tokens.css).
+$vv_fasi     = array(
+	'a-breve'  => 'A breve',
+	'in-corso' => 'In corso',
+	'concluso' => 'Concluso',
+);
 $vv_badge    = '';
 $vv_chip     = null;
 $vv_fascetta = '';
@@ -82,7 +97,7 @@ if ( $vv_fascetta ) {
 				<span class="vv-badge"><?php echo esc_html( $vv_badge ); ?></span>
 			<?php endif; ?>
 			<?php if ( $vv_fascetta ) : ?>
-				<span class="vv-fascetta vv-fascetta--<?php echo esc_attr( $vv_fascetta ); ?>"><?php echo esc_html( array( 'a-breve' => 'A breve', 'in-corso' => 'In corso', 'concluso' => 'Concluso' )[ $vv_fascetta ] ); ?></span>
+				<span class="vv-fascetta vv-fascetta--<?php echo esc_attr( $vv_fascetta ); ?>"><?php echo esc_html( $vv_fasi[ $vv_fascetta ] ); ?></span>
 			<?php endif; ?>
 		</div>
 	<?php endif; ?>

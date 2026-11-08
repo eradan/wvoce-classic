@@ -15,25 +15,34 @@ defined( 'ABSPATH' ) || exit;
 const VV_EVENTO_BREVE = 31 * DAY_IN_SECONDS;
 
 /**
+ * Inizio e fine di un evento come scritti nei campi, ripuliti: una data che non esiste o non è
+ * AAAA-MM-GG (salvata prima dei controlli o scritta a mano nel database) conta come assente, e una
+ * fine mancante o scritta prima dell'inizio (errore di battitura) diventa l'inizio: un giorno solo.
+ *
+ * @param string $inizio Campo vv_data.
+ * @param string $fine   Campo vv_data_fine.
+ * @return string[] array( inizio, fine ), AAAA-MM-GG o ''.
+ */
+function vv_date_evento( $inizio, $fine ) {
+	$inizio = vv_sanitize_date( $inizio );
+	$fine   = vv_sanitize_date( $fine );
+	if ( $inizio && ( ! $fine || $fine < $inizio ) ) {
+		$fine = $inizio;
+	}
+	return array( $inizio, $fine );
+}
+
+/**
  * Date di un articolo-evento come timestamp (inizio/fine) più l'etichetta leggibile.
  *
  * @param WP_Post|int $post Articolo.
  * @return array{start:int,end:int,label:string,has_meta:bool}
  */
 function vv_event_dates( $post ) {
-	$post  = get_post( $post );
-	$start = get_post_meta( $post->ID, 'vv_data', true );
-	$end   = get_post_meta( $post->ID, 'vv_data_fine', true );
-	$tz    = wp_timezone();
-
-	// Una data salvata prima dei controlli (o scritta a mano nel database) che non è AAAA-MM-GG
-	// conta come assente: DateTimeImmutable fermerebbe la pagina con un errore.
-	$start = vv_sanitize_date( $start );
-	$end   = vv_sanitize_date( $end );
-	// Una fine scritta prima dell'inizio (errore di battitura) non fa sparire l'evento in anticipo.
-	if ( $start && $end && $end < $start ) {
-		$end = $start;
-	}
+	$post = get_post( $post );
+	$tz   = wp_timezone();
+	// Date già ripulite: con una data inesistente DateTimeImmutable fermerebbe la pagina con un errore.
+	list( $start, $end ) = vv_date_evento( get_post_meta( $post->ID, 'vv_data', true ), get_post_meta( $post->ID, 'vv_data_fine', true ) );
 
 	$has_meta = (bool) $start;
 	$start_ts = $start ? ( new DateTimeImmutable( $start, $tz ) )->getTimestamp() : get_post_timestamp( $post );
@@ -41,7 +50,7 @@ function vv_event_dates( $post ) {
 	$last_day = $end ? $end : $start;
 	$end_ts   = $last_day ? ( new DateTimeImmutable( $last_day . ' 23:59:59', $tz ) )->getTimestamp() : $start_ts;
 
-	$label = $has_meta && $end && $end !== $start ? vv_date_range_label( $start_ts, $end_ts ) : wp_date( 'j F Y', $start_ts );
+	$label = $has_meta && $end !== $start ? vv_date_range_label( $start_ts, $end_ts ) : wp_date( 'j F Y', $start_ts );
 
 	return array(
 		'start'    => $start_ts,
@@ -84,7 +93,8 @@ function vv_date_chip( $dates ) {
 	if ( empty( $dates['has_meta'] ) ) {
 		return null;
 	}
-	list( $start, $end ) = array( $dates['start'], $dates['end'] );
+	$start = $dates['start'];
+	$end   = $dates['end'];
 	if ( wp_date( 'Y-m-d', $start ) === wp_date( 'Y-m-d', $end ) ) {
 		return array( 'alto' => wp_date( 'j', $start ), 'basso' => wp_date( 'M', $start ) );
 	}
@@ -107,10 +117,11 @@ function vv_date_chip( $dates ) {
  * @return string a-breve | in-corso | concluso.
  */
 function vv_fase_evento( $dates, $now ) {
-	if ( $dates['end'] < $now ) {
-		return 'concluso';
-	}
-	return $dates['start'] <= $now ? 'in-corso' : 'a-breve';
+	return match ( true ) {
+		$dates['end'] < $now    => 'concluso',
+		$dates['start'] <= $now => 'in-corso',
+		default                 => 'a-breve',
+	};
 }
 
 /**

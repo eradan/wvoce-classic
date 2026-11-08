@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 <ruleset name="VivaVoce">
-	<description>Regole di scrittura del tema: WordPress Coding Standards e compatibilità con PHP 7.4.</description>
+	<description>Regole di scrittura del tema: WordPress Coding Standards e compatibilità con PHP 8.3.</description>
 
 	<file>.</file>
 	<exclude-pattern>/vendor/*</exclude-pattern>
@@ -12,7 +12,7 @@
 	<arg value="sp"/>
 
 	<config name="minimum_wp_version" value="6.0"/>
-	<config name="testVersion" value="7.4-"/>
+	<config name="testVersion" value="8.3-"/>
 
 	<!-- Convenzioni del tema: chiamate con un array o una funzione come ultimo argomento sulla stessa
 	     riga (add_meta_box( 'id', array( … ) )) e array associativi brevi su una riga. -->

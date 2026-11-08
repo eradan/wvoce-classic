@@ -1,7 +1,7 @@
 <?php
 /**
  * Test delle funzioni del tema che non hanno bisogno di WordPress (date e ordine degli eventi,
- * meta_query, contenuti, dati strutturati, email). Le iscrizioni sono del plugin wvoce-iscrizioni.
+ * meta_query, contenuti, anteprime, dati strutturati, email).
  * Si lanciano con: php tests/run.php
  *
  * Le poche funzioni di WordPress che servono sono imitate qui sotto, nel modo più semplice.
@@ -16,19 +16,8 @@ date_default_timezone_set( 'UTC' ); // Come WordPress.
 
 function add_action() {}
 function add_filter() {}
-function add_shortcode() {}
-function register_post_meta() {}
-$vv_opzioni = array();
-function get_option( $name, $default = false ) {
-	global $vv_opzioni;
-	return array_key_exists( $name, $vv_opzioni ) ? $vv_opzioni[ $name ] : $default;
-}
-function update_option( $name, $value ) {
-	global $vv_opzioni;
-	$vv_opzioni[ $name ] = $value;
-}
-function remove_accents( $text ) {
-	return strtr( (string) $text, array( 'à' => 'a', 'á' => 'a', 'è' => 'e', 'é' => 'e', 'ì' => 'i', 'í' => 'i', 'ò' => 'o', 'ó' => 'o', 'ù' => 'u', 'ú' => 'u', 'À' => 'A', 'È' => 'E', 'É' => 'E', 'Ì' => 'I', 'Ò' => 'O', 'Ù' => 'U' ) );
+function apply_filters( $hook, $value ) {
+	return $value;
 }
 function strip_shortcodes( $text ) {
 	return preg_replace( '/\[[^\]]*\]/', '', (string) $text );
@@ -36,61 +25,10 @@ function strip_shortcodes( $text ) {
 function wp_strip_all_tags( $text ) {
 	return trim( strip_tags( (string) $text ) );
 }
-function delete_option( $name ) {
-	global $vv_opzioni;
-	unset( $vv_opzioni[ $name ] );
-}
-function esc_url_raw( $url ) {
-	return preg_match( '#^https?://#', (string) $url ) ? (string) $url : '';
-}
-function sanitize_text_field( $text ) {
-	return trim( strip_tags( (string) $text ) );
-}
-function absint( $n ) {
-	return abs( (int) $n );
-}
-class WP_Error {
-	public $messaggio;
-	public function __construct( $codice, $messaggio ) {
-		$this->messaggio = $messaggio;
-	}
-	public function get_error_message() {
-		return $this->messaggio;
-	}
-}
-function is_wp_error( $x ) {
-	return $x instanceof WP_Error;
-}
-function wp_json_encode( $x ) {
-	return json_encode( $x );
-}
-$vv_richieste = array();
-$vv_risposta  = array( 'ok' => true );
-$vv_http      = null; // Risposta HTTP grezza al POST, al posto di quella con $vv_risposta.
-function wp_remote_post( $url, $args ) {
-	global $vv_richieste, $vv_risposta, $vv_http;
-	$vv_richieste[] = json_decode( $args['body'], true );
-	return $vv_http ? $vv_http : array( 'code' => 200, 'body' => json_encode( $vv_risposta ) );
-}
-function wp_remote_get( $url, $args = array() ) {
-	global $vv_risposta;
-	return '' === (string) $url ? new WP_Error( 'http_request_failed', 'A valid URL was not provided.' ) : array( 'code' => 200, 'body' => json_encode( $vv_risposta ) );
-}
-function wp_remote_retrieve_response_code( $res ) {
-	return $res['code'];
-}
-function wp_remote_retrieve_header( $res, $name ) {
-	return $res['headers'][ $name ] ?? '';
-}
-function wp_remote_retrieve_body( $res ) {
-	return $res['body'];
-}
-$vv_adesso = '2026-10-07 10:00:00';
-function current_time( $type ) {
-	global $vv_adesso;
-	return $vv_adesso;
-}
 function esc_attr( $text ) {
+	return htmlspecialchars( (string) $text, ENT_QUOTES );
+}
+function esc_html( $text ) {
 	return htmlspecialchars( (string) $text, ENT_QUOTES );
 }
 function esc_url( $url ) {
@@ -99,12 +37,16 @@ function esc_url( $url ) {
 function home_url( $path = '' ) {
 	return 'https://wvoce.it' . $path;
 }
+function wp_parse_url( $url, $component = -1 ) {
+	return parse_url( $url, $component );
+}
 function get_theme_mod( $name, $default = false ) {
 	return $default;
 }
 define( 'VV_URI', 'https://wvoce.it/wp-content/themes/wvoce-classic' );
-function esc_html( $text ) {
-	return htmlspecialchars( (string) $text, ENT_QUOTES );
+define( 'DAY_IN_SECONDS', 86400 );
+function sanitize_title( $title ) {
+	return trim( preg_replace( '/[^a-z0-9]+/', '-', strtolower( (string) $title ) ), '-' );
 }
 function wpautop( $text ) {
 	$blocchi = preg_split( '/\n\s*\n/', trim( (string) $text ) );
@@ -116,53 +58,8 @@ function make_clickable( $text ) {
 function get_privacy_policy_url() {
 	return 'https://wvoce.it/informativa-sulla-privacy/';
 }
-$vv_admin = false;
-function current_user_can( $cap ) {
-	global $vv_admin;
-	return $vv_admin;
-}
 function get_bloginfo( $show ) {
 	return array( 'name' => 'VivaVoce', 'description' => 'Lettura ad alta voce, teatro e creatività a Pisa' )[ $show ] ?? '';
-}
-function sanitize_title( $title ) {
-	return trim( preg_replace( '/[^a-z0-9]+/', '-', strtolower( (string) $title ) ), '-' );
-}
-
-define( 'DAY_IN_SECONDS', 86400 );
-function wp_list_pluck( $list, $field ) {
-	return array_map( static fn( $x ) => is_object( $x ) ? $x->$field : $x[ $field ], $list );
-}
-$vv_email = array();
-function wp_mail( $a, $oggetto, $testo ) {
-	global $vv_email;
-	$vv_email[] = array( 'a' => $a, 'oggetto' => $oggetto, 'testo' => $testo );
-	return true;
-}
-function is_email( $email ) {
-	return (bool) filter_var( $email, FILTER_VALIDATE_EMAIL );
-}
-define( 'MINUTE_IN_SECONDS', 60 );
-define( 'HOUR_IN_SECONDS', 3600 );
-function admin_url( $path = '' ) {
-	return 'https://wvoce.it/wp-admin/' . $path;
-}
-$vv_transient = array();
-function set_transient( $name, $value, $durata ) {
-	global $vv_transient;
-	$vv_transient[ $name ] = $value;
-}
-function get_transient( $name ) {
-	global $vv_transient;
-	return $vv_transient[ $name ] ?? false;
-}
-function wp_parse_url( $url, $component = -1 ) {
-	return parse_url( $url, $component );
-}
-function trailingslashit( $text ) {
-	return rtrim( (string) $text, '/' ) . '/';
-}
-function add_query_arg( $key, $value, $url ) {
-	return $url . ( false === strpos( $url, '?' ) ? '?' : '&' ) . $key . '=' . $value;
 }
 /**
  * Date in italiano come wp_date(), per i soli formati del tema (j, n, Y, F, M).
@@ -207,6 +104,11 @@ function uguale( $nome, $atteso, $ottenuto ) {
 // Date degli eventi e slug
 uguale( 'Data valida', '2026-10-06', vv_sanitize_date( ' 2026-10-06 ' ) );
 uguale( 'Data in altro formato', '', vv_sanitize_date( '06/10/2026' ) );
+uguale( 'Data inesistente: mese 13', '', vv_sanitize_date( '2026-13-01' ) );
+uguale( 'Data inesistente: 30 febbraio', '', vv_sanitize_date( '2026-02-30' ) );
+uguale( 'Date evento: fine prima dell\'inizio diventa l\'inizio', array( '2026-10-14', '2026-10-14' ), vv_date_evento( '2026-10-14', '2026-10-01' ) );
+uguale( 'Date evento: senza fine, un giorno', array( '2026-10-14', '2026-10-14' ), vv_date_evento( '2026-10-14', '' ) );
+uguale( 'Date evento: inizio inesistente, niente date', array( '', '2026-10-20' ), vv_date_evento( '2026-02-30', '2026-10-20' ) );
 uguale( 'Slug', 'eventi,corsi-e-laboratori', vv_sanitize_slugs( 'Eventi, Corsi e laboratori,,' ) );
 
 // Etichette degli eventi su più giorni: i giorni fino a un mese, poi i mesi
@@ -302,6 +204,11 @@ $vv_grande = '<img src="https://scontent.xx.fbcdn.net/v/foto.jpg" alt="Foto" wid
 uguale( 'Foto esterna grande intatta', $vv_grande, vv_emoji_esterne( $vv_grande ) );
 uguale( 'Contenuto senza immagini esterne invariato', '<p>Ciao <img src="/a.png" alt="a"></p>', vv_emoji_esterne( '<p>Ciao <img src="/a.png" alt="a"></p>' ) );
 uguale( 'Galleria: link alla pagina dell\'allegato diventa link al file', 'file', vv_gallery_link_file( array( 'link' => '' ) )['link'] );
+uguale( 'Righe di trattini: paragrafo di trattini diventa il divisore', '<p>a</p><hr class="vv-rule">', vv_underscore_rules( '<p>a</p><p><strong>__________</strong></p>' ) );
+uguale( 'Righe di trattini: anche spezzate da spazi', '<hr class="vv-rule">', vv_underscore_rules( '<p>____ ____</p>' ) );
+$vv_spazi = "<p>___</p><p>\u{00A0}\u{00A0}\u{00A0}\u{00A0}\u{00A0}\u{00A0}\u{00A0}\u{00A0}</p><p><img src=\"/a.png\">         </p>";
+uguale( 'Righe di trattini: spazi e immagini non diventano divisori', $vv_spazi, vv_underscore_rules( $vv_spazi ) );
+uguale( 'Righe di trattini: UTF-8 non valido lascia il contenuto', "<p>________\xC3</p>", vv_underscore_rules( "<p>________\xC3</p>" ) );
 uguale( 'Galleria senza link resta senza', 'none', vv_gallery_link_file( array( 'link' => 'none' ) )['link'] );
 
 // Descrizione per motori di ricerca e social
@@ -329,6 +236,7 @@ uguale( 'Evento: fine prima dell\'inizio, dura un giorno', '2026-10-14', vv_ds_e
 uguale( 'Evento: senza fine, dura un giorno', '2026-10-14', vv_ds_evento( array( 'fine' => '' ) + $vv_ev )['endDate'] );
 uguale( 'Evento: senza luogo niente evento', array(), vv_ds_evento( array( 'luogo' => ' ' ) + $vv_ev ) );
 uguale( 'Evento: data non valida niente evento', array(), vv_ds_evento( array( 'inizio' => '14/10/2026' ) + $vv_ev ) );
+uguale( 'Evento: data inesistente niente evento', array(), vv_ds_evento( array( 'inizio' => '2026-13-14' ) + $vv_ev ) );
 
 // Email con il marchio: modello HTML, versione in solo testo, Message-ID del dominio
 $vv_mail = vv_email_avvolgi( array( 'to' => 'a@example.com', 'subject' => 'Prova', 'message' => "Ciao <Laura>,\n\napri https://wvoce.it/x/?a=1\n\nVivaVoce", 'headers' => '' ) );
@@ -349,6 +257,9 @@ $vv_mail = vv_email_avvolgi( array( 'subject' => 'Nuova iscrizione', 'message' =
 uguale( 'Email HTML (Forminator): frammento dentro il modello', true, false !== strpos( $vv_mail['message'], '<strong>Laura</strong>' ) && false !== strpos( $vv_mail['message'], 'logo-email.png' ) );
 uguale( 'Email HTML: intestazioni tenute, un solo Content-Type', array( 'From: VivaVoce <info@wvoce.it>', 'Content-Type: text/html; charset=UTF-8' ), $vv_mail['headers'] );
 uguale( 'Email HTML: testo ricavato con i link', "Nome: Laura\nSito (https://wvoce.it/)", strstr( vv_email_testo(), "\n\n--", true ) );
+$vv_mail = vv_email_avvolgi( array( 'subject' => 'Modulo', 'message' => "Messaggio: <a href=\"https://esempio.test/\">Rinnova la tessera</a>", 'headers' => '' ) );
+uguale( 'Email di testo con tag scritti da un visitatore: restano testo', array( false, true ), array( strpos( $vv_mail['message'], '<a href="https://esempio.test/">' ), false !== strpos( $vv_mail['message'], '&lt;a href=' ) ) );
+uguale( 'Email: piè di pagina con il dominio del sito', true, false !== strpos( $vv_mail['message'], '>wvoce.it</a>' ) );
 $vv_doc = array( 'subject' => 'X', 'message' => '<html><body>già impaginata</body></html>', 'headers' => '' );
 uguale( 'Email già impaginata: invariata, senza testo alternativo', array( $vv_doc, '' ), array( vv_email_avvolgi( $vv_doc ), vv_email_testo() ) );
 
@@ -356,6 +267,7 @@ uguale( 'Email già impaginata: invariata, senza testo alternativo', array( $vv_
 uguale( 'Lettere decorative', '<strong class="vv-plain">Voce</strong> e testo', vv_plain_letters( '𝕍𝕠𝕔𝕖 e testo' ) );
 uguale( 'Lettere decorative senza grassetto', 'Bold', vv_plain_letters( '𝐁𝐨𝐥𝐝', false ) );
 uguale( 'Testo normale invariato', 'Ciao', vv_plain_letters( 'Ciao' ) );
+uguale( 'Testo semplice: tag, entità e lettere decorative', 'Voce – l’altra', vv_testo_semplice( '<b>𝕍𝕠𝕔𝕖</b> &#8211; l&#8217;altra' ) );
 
 echo $vv_falliti ? "\n{$vv_falliti} su {$vv_totale} controlli falliti.\n" : "{$vv_totale} controlli superati.\n";
 exit( $vv_falliti ? 1 : 0 );

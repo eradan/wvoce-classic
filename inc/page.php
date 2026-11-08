@@ -31,7 +31,7 @@ function vv_page_has_aside( $page_id ) {
 	return $page
 		&& (int) get_option( 'wp_page_for_privacy_policy' ) !== $page->ID
 		&& ! preg_match( '/privacy|cookie/', $page->post_name )
-		&& ! preg_match( '/\[(vv_cards|vv_elenco|vv_sottopagine)\b/', $page->post_content );
+		&& ! preg_match( '/\[(vv_cards|vv_elenco|vv_sottopagine|vv_sostienici)\b/', $page->post_content );
 }
 
 /**
@@ -71,30 +71,31 @@ function vv_page_section_nav( $page_id ) {
 		return '';
 	}
 
-	$link = static function ( $p, $current = false ) {
-		return '<a href="' . esc_url( get_permalink( $p ) ) . '"' . ( $current ? ' aria-current="page"' : '' ) . '>' . esc_html( wp_strip_all_tags( get_the_title( $p ) ) ) . '</a>';
+	$titolo = static fn( $p ) => esc_html( wp_strip_all_tags( get_the_title( $p ) ) );
+	$link   = static function ( $p, $current = false ) use ( $titolo ) {
+		return '<a href="' . esc_url( get_permalink( $p ) ) . '"' . ( $current ? ' aria-current="page"' : '' ) . '>' . $titolo( $p ) . '</a>';
 	};
+	$figlie = '';
+	foreach ( $children as $child ) {
+		$figlie .= '<li>' . $link( $child ) . '</li>';
+	}
+	// Una madre non pubblicata (privata, bozza) resta come titolo: il link darebbe 404 ai visitatori.
+	$madre = $parent_id && 'publish' === get_post_status( $parent_id ) ? $link( $parent_id ) : $titolo( $parent_id ? $parent_id : $page );
 
 	$html  = '<nav class="vv-card vv-card--info vv-accent--turchese vv-section-nav" aria-label="In questa sezione"><div class="vv-card__body">';
 	$html .= '<h2 class="vv-info__title">In questa sezione</h2>';
-	$html .= '<p class="vv-section-nav__parent">' . ( $parent_id ? $link( get_post( $parent_id ) ) : esc_html( wp_strip_all_tags( get_the_title( $page ) ) ) ) . '</p>';
+	$html .= '<p class="vv-section-nav__parent">' . $madre . '</p>';
 	$html .= '<ul class="vv-section-nav__list">';
 	foreach ( $siblings as $sibling ) {
 		$current = $sibling->ID === $page_id;
 		// Una pagina di primo livello non ripete sé stessa: si vedono solo le sue sottopagine.
 		if ( $current && ! $parent_id ) {
-			foreach ( $children as $child ) {
-				$html .= '<li>' . $link( $child ) . '</li>';
-			}
+			$html .= $figlie;
 			continue;
 		}
 		$html .= '<li' . ( $current ? ' class="is-current"' : '' ) . '>' . $link( $sibling, $current );
-		if ( $current && $children ) {
-			$html .= '<ul>';
-			foreach ( $children as $child ) {
-				$html .= '<li>' . $link( $child ) . '</li>';
-			}
-			$html .= '</ul>';
+		if ( $current && $figlie ) {
+			$html .= '<ul>' . $figlie . '</ul>';
 		}
 		$html .= '</li>';
 	}

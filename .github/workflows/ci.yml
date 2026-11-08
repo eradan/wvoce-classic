@@ -7,14 +7,11 @@ on:
 jobs:
   php:
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        php: ['7.4', '8.3']
     steps:
       - uses: actions/checkout@v4
       - uses: shivammathur/setup-php@v2
         with:
-          php-version: ${{ matrix.php }}
+          php-version: '8.3'
           extensions: mbstring, intl
           coverage: none
           tools: composer
@@ -23,7 +20,6 @@ jobs:
       - name: Test
         run: php tests/run.php
       - name: Regole di scrittura (phpcs)
-        if: matrix.php == '8.3'
         run: |
           composer install --no-interaction --no-progress
           composer lint

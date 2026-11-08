@@ -1,6 +1,7 @@
 <?php
 /**
- * Pannello "VivaVoce" nel Customizer: hero della home e dati dell'associazione.
+ * Pannello "VivaVoce" nel Customizer (hero della home, palette del sito, dati dell'associazione) e le
+ * funzioni che leggono quei valori: vv_mod(), le pagine "Diventa socio" e "Fai una donazione", il dominio.
  *
  * @package VivaVoce
  */
@@ -34,8 +35,6 @@ function vv_defaults() {
 		'vv_email'          => 'info@wvoce.it',
 		'vv_facebook'       => 'https://www.facebook.com/associazionevivavoce',
 		'vv_instagram'      => 'https://www.instagram.com/associazione_vivavoce/',
-		'vv_url_socio'      => home_url( '/cosa-puoi-fare/diventa-socio/' ),
-		'vv_url_donazione'  => home_url( '/cosa-puoi-fare/fai-una-donazione/' ),
 		'vv_img_5x1000'     => 0,
 		'vv_palette'        => '',
 	);
@@ -74,14 +73,39 @@ function vv_mod( $key ) {
 }
 
 /**
- * Immagine dell'hero: quella scelta nel pannello VivaVoce oppure la prima slide di Sydney.
+ * Pagina "Diventa socio" o "Fai una donazione" scelta nei Dati dell'associazione. Fino alla 1.4 era un
+ * indirizzo scritto a mano (vv_url_socio, vv_url_donazione): finché non se ne sceglie una vale quello.
+ *
+ * @param string $quale socio | donazione.
+ * @return int ID della pagina, 0 se non c'è.
  */
-function vv_hero_image_url() {
-	$url = vv_mod( 'vv_hero_image' );
-	if ( ! $url ) {
-		$url = get_theme_mod( 'slider_image_1', '' );
+function vv_pagina_id( $quale ) {
+	$id = absint( get_theme_mod( 'vv_pagina_' . $quale, 0 ) );
+	if ( ! $id ) {
+		$vecchi = array(
+			'socio'     => '/cosa-puoi-fare/diventa-socio/',
+			'donazione' => '/cosa-puoi-fare/fai-una-donazione/',
+		);
+		$id     = url_to_postid( (string) get_theme_mod( 'vv_url_' . $quale, home_url( $vecchi[ $quale ] ?? '/' ) ) );
 	}
-	return $url;
+	return $id;
+}
+
+/**
+ * Indirizzo della pagina "Diventa socio" o "Fai una donazione", '' se non c'è.
+ *
+ * @param string $quale socio | donazione.
+ */
+function vv_pagina_url( $quale ) {
+	$id = vv_pagina_id( $quale );
+	return $id ? (string) get_permalink( $id ) : '';
+}
+
+/**
+ * Dominio del sito senza "www." (wvoce.it).
+ */
+function vv_dominio() {
+	return preg_replace( '/^www\./', '', (string) wp_parse_url( home_url( '/' ), PHP_URL_HOST ) );
 }
 
 /**
@@ -107,28 +131,33 @@ function vv_customize_register( $wp_customize ) {
 	$wp_customize->add_section( 'vv_dati', array(
 		'title'       => 'Dati dell\'associazione',
 		'panel'       => 'vv_panel',
-		'description' => 'Valgono per il sito: piè di pagina e modello delle email, dati strutturati, pulsante "Diventa socio" della home se il suo link è vuoto. Per le iscrizioni il plugin wvoce-iscrizioni ha la sua email di contatto e le sue pagine dei moduli (Strumenti → Iscrizioni → Collegamenti): se cambiano, vanno cambiate anche lì.',
+		'description' => 'Finiscono nel piè di pagina delle email, nei dati strutturati per i motori di ricerca, negli shortcode [vv_dati_fiscali] e [vv_sostienici] e nel pulsante 2 dell\'hero quando il suo link è vuoto. I contatti nel piè di pagina del sito sono invece nei widget (Aspetto → Widget). Il plugin wvoce-iscrizioni ha la sua email di contatto e la sua pagina "Diventa socio" (Strumenti → Iscrizioni → Collegamenti): se cambiano, vanno cambiate anche lì.',
 	) );
 
-	$text_fields = array(
-		'vv_hero_title'     => array( 'vv_hero', 'Titolo (per screen reader e motori di ricerca)', 'text' ),
-		'vv_hero_cta1_text' => array( 'vv_hero', 'Pulsante 1: testo', 'text' ),
-		'vv_hero_cta1_url'  => array( 'vv_hero', 'Pulsante 1: link', 'url' ),
-		'vv_hero_cta2_text' => array( 'vv_hero', 'Pulsante 2: testo', 'text' ),
-		'vv_hero_cta2_url'  => array( 'vv_hero', 'Pulsante 2: link (vuoto: la pagina "Diventa socio" dei Dati dell\'associazione)', 'url' ),
-		'vv_cf'             => array( 'vv_dati', 'Codice fiscale (5×1000)', 'text' ),
-		'vv_piva'           => array( 'vv_dati', 'Partita IVA', 'text' ),
-		'vv_iban'           => array( 'vv_dati', 'IBAN', 'text' ),
-		'vv_nome_legale'    => array( 'vv_dati', 'Ragione sociale', 'text' ),
-		'vv_indirizzo'      => array( 'vv_dati', 'Sede: via e numero', 'text' ),
-		'vv_cap'            => array( 'vv_dati', 'Sede: CAP', 'text' ),
-		'vv_citta'          => array( 'vv_dati', 'Sede: città', 'text' ),
-		'vv_telefono'       => array( 'vv_dati', 'Telefono (con +39)', 'text' ),
-		'vv_email'          => array( 'vv_dati', 'Email', 'text' ),
-		'vv_facebook'       => array( 'vv_dati', 'Pagina Facebook', 'url' ),
-		'vv_instagram'      => array( 'vv_dati', 'Profilo Instagram', 'url' ),
-		'vv_url_socio'      => array( 'vv_dati', 'Pagina "Diventa socio"', 'url' ),
-		'vv_url_donazione'  => array( 'vv_dati', 'Pagina "Fai una donazione"', 'url' ),
+	// Tipo: text, link (indirizzo o #ancora della pagina), url, email.
+	$text_fields   = array(
+		'vv_hero_title'     => array( 'vv_hero', 'Titolo', 'text', 'Non si vede: serve a screen reader e motori di ricerca, ed è la descrizione della home nelle anteprime social se manca il motto del sito (Impostazioni → Generali).' ),
+		'vv_hero_cta1_text' => array( 'vv_hero', 'Pulsante 1: testo', 'text', '' ),
+		'vv_hero_cta1_url'  => array( 'vv_hero', 'Pulsante 1: link', 'link', 'Un indirizzo o un\'ancora: #appuntamenti porta al punto della home con id="appuntamenti", che deve esserci nel suo contenuto.' ),
+		'vv_hero_cta2_text' => array( 'vv_hero', 'Pulsante 2: testo', 'text', '' ),
+		'vv_hero_cta2_url'  => array( 'vv_hero', 'Pulsante 2: link', 'link', 'Vuoto: la pagina "Diventa socio" scelta in Dati dell\'associazione.' ),
+		'vv_cf'             => array( 'vv_dati', 'Codice fiscale (5×1000)', 'text', '' ),
+		'vv_piva'           => array( 'vv_dati', 'Partita IVA', 'text', '' ),
+		'vv_iban'           => array( 'vv_dati', 'IBAN', 'text', '' ),
+		'vv_nome_legale'    => array( 'vv_dati', 'Ragione sociale', 'text', '' ),
+		'vv_indirizzo'      => array( 'vv_dati', 'Sede: via e numero', 'text', '' ),
+		'vv_cap'            => array( 'vv_dati', 'Sede: CAP', 'text', '' ),
+		'vv_citta'          => array( 'vv_dati', 'Sede: città', 'text', '' ),
+		'vv_telefono'       => array( 'vv_dati', 'Telefono (con +39)', 'text', 'Solo nei dati strutturati per i motori di ricerca.' ),
+		'vv_email'          => array( 'vv_dati', 'Email', 'email', '' ),
+		'vv_facebook'       => array( 'vv_dati', 'Pagina Facebook', 'url', '' ),
+		'vv_instagram'      => array( 'vv_dati', 'Profilo Instagram', 'url', '' ),
+	);
+	$sanificazioni = array(
+		'text'  => 'sanitize_text_field',
+		'link'  => 'vv_sanitize_link',
+		'url'   => 'esc_url_raw',
+		'email' => 'sanitize_email',
 	);
 
 	$wp_customize->add_setting( 'vv_palette', array(
@@ -152,16 +181,33 @@ function vv_customize_register( $wp_customize ) {
 		'type'    => 'checkbox',
 	) );
 
-	foreach ( $text_fields as $id => list( $section, $label, $type ) ) {
-		$sanitize = 'url' === $type ? 'vv_sanitize_link' : 'sanitize_text_field';
+	foreach ( $text_fields as $id => list( $section, $label, $type, $description ) ) {
 		$wp_customize->add_setting( $id, array(
 			'default'           => $defaults[ $id ],
-			'sanitize_callback' => $sanitize,
+			'sanitize_callback' => $sanificazioni[ $type ],
 		) );
 		$wp_customize->add_control( $id, array(
-			'section' => $section,
-			'label'   => $label,
-			'type'    => 'text',
+			'section'     => $section,
+			'label'       => $label,
+			'description' => $description,
+			'type'        => 'link' === $type ? 'text' : $type,
+		) );
+	}
+
+	$pagine = array(
+		'socio'     => 'Pagina "Diventa socio"',
+		'donazione' => 'Pagina "Fai una donazione"',
+	);
+	foreach ( $pagine as $quale => $label ) {
+		$wp_customize->add_setting( 'vv_pagina_' . $quale, array(
+			'default'           => 0,
+			'sanitize_callback' => 'absint',
+		) );
+		$wp_customize->add_control( 'vv_pagina_' . $quale, array(
+			'section'     => 'vv_dati',
+			'label'       => $label,
+			'description' => 'Titolo, riassunto e immagine in evidenza della pagina fanno il suo riquadro in [vv_sostienici].',
+			'type'        => 'dropdown-pages',
 		) );
 	}
 
@@ -172,11 +218,9 @@ function vv_customize_register( $wp_customize ) {
 	$wp_customize->add_control( new WP_Customize_Image_Control( $wp_customize, 'vv_hero_image', array(
 		'section'     => 'vv_hero',
 		'label'       => 'Illustrazione',
-		'description' => 'Se vuota si usa la prima immagine dello slider di Sydney.',
+		'description' => 'Se vuota si usa la prima immagine dello slider di Sydney. Testa, mano e trattini si animano solo con l\'illustrazione originale (il file vivavoce-logo-pearl); con un\'altra immagine resta ferma.',
 	) ) );
 
-	// "Diventa socio" e "Fai una donazione" in [vv_sostienici] usano l'immagine in evidenza delle loro pagine;
-	// il 5×1000 una pagina non ce l'ha.
 	$wp_customize->add_setting( 'vv_img_5x1000', array(
 		'default'           => 0,
 		'sanitize_callback' => 'absint',
@@ -184,7 +228,7 @@ function vv_customize_register( $wp_customize ) {
 	$wp_customize->add_control( new WP_Customize_Media_Control( $wp_customize, 'vv_img_5x1000', array(
 		'section'     => 'vv_dati',
 		'label'       => 'Immagine del 5×1000',
-		'description' => 'Nel riquadro del 5×1000 di "Sostienici". Gli altri due usano l\'immagine in evidenza delle pagine "Diventa socio" e "Fai una donazione".',
+		'description' => 'Nel riquadro del 5×1000 di [vv_sostienici], che non ha una pagina sua.',
 		'mime_type'   => 'image',
 	) ) );
 }
@@ -197,7 +241,7 @@ add_action( 'customize_register', 'vv_customize_register' );
  */
 function vv_sanitize_link( $value ) {
 	$value = trim( (string) $value );
-	if ( '' !== $value && '#' === $value[0] ) {
+	if ( str_starts_with( $value, '#' ) ) {
 		return '#' . sanitize_html_class( substr( $value, 1 ) );
 	}
 	return esc_url_raw( $value );

@@ -3,7 +3,7 @@
 /* Colonna dei contenuti larga come quella originale (che aveva la sidebar a destra) */
 body:not(.siteorigin-panels) .content-area.no-sidebar .content-inner,
 body:not(.siteorigin-panels) .content-area.no-sidebar .entry-post,
-.single .content-area.no-sidebar .hentry {
+.single .content-area.no-sidebar:not(.vv-single) .hentry {
 	max-width: var(--vv-lettura);
 }
 /* Senza sidebar Sydney lascia comunque 30px a destra del contenuto: le griglie non arrivavano al bordo */
@@ -37,11 +37,19 @@ body.page-template-page_fullwidth .content-area.no-sidebar .entry-content {
 .vv-page-extra {
 	margin-top: var(--vv-spazio);
 }
+/* Blocco finale dei modelli Pagina hub e Pagina elenco: link generati dal tema fuori dal contenuto,
+ * Sydney li colorerebbe col colore 1 del Customizer (giallo su bianco). */
+.vv-page-extra a:not(.vv-card__link) {
+	color: var(--vv-link);
+	text-decoration: none;
+}
+.vv-page-extra a:not(.vv-card__link):hover {
+	color: var(--vv-testo);
+}
 
 /* Breadcrumb: non flottante, altrimenti il titolo le copre e i link non si cliccano */
-.vv-breadcrumbs-wrap,
 .vv-breadcrumbs-wrap.col-md-12 {
-	float: none !important;
+	float: none;
 	clear: both;
 	width: 100%;
 	position: relative;

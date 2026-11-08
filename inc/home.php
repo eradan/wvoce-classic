@@ -15,11 +15,32 @@ function vv_hero_active() {
 }
 
 /**
+ * Immagine dell'hero: quella scelta nel pannello VivaVoce oppure la prima slide di Sydney.
+ */
+function vv_hero_image_url() {
+	$url = vv_mod( 'vv_hero_image' );
+	return $url ? $url : (string) get_theme_mod( 'slider_image_1', '' );
+}
+
+/**
+ * L'immagine dell'hero nella libreria dei media (0 se è altrove), cercata una volta per pagina:
+ * servono sia l'hero sia l'anteprima social della home.
+ */
+function vv_hero_media_id() {
+	static $id = null;
+	if ( null === $id ) {
+		$url = vv_hero_image_url();
+		$id  = $url ? attachment_url_to_postid( $url ) : 0;
+	}
+	return $id;
+}
+
+/**
  * L'hero usa l'illustrazione originale (la faccia che parla)? Allora la mostra a livelli separati
  * (assets/img/hero/) per animare testa, mano e trattini. Con un'altra immagine resta l'immagine sola.
  */
 function vv_hero_animata() {
-	return false !== strpos( basename( (string) wp_parse_url( vv_hero_image_url(), PHP_URL_PATH ) ), 'vivavoce-logo-pearl' );
+	return str_contains( basename( (string) wp_parse_url( vv_hero_image_url(), PHP_URL_PATH ) ), 'vivavoce-logo-pearl' );
 }
 
 /**

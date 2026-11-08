@@ -12,7 +12,7 @@
 defined( 'ABSPATH' ) || exit;
 
 /**
- * Vecchio percorso → nuovo percorso (entrambi relativi alla home, con la barra finale).
+ * Vecchio percorso → nuovo percorso (entrambi relativi alla home, con la barra finale) o indirizzo completo.
  *
  * @return array<string,string>
  */
@@ -39,8 +39,9 @@ function vv_redirects() {
 		// Articoli uniti a un altro
 		'/vivavoce-a-if-2021/'                          => '/vivavoce-a-internet-festival/',
 		'/alice_pop/'                                   => '/cartoline-dal-paese-delle-meraviglie/',
-		// Modello di privacy policy di WordPress, mai compilato: ora in bozza
-		'/privacy-policy/'                              => '/informativa-sulla-privacy/',
+		// Modello di privacy policy di WordPress, mai compilato, ora in bozza: verso l'informativa
+		// scelta in Impostazioni → Privacy.
+		'/privacy-policy/'                              => get_privacy_policy_url() ? get_privacy_policy_url() : '/informativa-sulla-privacy/',
 	);
 }
 
@@ -51,16 +52,17 @@ function vv_redirect_old_paths() {
 	if ( ! is_404() ) {
 		return;
 	}
-	$path = (string) wp_parse_url( isset( $_SERVER['REQUEST_URI'] ) ? wp_unslash( $_SERVER['REQUEST_URI'] ) : '', PHP_URL_PATH ); // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
-	$base = (string) wp_parse_url( home_url( '/' ), PHP_URL_PATH );
-	if ( '' !== $base && '/' !== $base && 0 === strpos( $path, rtrim( $base, '/' ) ) ) {
-		$path = substr( $path, strlen( rtrim( $base, '/' ) ) );
+	$path = (string) wp_parse_url( wp_unslash( $_SERVER['REQUEST_URI'] ?? '' ), PHP_URL_PATH ); // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
+	$base = rtrim( (string) wp_parse_url( home_url( '/' ), PHP_URL_PATH ), '/' );
+	if ( '' !== $base && str_starts_with( $path, $base ) ) {
+		$path = substr( $path, strlen( $base ) );
 	}
 	$path = '/' . trim( strtolower( rawurldecode( $path ) ), '/' ) . '/';
 	$path = (string) preg_replace( '#page/\d+/$#', '', $path ); // le pagine 2, 3… di un archivio vanno all'inizio del nuovo
 	$map  = vv_redirects();
 	if ( isset( $map[ $path ] ) ) {
-		wp_safe_redirect( home_url( $map[ $path ] ), 301, 'VivaVoce' );
+		$nuovo = $map[ $path ];
+		wp_safe_redirect( str_starts_with( $nuovo, 'http' ) ? $nuovo : home_url( $nuovo ), 301, 'VivaVoce' );
 		exit;
 	}
 }

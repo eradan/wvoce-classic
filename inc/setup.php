@@ -1,6 +1,8 @@
 <?php
 /**
- * Filtri su Sydney e WordPress: layout, testi, classi.
+ * Impostazioni e filtri su Sydney e WordPress: dimensioni delle immagini e miniature WebP, header e
+ * footer di Sydney (builder spento, credits, niente barra laterale), immagine in testa, testi tradotti
+ * o corretti, Contact Form 7 solo dove serve.
  *
  * @package VivaVoce
  */
@@ -40,7 +42,7 @@ if ( ! defined( 'VV_SYDNEY_BUILDER' ) || ! VV_SYDNEY_BUILDER ) {
 	add_filter(
 		'option_sydney-modules',
 		static function ( $modules ) {
-			$modules               = is_array( $modules ) ? $modules : (array) $modules;
+			$modules               = (array) $modules;
 			$modules['hf-builder'] = false;
 			return $modules;
 		}
@@ -172,7 +174,11 @@ add_filter( 'excerpt_more', 'vv_excerpt_more', 20 );
  * nelle altre sono peso inutile e una richiesta ai server di Google prima del consenso.
  */
 function vv_cf7_solo_dove_serve() {
-	if ( ! defined( 'WPCF7_VERSION' ) || ( is_singular() && false !== strpos( get_queried_object()->post_content, 'contact-form-7' ) ) ) {
+	if ( ! defined( 'WPCF7_VERSION' ) ) {
+		return;
+	}
+	$con_modulo = is_singular() && str_contains( get_queried_object()->post_content, 'contact-form-7' );
+	if ( $con_modulo ) {
 		return;
 	}
 	foreach ( array( 'contact-form-7', 'swv', 'wpcf7-recaptcha', 'google-recaptcha' ) as $handle ) {

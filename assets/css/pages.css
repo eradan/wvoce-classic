@@ -87,9 +87,6 @@
 	gap: var(--vv-s-4);
 	align-items: start;
 }
-.vv-single .hentry {
-	max-width: none !important;
-}
 @media (max-width: 991px) {
 	.vv-single__grid {
 		grid-template-columns: minmax(0, 1fr);

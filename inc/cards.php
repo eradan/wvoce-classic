@@ -64,6 +64,17 @@ function vv_featured_clause() {
 }
 
 /**
+ * Articoli spuntati "In evidenza", dal più recente: la riserva quando non ci sono eventi in calendario.
+ *
+ * @param int   $number Quanti.
+ * @param array $extra  Argomenti aggiuntivi per WP_Query.
+ * @return WP_Post[]
+ */
+function vv_in_evidenza( $number, $extra = array() ) {
+	return vv_posts_in( '', $number, vv_add_meta_query( $extra, vv_featured_clause() ) );
+}
+
+/**
  * Colore d'accento della card a rotazione, mai due uguali vicini.
  *
  * @param int $index Posizione nella griglia.
@@ -77,8 +88,8 @@ function vv_accent( $index ) {
  * Griglia di card.
  *
  * @param WP_Post[] $posts    Contenuti da mostrare.
- * @param string    $variante evento | persona | stampa | pagina.
- * @param array     $opts     colonne (int), titolo_livello (h2|h3), layout (griglia|carosello|agenda), autoplay (bool, solo
+ * @param string    $variante evento | persona | stampa | citazione | pagina.
+ * @param array     $opts     colonne (int), titolo_livello (h2|h3|h4), layout (griglia|carosello|agenda), autoplay (bool, solo
  *                            carosello), lotto (int, solo agenda: quante card alla volta, le altre con "Mostra altri").
  * @return string HTML.
  */
@@ -94,6 +105,9 @@ function vv_render_cards( $posts, $variante = 'evento', $opts = array() ) {
 		'lotto'          => 0,
 	) );
 	$carousel = 'carosello' === $opts['layout'];
+	$livello  = in_array( $opts['titolo_livello'], array( 'h2', 'h3', 'h4' ), true ) ? $opts['titolo_livello'] : 'h3';
+	// Le miniature di tutte le card con una query sola, invece di una per card.
+	_prime_post_caches( array_filter( array_map( 'get_post_thumbnail_id', $posts ) ) );
 
 	ob_start();
 	if ( $carousel ) {
@@ -110,10 +124,10 @@ function vv_render_cards( $posts, $variante = 'evento', $opts = array() ) {
 	}
 	foreach ( array_values( $posts ) as $i => $post ) {
 		get_template_part( 'template-parts/card', null, array(
-			'post'     => $post,
-			'variante' => $variante,
-			'accento'  => vv_accent( $i ),
-			'hx'       => in_array( $opts['titolo_livello'], array( 'h2', 'h3', 'h4' ), true ) ? $opts['titolo_livello'] : 'h3',
+			'post'           => $post,
+			'variante'       => $variante,
+			'accento'        => vv_accent( $i ),
+			'titolo_livello' => $livello,
 		) );
 	}
 	echo $carousel ? '</div></div>' : '</div>';
@@ -124,7 +138,7 @@ function vv_render_cards( $posts, $variante = 'evento', $opts = array() ) {
  * Articoli di una o più categorie.
  *
  * @param string $slugs  Slug separati da virgola.
- * @param int    $number Quanti (-1 = tutti).
+ * @param int    $number Quanti (0 o meno: tutti).
  * @param array  $extra  Argomenti aggiuntivi per WP_Query.
  * @return WP_Post[]
  */
@@ -132,7 +146,8 @@ function vv_posts_in( $slugs, $number = 6, $extra = array() ) {
 	$args = array(
 		'post_type'           => 'post',
 		'post_status'         => 'publish',
-		'posts_per_page'      => $number,
+		// get_posts() con 0 ne darebbe 5.
+		'posts_per_page'      => (int) $number > 0 ? (int) $number : -1,
 		'ignore_sticky_posts' => true,
 		'no_found_rows'       => true,
 	);
@@ -143,11 +158,13 @@ function vv_posts_in( $slugs, $number = 6, $extra = array() ) {
 }
 
 /**
- * Categorie di un articolo, senza quella predefinita ("Nessuna categoria").
+ * Categorie di un articolo, senza quella predefinita (Impostazioni → Scrittura, "Nessuna categoria").
  *
  * @param int $post_id Articolo.
  * @return WP_Term[]
  */
 function vv_post_categories( $post_id ) {
-	return array_values( array_filter( get_the_category( $post_id ), static fn( $c ) => 'nessuna-categoria' !== $c->slug && 'uncategorized' !== $c->slug ) );
+	$predefinita = (int) get_option( 'default_category' );
+	$categorie   = array_filter( get_the_category( $post_id ), static fn( $c ) => $c->term_id !== $predefinita );
+	return array_values( $categorie );
 }

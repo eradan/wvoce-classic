@@ -10,17 +10,32 @@
 defined( 'ABSPATH' ) || exit;
 
 /**
- * Paragrafi fatti solo di trattini bassi ("________") usati come separatori
- * diventano il divisore a pennellata.
+ * Risultato di una sostituzione con le espressioni regolari, o il testo di partenza se la sostituzione
+ * fallisce (UTF-8 non valido, limite di backtracking): preg_replace() darebbe null e la pagina resterebbe vuota.
+ *
+ * @param string|null $nuovo    Risultato di preg_replace() o preg_replace_callback().
+ * @param string      $partenza Testo di partenza.
+ */
+function vv_sostituito( $nuovo, $partenza ) {
+	return null === $nuovo ? $partenza : $nuovo;
+}
+
+/**
+ * Paragrafi fatti solo di trattini bassi ("________", anche "____ ____") usati come separatori diventano
+ * il divisore a pennellata. Attorno ai trattini sono ammessi spazi e tag di formattazione, non immagini.
  *
  * @param string $content Contenuto.
  */
 function vv_underscore_rules( $content ) {
-	if ( false === strpos( $content, '___' ) ) {
+	if ( ! str_contains( $content, '___' ) ) {
 		return $content;
 	}
-	$content = preg_replace( '#<p[^>]*>\s*(?:<[^>]+>\s*)*[_\x{00A0}\s]{8,}(?:\s*</[^>]+>)*\s*</p>#u', '<hr class="vv-rule">', $content );
-	return preg_replace( '#(?:<br\s*/?>\s*)+_{8,}#u', '<span class="vv-rule--inline" role="separator"></span>', $content );
+	$inline = '(?:span|strong|b|em|i|u)';
+	$nuovo  = preg_replace( '#<p[^>]*>\s*(?:<' . $inline . '\b[^>]*>\s*)*(?=[\x{00A0}\s]*_{3})[_\x{00A0}\s]{8,}(?:</' . $inline . '>\s*)*</p>#u', '<hr class="vv-rule">', $content );
+	if ( null === $nuovo ) {
+		return $content;
+	}
+	return vv_sostituito( preg_replace( '#(?:<br\s*/?>\s*)+_{8,}#u', '<span class="vv-rule--inline" role="separator"></span>', $nuovo ), $content );
 }
 add_filter( 'the_content', 'vv_underscore_rules', 20 );
 
@@ -52,7 +67,7 @@ function vv_plain_letters( $text, $wrap = true ) {
 			$out = preg_replace_callback(
 				'/[\x{1D400}-\x{1D6A3}\x{1D7CE}-\x{1D7FF}]/u',
 				static function ( $c ) {
-					$cp = mb_ord( $c[0], 'UTF-8' );
+					$cp = mb_ord( $c[0] );
 					if ( $cp >= 0x1D7CE ) {
 						return (string) ( ( $cp - 0x1D7CE ) % 10 );
 					}
@@ -68,6 +83,16 @@ function vv_plain_letters( $text, $wrap = true ) {
 		},
 		$text
 	);
+}
+
+/**
+ * Testo semplice da un frammento HTML (titoli, descrizioni, email in solo testo): niente tag, entità
+ * decodificate, lettere decorative come testo normale. Va ancora escapato dove lo si stampa.
+ *
+ * @param string $html Frammento HTML.
+ */
+function vv_testo_semplice( $html ) {
+	return vv_plain_letters( html_entity_decode( wp_strip_all_tags( (string) $html ) ), false );
 }
 
 /**
@@ -106,14 +131,15 @@ add_filter( 'single_post_title', 'vv_plain_letters_title' ); // <title>, og:titl
  * @param string $content Contenuto.
  */
 function vv_wrap_orphan_list_items( $content ) {
-	if ( false === strpos( $content, '</ul>' ) ) {
+	if ( ! str_contains( $content, '</ul>' ) ) {
 		return $content;
 	}
-	return preg_replace_callback(
+	$nuovo = preg_replace_callback(
 		'#</ul>((?:\s*<li\b[^>]*>(?:(?!<li\b|</?ul\b|</?ol\b).)*?</li>)+)#is',
 		static fn( $m ) => '</ul><ul>' . $m[1] . '</ul>',
 		$content
 	);
+	return vv_sostituito( $nuovo, $content );
 }
 add_filter( 'the_content', 'vv_wrap_orphan_list_items', 19 );
 
@@ -126,10 +152,10 @@ add_filter( 'the_content', 'vv_wrap_orphan_list_items', 19 );
  * @param string $content Contenuto.
  */
 function vv_emoji_esterne( $content ) {
-	if ( false === strpos( $content, 'fbcdn.net' ) && false === strpos( $content, 'googleusercontent.com' ) ) {
+	if ( ! str_contains( $content, 'fbcdn.net' ) && ! str_contains( $content, 'googleusercontent.com' ) ) {
 		return $content;
 	}
-	return (string) preg_replace_callback(
+	$nuovo = preg_replace_callback(
 		'#<img\b[^>]*>#i',
 		static function ( $m ) {
 			$img = $m[0];
@@ -142,6 +168,7 @@ function vv_emoji_esterne( $content ) {
 		},
 		$content
 	);
+	return vv_sostituito( $nuovo, $content );
 }
 add_filter( 'the_content', 'vv_emoji_esterne', 18 );
 

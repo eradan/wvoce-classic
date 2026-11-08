@@ -1,6 +1,6 @@
 /* VivaVoce: home.
  * Hero come l'originale: l'illustrazione a tutta larghezza con i pulsanti sopra, in basso.
- * Il titolo dell'hero non si vede: resta per screen reader e motori di ricerca. */
+ * Il titolo dell'hero non si vede (classe screen-reader-text): resta per screen reader e motori di ricerca. */
 
 .vv-hero {
 	position: relative;
@@ -9,14 +9,6 @@
 }
 .vv-hero__inner {
 	position: relative;
-	display: block;
-	max-width: none;
-	min-height: 0;
-	margin: 0;
-	padding: 0;
-}
-.vv-hero__art {
-	margin: 0;
 }
 /* Altezza: lo schermo meno la testata. svh è l'altezza con la barra degli indirizzi del telefono in
  * vista, così i pulsanti restano sopra la piega; vh resta per i browser che non lo conoscono. */
@@ -41,17 +33,6 @@
 	z-index: 2;
 	padding: 0 15px;
 	text-align: center;
-}
-.vv-hero .vv-hero__title {
-	position: absolute !important;
-	width: 1px;
-	height: 1px;
-	margin: -1px;
-	padding: 0;
-	overflow: hidden;
-	clip: rect(0 0 0 0);
-	white-space: nowrap;
-	border: 0;
 }
 .vv-hero__actions {
 	display: flex;
@@ -164,20 +145,11 @@
 	padding-top: var(--vv-spazio);
 }
 
-/* Titoli delle sezioni: maiuscolo, centrati, con la barretta gialla (come i widget originali).
- * Le regole di layout.css (.vv-section-title) qui con !important: nella home i titoli dei blocchi
- * hanno stili di Sydney più specifici. */
+/* Titoli delle sezioni della home: l'aspetto è quello di layout.css (.vv-section-title); qui solo i
+ * margini, con !important perché Sydney li impone ai titoli del testo con un selettore molto più
+ * specifico (body:not(…):not(…):not(…) .entry-content h2). */
 .vv-has-hero .entry-content > .vv-section-title {
-	position: relative;
-	display: block;
 	margin: 0 0 var(--vv-s-4) !important;
-	padding-bottom: 20px;
-	font-size: var(--vv-fs-sezione) !important;
-	font-weight: 600 !important;
-	line-height: 1.2;
-	text-align: center !important;
-	text-transform: uppercase !important;
-	color: var(--vv-titoli-sezione) !important;
 }
 .vv-has-hero .entry-content > .vv-section-title:not(:first-child) {
 	margin-top: var(--vv-spazio) !important;
@@ -185,9 +157,10 @@
 @media (max-width: 599px) {
 	.vv-has-hero .entry-content > .vv-section-title {
 		margin-bottom: var(--vv-s-3) !important;
-		padding-bottom: var(--vv-s-2);
 	}
 }
+/* Ancora del blocco appuntamenti, scritta nel contenuto della home: il pulsante 1 dell'hero porta qui,
+ * sotto la testata fissa */
 #appuntamenti {
 	scroll-margin-top: 140px;
 }

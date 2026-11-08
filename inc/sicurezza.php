@@ -28,7 +28,7 @@ add_filter( 'wp_sitemaps_add_provider', 'vv_sitemap_senza_utenti', 10, 2 );
 function vv_api_senza_utenti( $endpoints ) {
 	if ( ! is_user_logged_in() ) {
 		foreach ( array_keys( $endpoints ) as $rotta ) {
-			if ( 0 === strpos( $rotta, '/wp/v2/users' ) ) {
+			if ( str_starts_with( $rotta, '/wp/v2/users' ) ) {
 				unset( $endpoints[ $rotta ] );
 			}
 		}

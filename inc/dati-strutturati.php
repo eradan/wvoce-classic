@@ -17,9 +17,8 @@ defined( 'ABSPATH' ) || exit;
  */
 function vv_ds_sito() {
 	$nome      = get_bloginfo( 'name' );
-	$dominio   = preg_replace( '/^www\./', '', (string) wp_parse_url( home_url( '/' ), PHP_URL_HOST ) );
 	$alternati = array();
-	foreach ( array( vv_mod( 'vv_nome_legale' ), strtok( $dominio, '.' ) ) as $alt ) {
+	foreach ( array( vv_mod( 'vv_nome_legale' ), strtok( vv_dominio(), '.' ) ) as $alt ) {
 		if ( $alt && 0 !== strcasecmp( $alt, $nome ) ) {
 			$alternati[] = $alt;
 		}
@@ -73,14 +72,11 @@ function vv_ds_associazione( $immagine = '' ) {
  * @param array $e titolo, descrizione, url, immagine, inizio e fine (AAAA-MM-GG), luogo ("Nome, indirizzo").
  */
 function vv_ds_evento( $e ) {
-	$inizio = vv_sanitize_date( $e['inizio'] ?? '' );
-	$luogo  = trim( (string) ( $e['luogo'] ?? '' ) );
+	list( $inizio, $fine ) = vv_date_evento( $e['inizio'] ?? '', $e['fine'] ?? '' );
+	$luogo                 = trim( (string) ( $e['luogo'] ?? '' ) );
 	if ( ! $inizio || '' === $luogo ) {
 		return array();
 	}
-	// Come vv_event_dates(): senza fine, o con la fine prima dell'inizio, l'evento dura un giorno.
-	$fine = vv_sanitize_date( $e['fine'] ?? '' );
-	$fine = $fine && $fine >= $inizio ? $fine : $inizio;
 	return array_filter( array(
 		'@type'               => 'Event',
 		'name'                => $e['titolo'] ?? '',
@@ -118,7 +114,7 @@ function vv_dati_strutturati() {
 	}
 	$id     = get_queried_object_id();
 	$evento = vv_ds_evento( array(
-		'titolo'      => html_entity_decode( wp_strip_all_tags( $d['titolo'] ), ENT_QUOTES, 'UTF-8' ),
+		'titolo'      => vv_testo_semplice( $d['titolo'] ),
 		'descrizione' => $d['descrizione'],
 		'url'         => $d['url'],
 		'immagine'    => $d['immagine']['url'] ?? '',

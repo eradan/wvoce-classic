@@ -1,7 +1,7 @@
 <?php
 /**
  * Articolo singolo: testo + scheda "In breve" a lato (poi altre edizioni, rassegna stampa e prossimi
- * eventi), navigazione precedente/successivo a card, "Gli altri soci fondatori" in fondo alle pagine dei soci.
+ * eventi), link all'articolo precedente e successivo, "Gli altri soci fondatori" in fondo alle pagine dei soci.
  *
  * @package VivaVoce
  */
@@ -67,7 +67,11 @@ function vv_single_aside( $post_id ) {
 function vv_path_tags( $post_id ) {
 	$generic = array( 'bambini', 'ragazzi', 'adulti', 'teatro', 'lettura-ad-alta-voce', 'narrazione', 'scrittura', 'musica', 'multimedia' );
 	$tags    = get_the_tags( $post_id );
-	return $tags ? array_values( wp_list_pluck( array_filter( $tags, static fn( $t ) => ! in_array( $t->slug, $generic, true ) ), 'term_id' ) ) : array();
+	if ( ! $tags ) {
+		return array();
+	}
+	$percorso = array_filter( $tags, static fn( $t ) => ! in_array( $t->slug, $generic, true ) );
+	return array_values( wp_list_pluck( $percorso, 'term_id' ) );
 }
 
 /**

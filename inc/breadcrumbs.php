@@ -72,7 +72,8 @@ function vv_page_trail( $page_id ) {
 	}
 	$trail = array();
 	foreach ( array_reverse( get_post_ancestors( $page_id ) ) as $ancestor ) {
-		$trail[] = array( get_the_title( $ancestor ), get_permalink( $ancestor ) );
+		// Una madre non pubblicata resta nel percorso senza link: darebbe 404 ai visitatori.
+		$trail[] = array( get_the_title( $ancestor ), 'publish' === get_post_status( $ancestor ) ? get_permalink( $ancestor ) : '' );
 	}
 	$trail[] = array( get_the_title( $page_id ), get_permalink( $page_id ) );
 	return $trail;
@@ -93,21 +94,14 @@ function vv_page_for_category( $slug ) {
 			'post_status'    => 'publish',
 			'posts_per_page' => -1,
 			'meta_key'       => 'vv_categoria', // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_key
-			'fields'         => 'ids',
 			'no_found_rows'  => true,
 		) );
-		foreach ( $pages as $page_id ) {
-			foreach ( explode( ',', (string) get_post_meta( $page_id, 'vv_categoria', true ) ) as $cat ) {
+		// Pagine intere, non solo gli ID: così i campi arrivano con la stessa query.
+		foreach ( $pages as $page ) {
+			foreach ( explode( ',', (string) get_post_meta( $page->ID, 'vv_categoria', true ) ) as $cat ) {
 				if ( $cat && ! isset( $map[ $cat ] ) ) {
-					$map[ $cat ] = (int) $page_id;
+					$map[ $cat ] = $page->ID;
 				}
-			}
-		}
-		// I soci fondatori stanno in Chi siamo anche senza impostare il collegamento.
-		if ( ! isset( $map['soci'] ) ) {
-			$chi = get_page_by_path( 'chi-siamo' );
-			if ( $chi ) {
-				$map['soci'] = (int) $chi->ID;
 			}
 		}
 	}
@@ -185,8 +179,9 @@ function vv_breadcrumb_items_build() {
 		$cats    = vv_post_categories( $post->ID );
 		// Prima una categoria con pagina collegata (Soci → Chi siamo), poi una presente nel menu, poi la prima.
 		foreach ( $cats as $cat ) {
-			if ( vv_page_for_term( $cat ) ) {
-				$section = vv_page_trail( vv_page_for_term( $cat ) );
+			$page = vv_page_for_term( $cat );
+			if ( $page ) {
+				$section = vv_page_trail( $page );
 				break;
 			}
 		}
@@ -220,7 +215,7 @@ function vv_breadcrumb_items_build() {
 	// Niente doppioni consecutivi (es. voce di menu e pagina con lo stesso titolo).
 	$clean = array();
 	foreach ( $items as $item ) {
-		$item[0] = vv_plain_letters( wp_strip_all_tags( html_entity_decode( (string) $item[0], ENT_QUOTES ) ), false );
+		$item[0] = vv_testo_semplice( $item[0] );
 		if ( ! $clean || end( $clean )[1] !== $item[1] || '' === $item[1] ) {
 			$clean[] = $item;
 		}
@@ -255,7 +250,8 @@ function vv_menu_current_section( $classes, $item ) {
 add_filter( 'nav_menu_css_class', 'vv_menu_current_section', 10, 2 );
 
 /**
- * HTML del breadcrumb, con dati strutturati BreadcrumbList per i motori di ricerca.
+ * HTML del breadcrumb, con i dati strutturati BreadcrumbList per i motori di ricerca se non li scrive
+ * già un plugin SEO.
  */
 function vv_breadcrumbs() {
 	$items = vv_breadcrumb_items();
@@ -267,7 +263,8 @@ function vv_breadcrumbs() {
 	$ld   = array();
 	foreach ( $items as $i => list( $title, $url ) ) {
 		if ( $i === $last || ! $url ) {
-			$html .= '<li><span aria-current="page">' . esc_html( $title ) . '</span></li>';
+			// Una voce senza link in mezzo (madre non pubblicata, archivio) non è la pagina corrente.
+			$html .= '<li><span' . ( $i === $last ? ' aria-current="page"' : '' ) . '>' . esc_html( $title ) . '</span></li>';
 		} else {
 			$html .= '<li><a href="' . esc_url( $url ) . '">' . esc_html( $title ) . '</a></li>';
 		}

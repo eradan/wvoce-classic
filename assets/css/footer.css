@@ -1,11 +1,26 @@
 /* VivaVoce: footer.
  * Le colonne dei widget riprendono l'aspetto della vecchia sidebar dei contatti (riquadro grigio,
- * testo piccolo, icona sopra il testo); la fascia turchese del copyright è quella originale
- * (regole in style.css). */
+ * testo piccolo, icona sopra il testo); la fascia turchese del copyright è quella originale. */
+
+/* Fondo e testo della fascia (dal vecchio "CSS aggiuntivo" del Customizer di Sydney). Testo inchiostro
+ * sulla fascia turchese: il bianco originale era 2,6:1 */
+.site-footer {
+	background-color: var(--vv-fascia-fondo);
+}
+.site-info,
+.site-info a {
+	color: var(--vv-fascia-testo) !important;
+}
+.site-info .sydney-svg-icon svg {
+	fill: var(--vv-fascia-testo);
+}
+div .sydney-credits {
+	font-weight: bold;
+	color: var(--vv-fascia-testo);
+}
 
 .footer-widgets {
 	background: var(--vv-footer-fondo) !important;
-	color: var(--vv-footer-testo);
 	font-size: var(--vv-fs-piccolo);
 	line-height: 1.5;
 	padding: var(--vv-s-5) 0 !important;
@@ -71,34 +86,6 @@
 .side-contacts i:is(.fa-facebook, .fa-facebook-f, .fa-facebook-square, .fa-instagram) {
 	width: 26px;
 	height: 24px;
-}
-
-/* [vv_dati_fiscali]: etichetta sopra, poi valore e "Copia". I valori sono larghi quanto il più lungo
- * (l'IBAN), così i pulsanti stanno in colonna; con l'etichetta sopra l'IBAN entra in una colonna da 320px. */
-.vv-dati {
-	display: grid;
-	grid-template-columns: max-content max-content;
-	align-items: center;
-	gap: 4px 0;
-	margin: 0;
-}
-.vv-dati dt {
-	grid-column: 1 / -1;
-	font-weight: 600;
-}
-.vv-dati dd + dt {
-	margin-top: 12px;
-}
-.vv-dati dd,
-.vv-dati .vv-copy {
-	display: contents;
-}
-.vv-dati .vv-copy__btn {
-	margin-left: var(--vv-s-1);
-}
-/* Nel testo di una pagina (es. Fai una donazione) lo stacco dal paragrafo che segue */
-.entry-content .vv-dati {
-	margin: 0 0 1.1em;
 }
 
 /* Colonne: tre uguali da 320px, centrate nella pagina come gruppo (il testo resta allineato a
@@ -392,9 +379,18 @@ html {
 	91% { --vv-y: -3px; animation-timing-function: cubic-bezier(0.6, 0, 0.8, 0.4); }
 	94%, 100% { --vv-y: 0px; }
 }
+/* Chi ha chiesto meno animazioni: faccine ferme, "torna su" e mano senza scorrimento */
 @media (prefers-reduced-motion: reduce) {
 	.site-footer .site-info::before,
 	.site-footer .site-info::after {
 		animation: none;
+	}
+	.go-top,
+	.go-top::before {
+		transition: none;
+	}
+	.go-top:hover::before,
+	.go-top:focus-visible::before {
+		translate: none;
 	}
 }

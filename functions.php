@@ -39,18 +39,11 @@ function vv_enqueue_assets() {
 		wp_enqueue_style( "vv-{$name}", VV_URI . $rel, array( $dep ), (string) filemtime( VV_DIR . $rel ) );
 		$dep = "vv-{$name}";
 	}
-	// Palette del sito (Customizer → VivaVoce → Palette del sito): solo i token, dopo tutto il resto.
+	// Palette del sito (Customizer → VivaVoce → Palette del sito): dopo tutto il resto, perché ridefinisce i token (e il Natale aggiunge la neve).
 	$palette = vv_sanitize_palette( vv_mod( 'vv_palette' ) ); // una palette tolta dall'elenco non carica niente
 	if ( $palette ) {
 		$rel = "/assets/css/palette/{$palette}.css";
 		wp_enqueue_style( 'vv-palette', VV_URI . $rel, array( $dep ), (string) filemtime( VV_DIR . $rel ) );
-	}
-
-	// style.css del child lo carica Sydney ("sydney-style") con una versione fissa: dopo un
-	// aggiornamento i browser terrebbero la copia vecchia.
-	$style = wp_styles()->query( 'sydney-style' );
-	if ( $style && false !== strpos( (string) $style->src, get_stylesheet_directory_uri() ) ) {
-		$style->ver = (string) filemtime( VV_DIR . '/style.css' );
 	}
 
 	wp_enqueue_script( 'vv-main', VV_URI . '/assets/js/vv.js', array(), (string) filemtime( VV_DIR . '/assets/js/vv.js' ), array(

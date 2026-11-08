@@ -4,8 +4,9 @@
  * ruoli della palette in fondo al file, in ogni tema, perché seguano il tema scuro.
  * La palette ha due livelli (marchio e ruoli, vedi :root qui sotto): le regole degli altri fogli
  * non contengono colori scritti a mano e usano solo i ruoli; anche i colori che Sydney scrive a mano
- * dal suo Customizer (header, sottomenu, menu mobile) sono riportati ai ruoli (header.css, style.css).
- * Una palette alternativa (assets/css/palette/) cambia l'aspetto del sito ridefinendo solo questi token.
+ * dal suo Customizer (header, sottomenu, menu mobile) sono riportati ai ruoli (header.css, footer.css).
+ * Una palette alternativa (assets/css/palette/) cambia l'aspetto del sito ridefinendo questi token (il
+ * Natale aggiunge anche la neve e le sue animazioni).
  * La versione "ritaglio di carta" (0.3.x) è nella storia git: commit cc6b27b, cartella assets/css-ritaglio/.
  */
 
@@ -118,7 +119,7 @@
 	--vv-perla: #f9fef8;           /* fondo dell'illustrazione originale */
 
 	/* --- Palette, livello 2: ruoli. Le regole usano solo questi; un tema (quello scuro) o una palette alternativa
-	 * ridefiniscono solo questo blocco.
+	 * ridefiniscono questo blocco (il Natale cambia anche il giallo del marchio, che diventa oro dappertutto).
 	 * Testo sempre ad almeno 4,5:1 sul suo fondo. Il turchese e il giallo pieni restano per fondi e
 	 * filetti: come colore del testo sul bianco non si leggono (2,6:1 e 1,4:1). --- */
 
@@ -134,7 +135,7 @@
 	--vv-pulsante: #2c3a4a;        /* pulsanti "Copia" */
 
 	/* Testi */
-	--vv-testo: #00102e;           /* testo e titoli */
+	--vv-testo: var(--vv-inchiostro); /* testo e titoli */
 	--vv-testo-2: #59687f;         /* testo secondario sul fondo: 5,7:1, 4,7:1 sulla card */
 	--vv-testo-meta: #55657a;      /* date sul fondo delle card: 4,9:1 */
 	--vv-testo-riquadro: #384a5e;  /* testo secondario sul riquadro: 6,4:1 */

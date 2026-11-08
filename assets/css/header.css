@@ -241,6 +241,10 @@ body #masthead-mobile .site-logo {
 	width: auto;
 	height: 48px;
 }
+/* Nel pannello del menu mobile niente secondo logo (dal vecchio "CSS aggiuntivo" del Customizer) */
+.mobile-header-item .site-branding {
+	display: none;
+}
 
 /* Pannello del menu mobile: le voci principali in maiuscoletto come su desktop, i sottomenu no */
 body .sydney-offcanvas-menu #mainnav > div > ul > li > a {

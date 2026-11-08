@@ -2,7 +2,7 @@
 /**
  * Scheletri comuni a articoli e pagine: due colonne con la colonna laterale (articoli e pagine con
  * il modello predefinito), pagina di Sydney con un blocco finale (modelli Pagina hub e Pagina elenco),
- * i blocchi della colonna laterale che servono a entrambi e le sottopagine di una pagina.
+ * i blocchi della colonna laterale che servono a entrambi e le sottopagine di una pagina (con le loro card).
  *
  * @package VivaVoce
  */
@@ -83,6 +83,8 @@ function vv_page_children( $parent_id ) {
 		'sort_column' => 'menu_order,post_title',
 		'post_status' => 'publish',
 	) );
+	// I campi di tutte le pagine con una query sola (get_pages() non li carica).
+	update_postmeta_cache( wp_list_pluck( $pages, 'ID' ) );
 	return array_values( array_filter( $pages, static fn( $p ) => ! get_post_meta( $p->ID, 'vv_nascondi', true ) ) );
 }
 
@@ -97,7 +99,7 @@ function vv_aside_more( $exclude_id = 0 ) {
 	$extra = $exclude_id ? array( 'post__not_in' => array( $exclude_id ) ) : array();
 	$more  = vv_posts_by_period( 'eventi', 'futuro', 3, $extra );
 	if ( ! $more ) {
-		$more = vv_posts_in( '', 3, vv_add_meta_query( $extra, vv_featured_clause() ) );
+		$more = vv_in_evidenza( 3, $extra );
 	}
 	if ( ! $more ) {
 		$more = vv_posts_in( '', 3, $extra );
@@ -116,6 +118,7 @@ function vv_aside_list( $title, $posts ) {
 	if ( ! $posts ) {
 		return '';
 	}
+	_prime_post_caches( array_filter( array_map( 'get_post_thumbnail_id', $posts ) ) );
 	$html = '<div class="vv-aside-more"><h2 class="vv-info__title">' . esc_html( $title ) . '</h2><ul class="vv-aside-list">';
 	foreach ( $posts as $p ) {
 		// Senza immagine un riquadro della stessa misura, così i titoli restano in colonna.
@@ -124,4 +127,23 @@ function vv_aside_list( $title, $posts ) {
 		$html .= '<li><a href="' . esc_url( get_permalink( $p ) ) . '">' . $thumb . '<span>' . esc_html( wp_strip_all_tags( get_the_title( $p ) ) ) . '</span></a></li>';
 	}
 	return $html . '</ul></div>';
+}
+
+/**
+ * Pagine figlie di una pagina, come card.
+ *
+ * @param int $parent_id Pagina madre.
+ */
+function vv_child_pages_cards( $parent_id ) {
+	$children = vv_page_children( $parent_id );
+	return vv_render_cards( $children, 'pagina', array( 'colonne' => count( $children ) >= 3 ? 3 : 2 ) );
+}
+
+/**
+ * Card in fondo alla Pagina hub, a meno che il testo non le metta già altrove con [vv_sottopagine].
+ *
+ * @param int $page_id Pagina hub.
+ */
+function vv_hub_cards( $page_id ) {
+	return has_shortcode( (string) get_post_field( 'post_content', $page_id ), 'vv_sottopagine' ) ? '' : vv_child_pages_cards( $page_id );
 }

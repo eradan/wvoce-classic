@@ -16,16 +16,15 @@ defined( 'ABSPATH' ) || exit;
  * @param int    $max   Lunghezza massima.
  */
 function vv_condivisione_taglia( $testo, $max = 160 ) {
-	$testo = html_entity_decode( wp_strip_all_tags( strip_shortcodes( (string) $testo ) ), ENT_QUOTES, 'UTF-8' );
-	$testo = vv_plain_letters( $testo, false );
+	$testo = vv_testo_semplice( strip_shortcodes( (string) $testo ) );
 	$testo = trim( (string) preg_replace( '/\s+/u', ' ', $testo ) );
-	if ( mb_strlen( $testo, 'UTF-8' ) <= $max ) {
+	if ( mb_strlen( $testo ) <= $max ) {
 		return $testo;
 	}
-	$testo  = mb_substr( $testo, 0, $max, 'UTF-8' );
-	$spazio = mb_strrpos( $testo, ' ', 0, 'UTF-8' );
+	$testo  = mb_substr( $testo, 0, $max );
+	$spazio = mb_strrpos( $testo, ' ' );
 	if ( false !== $spazio && $spazio > $max / 2 ) {
-		$testo = mb_substr( $testo, 0, $spazio, 'UTF-8' );
+		$testo = mb_substr( $testo, 0, $spazio );
 	}
 	return rtrim( $testo, ' ,;:.–-' ) . '…';
 }
@@ -58,10 +57,13 @@ function vv_condivisione_dati() {
 	);
 
 	if ( is_singular() ) {
-		$post                = get_queried_object();
-		$dati['titolo']      = is_front_page() ? get_bloginfo( 'name' ) : single_post_title( '', false );
-		$dati['url']         = (string) get_permalink( $post );
-		$dati['descrizione'] = has_excerpt( $post ) ? $post->post_excerpt : $post->post_content;
+		$post           = get_queried_object();
+		$dati['titolo'] = is_front_page() ? get_bloginfo( 'name' ) : single_post_title( '', false );
+		$dati['url']    = (string) get_permalink( $post );
+		// Di un contenuto protetto da password non esce niente: la descrizione sarà il motto del sito.
+		if ( ! post_password_required( $post ) ) {
+			$dati['descrizione'] = has_excerpt( $post ) ? $post->post_excerpt : $post->post_content;
+		}
 		if ( 'post' === $post->post_type ) {
 			$dati['tipo']       = 'article';
 			$dati['pubblicato'] = (string) get_post_time( 'c', true, $post );
@@ -76,7 +78,9 @@ function vv_condivisione_dati() {
 		$dati['url']         = (string) get_term_link( $term );
 		$dati['descrizione'] = term_description( $term );
 	} elseif ( is_home() ) {
-		$dati['url'] = home_url( '/' );
+		// La pagina degli articoli (Impostazioni → Lettura), o la home se è quella.
+		$articoli    = (int) get_option( 'page_for_posts' );
+		$dati['url'] = $articoli ? (string) get_permalink( $articoli ) : home_url( '/' );
 	}
 
 	if ( is_front_page() ) {
@@ -87,7 +91,7 @@ function vv_condivisione_dati() {
 			$dati['descrizione'] = '' !== $motto ? $motto : (string) vv_mod( 'vv_hero_title' );
 		}
 		if ( ! $dati['immagine'] ) {
-			$dati['immagine'] = vv_condivisione_immagine( attachment_url_to_postid( (string) vv_hero_image_url() ), get_bloginfo( 'name' ) );
+			$dati['immagine'] = vv_condivisione_immagine( vv_hero_media_id(), get_bloginfo( 'name' ) );
 		}
 	}
 
@@ -95,9 +99,10 @@ function vv_condivisione_dati() {
 	if ( '' === $dati['descrizione'] ) {
 		$dati['descrizione'] = vv_condivisione_taglia( get_bloginfo( 'description' ) );
 	}
-	if ( ! $dati['immagine'] && get_site_icon_url( 512 ) ) {
+	$icona = $dati['immagine'] ? '' : get_site_icon_url( 512 );
+	if ( $icona ) {
 		$dati['immagine'] = array(
-			'url'    => get_site_icon_url( 512 ),
+			'url'    => $icona,
 			'width'  => 512,
 			'height' => 512,
 			'alt'    => get_bloginfo( 'name' ),
