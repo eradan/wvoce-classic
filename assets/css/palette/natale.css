@@ -111,7 +111,7 @@
 [data-vv-natale] .vv-hero__tela {
 	scale: 0.89;
 	transform-origin: 70% 80%;
-	translate: -50% -59%; /* il pompon sale sulla testata */
+	translate: -50% -56%; /* il pompon sale sulla testata */
 }
 @media (min-width: 768px) {
 	[data-vv-natale] .vv-hero__tela {
