@@ -15,11 +15,12 @@ php tests/run.php                 # PHP tests without WordPress (composer test)
 composer install && composer lint # phpcs: WordPress-Extra + PHPCompatibilityWP (phpcs.xml.dist)
 find . -name '*.php' -not -path './vendor/*' -print0 | xargs -0 -n1 php -l   # syntax check, as CI does
 bash bin/build-zip.sh             # build/wvoce-classic.zip from HEAD (composer build)
+bin/transfer.sh -n                # deploy dry run; without -n rsyncs HEAD to production (asks confirmation, -y skips it)
 ```
 
 There is no per-test filter: `tests/run.php` is a flat script of `uguale( 'nome', $atteso, $ottenuto )` assertions that prints only failures and exits 1 if any fail. To work on one area, add/edit assertions in the relevant `// Sezione` block. WordPress functions the tested code needs are stubbed at the top of `tests/run.php` (only those actually reached by the assertions); if new code under test calls another WP function, add a minimal stub there. Locally there is no `php`: run the tests and phpcs with `docker run --rm -v "$PWD":/app -w /app php:8.3-cli php tests/run.php` (and `php vendor/bin/phpcs`). Only `inc/` files that load without WordPress are required by the test (customizer, meta, eventi, cards, contenuti, condivisione, dati-strutturati, email).
 
-`bin/build-zip.sh` uses `git archive HEAD`, so uncommitted changes are not included; dev files are excluded via `export-ignore` in `.gitattributes` (add new dev-only paths there).
+`bin/build-zip.sh` and `bin/transfer.sh` use `git archive HEAD`, so uncommitted changes are not included; dev files are excluded via `export-ignore` in `.gitattributes` (add new dev-only paths there). `transfer.sh` deletes remote files no longer in the theme and sets owner 1000:1000 with 755/644, deliberately not www-data: the WordPress container must read the theme, not rewrite it.
 
 ## Architecture
 
