@@ -1,208 +1,170 @@
 <?php
 /**
- * Campi aggiuntivi e riquadri nell'editor: date e luogo degli articoli-evento, "In evidenza" (con la
- * stellina nell'elenco articoli), "Senza immagine in testa", card nascosta e categorie collegate delle pagine.
+ * Campi aggiuntivi e riquadri dell'editor: date e luogo degli eventi, "In evidenza", "Senza immagine in
+ * testa", card nascosta e categorie collegate delle pagine.
  *
  * @package VivaVoce
  */
 
 defined( 'ABSPATH' ) || exit;
 
-/*
- * Spunta "In evidenza": il campo è quello del vecchio plugin Featured Post Creative (ora rimosso),
- * così gli articoli segnati allora restano in evidenza.
- */
-const VV_FEATURED_KEY = '_wpfp_featured_post';
+// Il campo del vecchio plugin Featured Post Creative: gli articoli segnati allora restano in evidenza.
+const VV_CHIAVE_IN_EVIDENZA = '_wpfp_featured_post';
 
-/**
- * Registrazione dei campi (visibili anche via REST).
- */
-function vv_register_meta() {
+function vv_registra_campi() {
 	$campi = array(
-		// Tipo di contenuto, campo, tipo del valore, sanificazione, permesso per modificarlo.
-		array( 'post', 'vv_data', 'string', 'vv_sanitize_date', 'edit_posts' ),
-		array( 'post', 'vv_data_fine', 'string', 'vv_sanitize_date', 'edit_posts' ),
+		// Tipo di contenuto, campo, tipo del valore, sanificazione, permesso.
+		array( 'post', 'vv_data', 'string', 'vv_pulisci_data', 'edit_posts' ),
+		array( 'post', 'vv_data_fine', 'string', 'vv_pulisci_data', 'edit_posts' ),
 		array( 'post', 'vv_luogo', 'string', 'sanitize_text_field', 'edit_posts' ),
 		array( 'post', 'vv_senza_immagine', 'boolean', 'rest_sanitize_boolean', 'edit_posts' ),
 		array( 'page', 'vv_senza_immagine', 'boolean', 'rest_sanitize_boolean', 'edit_pages' ),
 		array( 'page', 'vv_nascondi', 'boolean', 'rest_sanitize_boolean', 'edit_pages' ),
-		array( 'page', 'vv_categoria', 'string', 'vv_sanitize_slugs', 'edit_pages' ),
+		array( 'page', 'vv_categoria', 'string', 'vv_pulisci_slug', 'edit_pages' ),
 	);
-	foreach ( $campi as list( $post_type, $key, $type, $sanitize, $cap ) ) {
-		register_post_meta( $post_type, $key, array(
-			'type'              => $type,
+	foreach ( $campi as list( $tipo_contenuto, $chiave, $tipo, $pulisci, $permesso ) ) {
+		register_post_meta( $tipo_contenuto, $chiave, array(
+			'type'              => $tipo,
 			'single'            => true,
 			'show_in_rest'      => true,
-			'sanitize_callback' => $sanitize,
-			'auth_callback'     => static fn() => current_user_can( $cap ),
+			'sanitize_callback' => $pulisci,
+			'auth_callback'     => static fn() => current_user_can( $permesso ),
 		) );
 	}
 }
-add_action( 'init', 'vv_register_meta' );
+add_action( 'init', 'vv_registra_campi' );
 
 /**
- * Data esistente nel formato AAAA-MM-GG, altrimenti vuota (anche 2026-13-01 o 2026-02-30).
- *
- * @param string $value Valore inserito.
+ * AAAA-MM-GG di un giorno che esiste, altrimenti vuota.
  */
-function vv_sanitize_date( $value ) {
-	$value = trim( (string) $value );
-	if ( ! preg_match( '/^(\d{4})-(\d{2})-(\d{2})$/', $value, $m ) ) {
+function vv_pulisci_data( $valore ) {
+	$valore = trim( (string) $valore );
+	if ( ! preg_match( '/^(\d{4})-(\d{2})-(\d{2})$/', $valore, $parti ) ) {
 		return '';
 	}
-	return checkdate( (int) $m[2], (int) $m[3], (int) $m[1] ) ? $value : '';
+	return checkdate( (int) $parti[2], (int) $parti[3], (int) $parti[1] ) ? $valore : '';
 }
 
-/**
- * Elenco di slug separati da virgola.
- *
- * @param string $value Valore inserito.
- */
-function vv_sanitize_slugs( $value ) {
-	$slugs = array_filter( array_map( 'sanitize_title', explode( ',', (string) $value ) ) );
-	return implode( ',', $slugs );
+function vv_pulisci_slug( $valore ) {
+	return implode( ',', array_filter( array_map( 'sanitize_title', explode( ',', (string) $valore ) ) ) );
 }
 
-/**
- * Riquadri nell'editor.
- */
-function vv_add_meta_boxes() {
-	add_meta_box( 'vv_evento', 'VivaVoce: date e luogo', 'vv_render_evento_box', 'post', 'side' );
-	add_meta_box( 'vv_pagina', 'VivaVoce', 'vv_render_pagina_box', 'page', 'side' );
+function vv_aggiungi_riquadri() {
+	add_meta_box( 'vv_evento', 'VivaVoce: date e luogo', 'vv_riquadro_evento', 'post', 'side' );
+	add_meta_box( 'vv_pagina', 'VivaVoce', 'vv_riquadro_pagina', 'page', 'side' );
 }
-add_action( 'add_meta_boxes', 'vv_add_meta_boxes' );
+add_action( 'add_meta_boxes', 'vv_aggiungi_riquadri' );
 
-/**
- * @param WP_Post $post Articolo.
- */
-function vv_render_evento_box( $post ) {
+function vv_riquadro_evento( WP_Post $articolo ) {
 	wp_nonce_field( 'vv_meta', 'vv_meta_nonce' );
-	$fields = array(
+	printf(
+		'<p><label><input type="checkbox" name="vv_in_evidenza" value="1" %s> <strong>In evidenza</strong> (riserva: compare in home e in "Da non perdere" solo quando non ci sono eventi in calendario)</label></p>',
+		checked( (string) get_post_meta( $articolo->ID, VV_CHIAVE_IN_EVIDENZA, true ), '1', false )
+	);
+	vv_casella_senza_immagine( $articolo );
+	$campi = array(
 		'vv_data'      => array( 'Data (o inizio)', 'date' ),
 		'vv_data_fine' => array( 'Fine (facoltativa)', 'date' ),
 		'vv_luogo'     => array( 'Luogo', 'text' ),
 	);
-	printf(
-		'<p><label><input type="checkbox" name="vv_in_evidenza" value="1" %s> <strong>In evidenza</strong> (riserva: compare in home e in "Da non perdere" solo quando non ci sono eventi in calendario)</label></p>',
-		checked( (string) get_post_meta( $post->ID, VV_FEATURED_KEY, true ), '1', false )
-	);
-	vv_render_senza_immagine( $post );
-	foreach ( $fields as $key => list( $label, $type ) ) {
+	foreach ( $campi as $chiave => list( $etichetta, $tipo ) ) {
 		printf(
 			'<p><label for="%1$s"><strong>%2$s</strong></label><br><input type="%3$s" id="%1$s" name="%1$s" value="%4$s" class="widefat"></p>',
-			esc_attr( $key ),
-			esc_html( $label ),
-			esc_attr( $type ),
-			esc_attr( get_post_meta( $post->ID, $key, true ) )
+			esc_attr( $chiave ),
+			esc_html( $etichetta ),
+			esc_attr( $tipo ),
+			esc_attr( get_post_meta( $articolo->ID, $chiave, true ) )
 		);
 	}
-	echo '<p class="description">Le date dell\'evento decidono dove compare: in home ("…questo non potete perdervelo!", fino a 3 mesi dopo la fine), in "In programma" e nella parte "In programma" delle pagine Eventi e Corsi e laboratori finché non è finito, poi nell\'archivio dell\'anno. Senza data un evento non va né in home né in "In programma". Per un giorno solo basta la prima data.</p>';
+	echo '<p class="description">Le date decidono dove compare l\'evento: in home fino a 3 mesi dopo la fine, in "In programma" e nella parte "In programma" delle Pagine elenco finché non è finito, poi nell\'archivio dell\'anno. Senza data non va né in home né in "In programma". Per un giorno solo basta la prima data.</p>';
 }
 
-/**
- * Casella "Senza immagine in testa" (articoli e pagine).
- *
- * @param WP_Post $post Articolo o pagina.
- */
-function vv_render_senza_immagine( $post ) {
+function vv_casella_senza_immagine( WP_Post $contenuto ) {
 	printf(
 		'<p><input type="hidden" name="vv_senza_immagine" value="0"><label><input type="checkbox" name="vv_senza_immagine" value="1" %s> <strong>Senza immagine in testa</strong> (l\'immagine in evidenza resta per card, anteprime e condivisioni)</label></p>',
-		checked( (bool) get_post_meta( $post->ID, 'vv_senza_immagine', true ), true, false )
+		checked( (bool) get_post_meta( $contenuto->ID, 'vv_senza_immagine', true ), true, false )
 	);
 }
 
-/**
- * @param WP_Post $post Pagina.
- */
-function vv_render_pagina_box( $post ) {
+function vv_riquadro_pagina( WP_Post $pagina ) {
 	wp_nonce_field( 'vv_meta', 'vv_meta_nonce' );
 	echo '<p class="description">L\'<strong>immagine in evidenza</strong> e il <strong>riassunto</strong> di questa pagina sono quelli della sua card nella pagina madre (per esempio in Cosa facciamo). Nelle "Pagine elenco" l\'immagine non compare in testa alla pagina, ma solo nella card.</p>';
-	vv_render_senza_immagine( $post );
+	vv_casella_senza_immagine( $pagina );
 	printf(
 		'<p><input type="hidden" name="vv_nascondi" value="0"><label><input type="checkbox" name="vv_nascondi" value="1" %s> Non mostrare fra le card della pagina madre</label></p>',
-		checked( (bool) get_post_meta( $post->ID, 'vv_nascondi', true ), true, false )
+		checked( (bool) get_post_meta( $pagina->ID, 'vv_nascondi', true ), true, false )
 	);
-	$value = get_post_meta( $post->ID, 'vv_categoria', true );
-	$cats  = get_categories( array( 'hide_empty' => false ) );
 	echo '<p><label for="vv_categoria"><strong>Categorie collegate</strong></label><br>';
-	printf( '<input type="text" id="vv_categoria" name="vv_categoria" value="%s" class="widefat" placeholder="es. laboratori"></p>', esc_attr( $value ) );
-	echo '<p class="description">Slug separati da virgola. Con il modello "Pagina elenco" la pagina elenca questi articoli; in ogni caso gli articoli di queste categorie mostrano la pagina nel breadcrumb. Disponibili: ';
-	echo esc_html( implode( ', ', wp_list_pluck( $cats, 'slug' ) ) );
+	printf( '<input type="text" id="vv_categoria" name="vv_categoria" value="%s" class="widefat" placeholder="es. laboratori"></p>', esc_attr( get_post_meta( $pagina->ID, 'vv_categoria', true ) ) );
+	echo '<p class="description">Slug separati da virgola. Con il modello "Pagina elenco" la pagina elenca questi articoli; in ogni caso gli articoli di queste categorie mostrano la pagina nel percorso in alto. Disponibili: ';
+	echo esc_html( implode( ', ', wp_list_pluck( get_categories( array( 'hide_empty' => false ) ), 'slug' ) ) );
 	echo '</p>';
 }
 
 /**
- * @param int $post_id ID del contenuto.
+ * Le caselle si salvano solo spuntate; i testi passano dalla sanificazione di register_post_meta().
  */
-function vv_save_meta( $post_id ) {
-	if ( ! isset( $_POST['vv_meta_nonce'] ) || ! wp_verify_nonce( sanitize_key( $_POST['vv_meta_nonce'] ), 'vv_meta' ) ) {
+function vv_salva_campi( $contenuto_id ) {
+	$autorizzato = wp_verify_nonce( sanitize_key( $_POST['vv_meta_nonce'] ?? '' ), 'vv_meta' ) && current_user_can( 'edit_post', $contenuto_id );
+	if ( ! $autorizzato || wp_is_post_revision( $contenuto_id ) || ( defined( 'DOING_AUTOSAVE' ) && DOING_AUTOSAVE ) ) {
 		return;
 	}
-	if ( ( defined( 'DOING_AUTOSAVE' ) && DOING_AUTOSAVE ) || wp_is_post_revision( $post_id ) ) {
-		return;
-	}
-	if ( ! current_user_can( 'edit_post', $post_id ) ) {
-		return;
-	}
-	if ( 'post' === get_post_type( $post_id ) ) {
-		if ( empty( $_POST['vv_in_evidenza'] ) ) {
-			delete_post_meta( $post_id, VV_FEATURED_KEY );
+	$pagina = 'page' === get_post_type( $contenuto_id );
+	// Campo del modulo => campo salvato.
+	$caselle = $pagina
+		? array(
+			'vv_nascondi'       => 'vv_nascondi',
+			'vv_senza_immagine' => 'vv_senza_immagine',
+		)
+		: array(
+			'vv_senza_immagine' => 'vv_senza_immagine',
+			'vv_in_evidenza'    => VV_CHIAVE_IN_EVIDENZA,
+		);
+	$testi   = $pagina ? array( 'vv_categoria' ) : array( 'vv_data', 'vv_data_fine', 'vv_luogo' );
+
+	foreach ( $caselle as $campo => $chiave ) {
+		if ( '1' === ( $_POST[ $campo ] ?? '' ) ) {
+			update_post_meta( $contenuto_id, $chiave, 1 );
 		} else {
-			update_post_meta( $post_id, VV_FEATURED_KEY, 1 );
+			delete_post_meta( $contenuto_id, $chiave );
 		}
 	}
-	$keys = 'page' === get_post_type( $post_id ) ? array( 'vv_categoria', 'vv_nascondi', 'vv_senza_immagine' ) : array( 'vv_data', 'vv_data_fine', 'vv_luogo', 'vv_senza_immagine' );
-	foreach ( $keys as $key ) {
-		if ( ! isset( $_POST[ $key ] ) ) {
+	foreach ( $testi as $chiave ) {
+		if ( ! isset( $_POST[ $chiave ] ) ) {
 			continue;
 		}
-		// La sanificazione è quella registrata in register_post_meta().
-		$value = wp_unslash( $_POST[ $key ] ); // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
-		// Caselle: salvate solo se spuntate, altrimenti il campo si toglie.
-		if ( '' === trim( (string) $value ) || ( in_array( $key, array( 'vv_nascondi', 'vv_senza_immagine' ), true ) && '1' !== $value ) ) {
-			delete_post_meta( $post_id, $key );
+		$valore = trim( (string) wp_unslash( $_POST[ $chiave ] ) ); // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
+		if ( '' === $valore ) {
+			delete_post_meta( $contenuto_id, $chiave );
 		} else {
-			update_post_meta( $post_id, $key, $value );
+			update_post_meta( $contenuto_id, $chiave, $valore );
 		}
 	}
 }
-add_action( 'save_post', 'vv_save_meta' );
+add_action( 'save_post', 'vv_salva_campi' );
 
-/**
- * Colonna "In evidenza" (stellina) nell'elenco articoli.
- *
- * @param string[] $columns Colonne.
- */
-function vv_featured_column( $columns ) {
-	$columns['vv_in_evidenza'] = '<span class="dashicons dashicons-star-filled" title="In evidenza"></span><span class="screen-reader-text">In evidenza</span>';
-	return $columns;
+function vv_colonna_in_evidenza( $colonne ) {
+	$colonne['vv_in_evidenza'] = '<span class="dashicons dashicons-star-filled" title="In evidenza"></span><span class="screen-reader-text">In evidenza</span>';
+	return $colonne;
 }
-add_filter( 'manage_post_posts_columns', 'vv_featured_column' );
+add_filter( 'manage_post_posts_columns', 'vv_colonna_in_evidenza' );
 
-/**
- * @param string $column  Colonna.
- * @param int    $post_id Articolo.
- */
-function vv_featured_column_value( $column, $post_id ) {
-	if ( 'vv_in_evidenza' === $column ) {
-		$on = '1' === (string) get_post_meta( $post_id, VV_FEATURED_KEY, true );
-		printf( '<span class="dashicons %s" aria-label="%s"></span>', $on ? 'dashicons-star-filled' : 'dashicons-star-empty', $on ? 'In evidenza' : 'Non in evidenza' );
+function vv_valore_colonna_in_evidenza( $colonna, $articolo_id ) {
+	if ( 'vv_in_evidenza' === $colonna ) {
+		$in_evidenza = '1' === (string) get_post_meta( $articolo_id, VV_CHIAVE_IN_EVIDENZA, true );
+		printf( '<span class="dashicons %s" aria-label="%s"></span>', $in_evidenza ? 'dashicons-star-filled' : 'dashicons-star-empty', $in_evidenza ? 'In evidenza' : 'Non in evidenza' );
 	}
 }
-add_action( 'manage_post_posts_custom_column', 'vv_featured_column_value', 10, 2 );
+add_action( 'manage_post_posts_custom_column', 'vv_valore_colonna_in_evidenza', 10, 2 );
 
 /**
- * Con l'editor classico "Immagine in evidenza" e "Riassunto" sono riquadri che si possono nascondere
- * da "Impostazioni schermata" (il riassunto è nascosto di default): servono alle card, restano sempre visibili.
- *
- * @param string[]  $hidden Riquadri nascosti.
- * @param WP_Screen $screen Schermata.
- * @return string[]
+ * Immagine in evidenza e riassunto servono alle card: con l'editor classico restano visibili anche se
+ * nascosti da "Impostazioni schermata" (il riassunto lo è di default).
  */
-function vv_always_show_card_boxes( $hidden, $screen ) {
-	if ( $screen && in_array( $screen->post_type, array( 'post', 'page' ), true ) ) {
-		$hidden = array_values( array_diff( (array) $hidden, array( 'postimagediv', 'postexcerpt' ) ) );
+function vv_riquadri_card_visibili( $nascosti, $schermata ) {
+	if ( $schermata && in_array( $schermata->post_type, array( 'post', 'page' ), true ) ) {
+		$nascosti = array_values( array_diff( (array) $nascosti, array( 'postimagediv', 'postexcerpt' ) ) );
 	}
-	return $hidden;
+	return $nascosti;
 }
-add_filter( 'hidden_meta_boxes', 'vv_always_show_card_boxes', 10, 2 );
+add_filter( 'hidden_meta_boxes', 'vv_riquadri_card_visibili', 10, 2 );

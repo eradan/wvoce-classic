@@ -1,7 +1,7 @@
 <?php
 /**
- * Descrizione per i motori di ricerca e anteprima per i social (Open Graph, Twitter): titolo,
- * riassunto e immagine in evidenza di articoli e pagine. Con un plugin SEO attivo lascia fare al plugin.
+ * Descrizione per i motori di ricerca e anteprime per i social (Open Graph, Twitter). Con un plugin
+ * SEO attivo lascia fare al plugin.
  *
  * @package VivaVoce
  */
@@ -9,40 +9,33 @@
 defined( 'ABSPATH' ) || exit;
 
 /**
- * Testo ripulito per una descrizione: niente tag né shortcode, lettere decorative come testo normale,
- * spazi compressi, tagliato sulla parola con "…" oltre $max caratteri.
- *
- * @param string $testo Testo di partenza.
- * @param int    $max   Lunghezza massima.
+ * Testo semplice su una riga, tagliato sulla parola con "…" oltre $massimo caratteri.
  */
-function vv_condivisione_taglia( $testo, $max = 160 ) {
+function vv_condivisione_taglia( $testo, $massimo = 160 ) {
 	$testo = vv_testo_semplice( strip_shortcodes( (string) $testo ) );
 	$testo = trim( (string) preg_replace( '/\s+/u', ' ', $testo ) );
-	if ( mb_strlen( $testo ) <= $max ) {
+	if ( mb_strlen( $testo ) <= $massimo ) {
 		return $testo;
 	}
-	$testo  = mb_substr( $testo, 0, $max );
+	$testo  = mb_substr( $testo, 0, $massimo );
 	$spazio = mb_strrpos( $testo, ' ' );
-	if ( false !== $spazio && $spazio > $max / 2 ) {
+	if ( false !== $spazio && $spazio > $massimo / 2 ) {
 		$testo = mb_substr( $testo, 0, $spazio );
 	}
 	return rtrim( $testo, ' ,;:.–-' ) . '…';
 }
 
-/**
- * È attivo un plugin che scrive già questi tag?
- */
 function vv_condivisione_plugin_seo() {
 	return defined( 'WPSEO_VERSION' ) || defined( 'AIOSEO_VERSION' ) || defined( 'SEOPRESS_VERSION' ) || class_exists( 'RankMath' );
 }
 
 /**
- * Dati dell'anteprima per la pagina corrente.
+ * Calcolati una volta per pagina: li usano sia i meta sia i dati strutturati.
  *
  * @return array{titolo:string,descrizione:string,url:string,tipo:string,immagine:array,pubblicato:string,modificato:string}
  */
 function vv_condivisione_dati() {
-	static $dati = null; // La chiedono sia i meta sia i dati strutturati.
+	static $dati = null;
 	if ( null !== $dati ) {
 		return $dati;
 	}
@@ -57,41 +50,37 @@ function vv_condivisione_dati() {
 	);
 
 	if ( is_singular() ) {
-		$post           = get_queried_object();
+		$contenuto      = get_queried_object();
 		$dati['titolo'] = is_front_page() ? get_bloginfo( 'name' ) : single_post_title( '', false );
-		$dati['url']    = (string) get_permalink( $post );
-		// Di un contenuto protetto da password non esce niente: la descrizione sarà il motto del sito.
-		if ( ! post_password_required( $post ) ) {
-			$dati['descrizione'] = has_excerpt( $post ) ? $post->post_excerpt : $post->post_content;
+		$dati['url']    = (string) get_permalink( $contenuto );
+		if ( ! post_password_required( $contenuto ) ) {
+			$dati['descrizione'] = has_excerpt( $contenuto ) ? $contenuto->post_excerpt : $contenuto->post_content;
 		}
-		if ( 'post' === $post->post_type ) {
+		if ( 'post' === $contenuto->post_type ) {
 			$dati['tipo']       = 'article';
-			$dati['pubblicato'] = (string) get_post_time( 'c', true, $post );
-			$dati['modificato'] = (string) get_post_modified_time( 'c', true, $post );
+			$dati['pubblicato'] = (string) get_post_time( 'c', true, $contenuto );
+			$dati['modificato'] = (string) get_post_modified_time( 'c', true, $contenuto );
 		}
-		// L'immagine in evidenza vale anche con "Senza immagine in testa": chiesta direttamente, senza
-		// passare da has_post_thumbnail().
-		$dati['immagine'] = vv_condivisione_immagine( (int) get_post_meta( $post->ID, '_thumbnail_id', true ), $dati['titolo'] );
+		// Letta dal campo e non con has_post_thumbnail(), che "Senza immagine in testa" spegne.
+		$dati['immagine'] = vv_condivisione_immagine( (int) get_post_meta( $contenuto->ID, '_thumbnail_id', true ), $dati['titolo'] );
 	} elseif ( is_category() || is_tag() || is_tax() ) {
-		$term                = get_queried_object();
+		$termine             = get_queried_object();
 		$dati['titolo']      = single_term_title( '', false );
-		$dati['url']         = (string) get_term_link( $term );
-		$dati['descrizione'] = term_description( $term );
+		$dati['url']         = (string) get_term_link( $termine );
+		$dati['descrizione'] = term_description( $termine );
 	} elseif ( is_home() ) {
-		// La pagina degli articoli (Impostazioni → Lettura), o la home se è quella.
-		$articoli    = (int) get_option( 'page_for_posts' );
-		$dati['url'] = $articoli ? (string) get_permalink( $articoli ) : home_url( '/' );
+		$pagina_articoli = (int) get_option( 'page_for_posts' );
+		$dati['url']     = $pagina_articoli ? (string) get_permalink( $pagina_articoli ) : home_url( '/' );
 	}
 
 	if ( is_front_page() ) {
 		$dati['url'] = home_url( '/' );
 		if ( ! is_singular() || ! has_excerpt( get_queried_object() ) ) {
-			// Senza motto del sito, il titolo dell'hero ("Lettura ad alta voce, teatro e creatività").
 			$motto               = get_bloginfo( 'description' );
 			$dati['descrizione'] = '' !== $motto ? $motto : (string) vv_mod( 'vv_hero_title' );
 		}
 		if ( ! $dati['immagine'] ) {
-			$dati['immagine'] = vv_condivisione_immagine( vv_hero_media_id(), get_bloginfo( 'name' ) );
+			$dati['immagine'] = vv_condivisione_immagine( vv_id_immagine_hero(), get_bloginfo( 'name' ) );
 		}
 	}
 
@@ -112,59 +101,53 @@ function vv_condivisione_dati() {
 }
 
 /**
- * Immagine di un allegato per l'anteprima (dimensione "large"), vuota se manca.
- *
- * @param int    $id  Allegato.
- * @param string $alt Testo alternativo di ripiego.
+ * In dimensione "large"; vuota senza allegato.
  */
-function vv_condivisione_immagine( $id, $alt ) {
-	$src = $id ? wp_get_attachment_image_src( $id, 'large' ) : false;
+function vv_condivisione_immagine( $allegato_id, $alt_di_ripiego ) {
+	$src = $allegato_id ? wp_get_attachment_image_src( $allegato_id, 'large' ) : false;
 	if ( ! $src ) {
 		return array();
 	}
-	$testo = (string) get_post_meta( $id, '_wp_attachment_image_alt', true );
+	$alt = (string) get_post_meta( $allegato_id, '_wp_attachment_image_alt', true );
 	return array(
 		'url'    => $src[0],
 		'width'  => (int) $src[1],
 		'height' => (int) $src[2],
-		'alt'    => '' !== $testo ? $testo : $alt,
+		'alt'    => '' !== $alt ? $alt : $alt_di_ripiego,
 	);
 }
 
-/**
- * Stampa i tag nell'<head>.
- */
 function vv_condivisione_head() {
 	if ( vv_condivisione_plugin_seo() || is_404() || is_search() ) {
 		return;
 	}
-	$d    = vv_condivisione_dati();
-	$tags = array(
-		array( 'name', 'description', $d['descrizione'] ),
+	$dati     = vv_condivisione_dati();
+	$immagine = $dati['immagine'];
+	$meta     = array(
+		array( 'name', 'description', $dati['descrizione'] ),
 		array( 'property', 'og:locale', 'it_IT' ),
 		array( 'property', 'og:site_name', get_bloginfo( 'name' ) ),
-		array( 'property', 'og:type', $d['tipo'] ),
-		array( 'property', 'og:title', $d['titolo'] ),
-		array( 'property', 'og:description', $d['descrizione'] ),
-		array( 'property', 'og:url', $d['url'] ),
-		array( 'property', 'article:published_time', $d['pubblicato'] ),
-		array( 'property', 'article:modified_time', $d['modificato'] ),
+		array( 'property', 'og:type', $dati['tipo'] ),
+		array( 'property', 'og:title', $dati['titolo'] ),
+		array( 'property', 'og:description', $dati['descrizione'] ),
+		array( 'property', 'og:url', $dati['url'] ),
+		array( 'property', 'article:published_time', $dati['pubblicato'] ),
+		array( 'property', 'article:modified_time', $dati['modificato'] ),
 	);
-	if ( $d['immagine'] ) {
-		$tags[] = array( 'property', 'og:image', $d['immagine']['url'] );
-		$tags[] = array( 'property', 'og:image:width', (string) $d['immagine']['width'] );
-		$tags[] = array( 'property', 'og:image:height', (string) $d['immagine']['height'] );
-		$tags[] = array( 'property', 'og:image:alt', $d['immagine']['alt'] );
+	if ( $immagine ) {
+		$meta[] = array( 'property', 'og:image', $immagine['url'] );
+		$meta[] = array( 'property', 'og:image:width', (string) $immagine['width'] );
+		$meta[] = array( 'property', 'og:image:height', (string) $immagine['height'] );
+		$meta[] = array( 'property', 'og:image:alt', $immagine['alt'] );
 	}
-	$grande = $d['immagine'] && $d['immagine']['width'] >= 600;
-	$tags[] = array( 'name', 'twitter:card', $grande ? 'summary_large_image' : 'summary' );
+	$meta[] = array( 'name', 'twitter:card', $immagine && $immagine['width'] >= 600 ? 'summary_large_image' : 'summary' );
 
-	foreach ( $tags as list( $attr, $nome, $valore ) ) {
+	foreach ( $meta as list( $attributo, $nome, $valore ) ) {
 		if ( '' === (string) $valore ) {
 			continue;
 		}
 		$valore = in_array( $nome, array( 'og:url', 'og:image' ), true ) ? esc_url( $valore ) : esc_attr( $valore );
-		printf( '<meta %s="%s" content="%s">' . "\n", esc_attr( $attr ), esc_attr( $nome ), $valore ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- escape fatto sopra.
+		printf( '<meta %s="%s" content="%s">' . "\n", esc_attr( $attributo ), esc_attr( $nome ), $valore ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- escape fatto sopra.
 	}
 }
 add_action( 'wp_head', 'vv_condivisione_head', 5 );

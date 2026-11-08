@@ -1,17 +1,14 @@
-/* VivaVoce: home.
- * Hero come l'originale: l'illustrazione a tutta larghezza con i pulsanti sopra, in basso.
- * Il titolo dell'hero non si vede (classe screen-reader-text): resta per screen reader e motori di ricerca. */
+/* Home: hero con l'illustrazione a tutta larghezza e i pulsanti in basso. */
 
 .vv-hero {
 	position: relative;
-	background: var(--vv-fondo-hero); /* fondo dell'illustrazione */
+	background: var(--vv-fondo-hero);
 	overflow: hidden;
 }
 .vv-hero__inner {
 	position: relative;
 }
-/* Altezza: lo schermo meno la testata. svh è l'altezza con la barra degli indirizzi del telefono in
- * vista, così i pulsanti restano sopra la piega; vh resta per i browser che non lo conoscono. */
+/* Lo schermo meno la testata; svh tiene conto della barra degli indirizzi del telefono */
 .vv-hero__art > img,
 .vv-hero__art--animata {
 	height: calc(100vh - 130px);
@@ -41,8 +38,7 @@
 	gap: 15px;
 	margin: 0;
 }
-/* Desktop: illustrazione un po' più grande e pulsanti a 4/5 dell'altezza, sulla parte bassa
- * del disegno (al centro coprivano le parti nere e rosse della faccia) */
+/* Pulsanti a 4/5 dell'altezza: al centro coprirebbero la faccia */
 @media (min-width: 768px) {
 	.vv-hero__art > img,
 	.vv-hero__tela {
@@ -55,9 +51,8 @@
 		transform: translateY(-50%);
 	}
 }
-/* Illustrazione animata: all'apertura della home la faccia parla (annuisce), la mano gesticola per
- * conto suo e i trattini della voce pulsano; dopo un ciclo si ferma. I livelli stanno su una "tela" con le proporzioni dell'illustrazione
- * (1900×1615), grande come l'immagine con object-fit: contain; posizioni in % della tela. */
+/* Illustrazione animata: livelli su una tela 1900×1615 grande come l'immagine con object-fit: contain,
+ * posizioni in % della tela. Un solo ciclo all'apertura, poi resta ferma. */
 .vv-hero__art--animata {
 	position: relative;
 	container-type: size;
@@ -77,13 +72,11 @@
 	height: auto;
 }
 .vv-hero__testa      { left: 8.526%;  top: 5.759%;  width: 54.421%; transform-origin: 48% 90%; }
-.vv-hero__mano       { left: 59.211%; top: 29.04%;  width: 26.421%; transform-origin: 60% 95%; transform: rotate(3deg); } /* 3° in senso orario sul polso: il pollice si stacca un poco dalla bocca */
+.vv-hero__mano       { left: 59.211%; top: 29.04%;  width: 26.421%; transform-origin: 60% 95%; transform: rotate(3deg); } /* il pollice non tocca la bocca */
 .vv-hero__trattino-1 { left: 73.474%; top: 19.567%; width: 10.421%; }
 .vv-hero__trattino-2 { left: 76.526%; top: 43.096%; width: 14.105%; }
 .vv-hero__trattino-3 { left: 75.053%; top: 58.39%;  width: 11.474%; }
 
-/* Un solo ciclo all'apertura della home, poi tutto resta fermo al suo posto: è una sorpresa,
- * non un'animazione continua. I trattini partono uno dopo l'altro. */
 @media (prefers-reduced-motion: no-preference) {
 	.vv-hero__testa { animation: vv-parla 6s ease-in-out 0.6s; }
 	.vv-hero__mano { animation: vv-gesto 7.2s ease-in-out 0.6s; }
@@ -91,7 +84,7 @@
 	.vv-hero__trattino-2 { --vv-via: 6% 0%; animation: vv-voce 6s ease-in-out 0.72s; }
 	.vv-hero__trattino-3 { --vv-via: 6% 6%; animation: vv-voce 6s ease-in-out 0.84s; }
 }
-/* La testa annuisce parlando: due frasi e una pausa. In su = rotazione antioraria, col perno sul collo. */
+/* Due frasi e una pausa, perno sul collo */
 @keyframes vv-parla {
 	0%   { rotate: 0deg; }
 	7%   { rotate: -5deg; }
@@ -107,8 +100,7 @@
 	80%  { rotate: 0deg; }
 	100% { rotate: 0deg; }
 }
-/* La mano gesticola con un suo ritmo (7,2 s contro i 6 della testa): non va mai all'unisono.
- * All'indietro poco (−1°, −1,5°): con la testa che annuisce il pollice resta sempre staccato dalla bocca. */
+/* Ritmo diverso dalla testa (7,2 s contro 6), mai all'unisono; all'indietro poco, così il pollice non tocca la bocca */
 @keyframes vv-gesto {
 	0%   { rotate: 0deg; translate: 0 0; }
 	18%  { rotate: 4deg; translate: 0 -1.5%; }
@@ -118,7 +110,6 @@
 	78%  { rotate: -1.5deg; translate: 0 -0.5%; }
 	100% { rotate: 0deg; translate: 0 0; }
 }
-/* I trattini della voce si allontanano e sbiadiscono a ogni sillaba, fermi nella pausa */
 @keyframes vv-voce {
 	0%, 40%, 55%, 80%, 100% { translate: 0 0; opacity: 1; }
 	6%, 18%, 30%, 61%, 73% { translate: var(--vv-via); opacity: 0.45; }
@@ -137,7 +128,7 @@
 	}
 }
 
-/* Testata della pagina home, rimasta vuota: il titolo lo toglie inc/home.php, l'h1 è quello dell'hero */
+/* Il titolo della pagina lo toglie vv_home_senza_titolo(): l'h1 è quello dell'hero */
 .vv-has-hero .page-wrap .entry-header {
 	display: none;
 }
@@ -145,9 +136,7 @@
 	padding-top: var(--vv-spazio);
 }
 
-/* Titoli delle sezioni della home: l'aspetto è quello di layout.css (.vv-section-title); qui solo i
- * margini, con !important perché Sydney li impone ai titoli del testo con un selettore molto più
- * specifico (body:not(…):not(…):not(…) .entry-content h2). */
+/* Sydney impone i margini dei titoli nel testo con body:not(…):not(…):not(…) .entry-content h2 */
 .vv-has-hero .entry-content > .vv-section-title {
 	margin: 0 0 var(--vv-s-4) !important;
 }
@@ -159,8 +148,7 @@
 		margin-bottom: var(--vv-s-3) !important;
 	}
 }
-/* Ancora del blocco appuntamenti, scritta nel contenuto della home: il pulsante 1 dell'hero porta qui,
- * sotto la testata fissa */
+/* Ancora del pulsante 1 dell'hero, scritta nel contenuto della home: sotto la testata fissa */
 #appuntamenti {
 	scroll-margin-top: 140px;
 }

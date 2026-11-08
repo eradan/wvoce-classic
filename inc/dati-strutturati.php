@@ -1,11 +1,7 @@
 <?php
 /**
- * Dati strutturati schema.org (JSON-LD) per i motori di ricerca. In home: il sito, con i nomi con cui
- * Google può chiamarlo nei risultati, e l'associazione. Negli articoli con data e luogo: l'evento.
- *
- * Nessun valore scritto qui: nome e motto vengono da Impostazioni → Generali, i dati dell'associazione da
- * Customizer → VivaVoce → Dati dell'associazione, il logo da quello del sito, date e luogo dai campi
- * dell'articolo. Con un plugin SEO attivo lascia fare al plugin, come inc/condivisione.php.
+ * Dati strutturati schema.org: in home il sito e l'associazione, negli articoli con data e luogo
+ * l'evento. Con un plugin SEO attivo lascia fare al plugin.
  *
  * @package VivaVoce
  */
@@ -13,7 +9,7 @@
 defined( 'ABSPATH' ) || exit;
 
 /**
- * Il sito: nome e nomi alternativi (ragione sociale e dominio, "wvoce").
+ * Con i nomi alternativi con cui Google può chiamarlo: ragione sociale e dominio ("wvoce").
  */
 function vv_ds_sito() {
 	$nome      = get_bloginfo( 'name' );
@@ -34,11 +30,6 @@ function vv_ds_sito() {
 	) );
 }
 
-/**
- * L'associazione: recapiti, sede, codici fiscali, profili social.
- *
- * @param string $immagine Immagine dell'anteprima della home (og:image).
- */
 function vv_ds_associazione( $immagine = '' ) {
 	$sede = array_filter( array(
 		'@type'           => 'PostalAddress',
@@ -59,7 +50,7 @@ function vv_ds_associazione( $immagine = '' ) {
 		'description' => get_bloginfo( 'description' ),
 		'email'       => vv_mod( 'vv_email' ),
 		'telephone'   => vv_mod( 'vv_telefono' ),
-		'address'     => count( $sede ) > 2 ? $sede : array(), // Solo tipo e paese: niente sede.
+		'address'     => count( $sede ) > 2 ? $sede : array(), // con solo tipo e paese non è una sede
 		'taxID'       => vv_mod( 'vv_cf' ),
 		'vatID'       => $piva ? 'IT' . $piva : '',
 		'sameAs'      => array_values( array_filter( array( vv_mod( 'vv_facebook' ), vv_mod( 'vv_instagram' ) ) ) ),
@@ -67,27 +58,27 @@ function vv_ds_associazione( $immagine = '' ) {
 }
 
 /**
- * Un evento, dai dati di un articolo. Vuoto senza data o senza luogo: Google li vuole entrambi.
+ * Vuoto senza data o senza luogo: Google li vuole entrambi.
  *
- * @param array $e titolo, descrizione, url, immagine, inizio e fine (AAAA-MM-GG), luogo ("Nome, indirizzo").
+ * @param array $evento titolo, descrizione, url, immagine, inizio e fine (AAAA-MM-GG), luogo ("Nome, indirizzo").
  */
-function vv_ds_evento( $e ) {
-	list( $inizio, $fine ) = vv_date_evento( $e['inizio'] ?? '', $e['fine'] ?? '' );
-	$luogo                 = trim( (string) ( $e['luogo'] ?? '' ) );
+function vv_ds_evento( $evento ) {
+	list( $inizio, $fine ) = vv_date_evento( $evento['inizio'] ?? '', $evento['fine'] ?? '' );
+	$luogo                 = trim( (string) ( $evento['luogo'] ?? '' ) );
 	if ( ! $inizio || '' === $luogo ) {
 		return array();
 	}
 	return array_filter( array(
 		'@type'               => 'Event',
-		'name'                => $e['titolo'] ?? '',
-		'description'         => $e['descrizione'] ?? '',
-		'url'                 => $e['url'] ?? '',
-		'image'               => $e['immagine'] ?? '',
+		'name'                => $evento['titolo'] ?? '',
+		'description'         => $evento['descrizione'] ?? '',
+		'url'                 => $evento['url'] ?? '',
+		'image'               => $evento['immagine'] ?? '',
 		'startDate'           => $inizio,
 		'endDate'             => $fine,
 		'eventStatus'         => 'https://schema.org/EventScheduled',
 		'eventAttendanceMode' => 'https://schema.org/OfflineEventAttendanceMode',
-		// "Spazio Mumu, via Lenin 155/b, San Giuliano Terme": il nome è la parte prima della virgola.
+		// "Spazio Mumu, via Lenin 155/b, Pisa": il nome è la parte prima della virgola.
 		'location'            => array(
 			'@type'   => 'Place',
 			'name'    => trim( explode( ',', $luogo, 2 )[0] ),
@@ -101,33 +92,27 @@ function vv_ds_evento( $e ) {
 	) );
 }
 
-/**
- * Dati strutturati della pagina corrente.
- */
 function vv_dati_strutturati() {
 	if ( ! is_front_page() && ! is_singular( 'post' ) ) {
 		return array();
 	}
-	$d = vv_condivisione_dati();
+	$dati = vv_condivisione_dati();
 	if ( is_front_page() ) {
-		return array( vv_ds_sito(), vv_ds_associazione( $d['immagine']['url'] ?? '' ) );
+		return array( vv_ds_sito(), vv_ds_associazione( $dati['immagine']['url'] ?? '' ) );
 	}
-	$id     = get_queried_object_id();
-	$evento = vv_ds_evento( array(
-		'titolo'      => vv_testo_semplice( $d['titolo'] ),
-		'descrizione' => $d['descrizione'],
-		'url'         => $d['url'],
-		'immagine'    => $d['immagine']['url'] ?? '',
-		'inizio'      => get_post_meta( $id, 'vv_data', true ),
-		'fine'        => get_post_meta( $id, 'vv_data_fine', true ),
-		'luogo'       => get_post_meta( $id, 'vv_luogo', true ),
+	$articolo_id = get_queried_object_id();
+	$evento      = vv_ds_evento( array(
+		'titolo'      => vv_testo_semplice( $dati['titolo'] ),
+		'descrizione' => $dati['descrizione'],
+		'url'         => $dati['url'],
+		'immagine'    => $dati['immagine']['url'] ?? '',
+		'inizio'      => get_post_meta( $articolo_id, 'vv_data', true ),
+		'fine'        => get_post_meta( $articolo_id, 'vv_data_fine', true ),
+		'luogo'       => get_post_meta( $articolo_id, 'vv_luogo', true ),
 	) );
 	return $evento ? array( $evento ) : array();
 }
 
-/**
- * Stampa i dati strutturati nell'<head>.
- */
 function vv_dati_strutturati_head() {
 	if ( vv_condivisione_plugin_seo() ) {
 		return;

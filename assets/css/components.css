@@ -1,6 +1,5 @@
-/* VivaVoce: card e griglie nello stile dei vecchi plugin di elenchi e degli archivi di Sydney. */
+/* Card, griglie, carosello, agenda e componenti degli shortcode. */
 
-/* Griglie */
 .vv-grid {
 	display: grid;
 	gap: var(--vv-gap);
@@ -14,8 +13,6 @@
 	.vv-grid--4 { grid-template-columns: repeat(4, 1fr); }
 }
 
-/* Card: immagine sopra, testo sotto, fondo grigio chiaro e barretta in alto che ruota fra giallo,
- * turchese e rosso (classe vv-accent--* data da vv_accent()), come i riquadri di "Sostienici" */
 .vv-card {
 	position: relative;
 	display: flex;
@@ -26,8 +23,7 @@
 }
 .vv-card.vv-accent--turchese { border-top-color: var(--vv-accento-2); }
 .vv-card.vv-accent--rosso { border-top-color: var(--vv-accento-3); }
-/* Righe oblique sulla barretta (--vv-linguetta-righe, trasparenti se la palette non le vuole):
- * sopra il bordo, che il fondo della card non può coprire */
+/* Righe oblique sulla barretta, sopra il bordo che il fondo della card non può coprire */
 .vv-card::before {
 	content: "";
 	position: absolute;
@@ -39,7 +35,7 @@
 	background: repeating-linear-gradient(-45deg, transparent 0 7px, var(--vv-linguetta-righe) 7px 14px);
 	pointer-events: none;
 }
-/* Il link copre tutta la card: il contorno del focus va sulla card, altrimenti non si vede */
+/* Il link copre tutta la card: il contorno del focus sul link non si vedrebbe */
 .vv-card:has(.vv-card__link:focus-visible) {
 	outline: 3px solid var(--vv-link);
 	outline-offset: 2px;
@@ -47,7 +43,6 @@
 .vv-card__link:focus-visible {
 	outline: 0;
 }
-/* Senza foto: riquadro un po' più scuro del fondo della card */
 .vv-card--no-img .vv-card__media {
 	background: var(--vv-riquadro);
 }
@@ -95,7 +90,7 @@
 	margin: 0 0 var(--vv-s-1);
 	font-size: var(--vv-fs-meta);
 	line-height: 1.5;
-	color: var(--vv-testo-meta); /* sul grigio della card il grigio del testo secondario non basta */
+	color: var(--vv-testo-meta);
 }
 .vv-card__text,
 .vv-card__source {
@@ -119,7 +114,6 @@
 .vv-card__link:hover {
 	color: var(--vv-testo) !important;
 }
-/* Tutta la card è cliccabile, con un solo link */
 .vv-card__link::after {
 	content: "";
 	position: absolute;
@@ -127,7 +121,6 @@
 	z-index: 1;
 }
 
-/* Badge di categoria come nei vecchi plugin */
 .vv-badge {
 	position: absolute;
 	left: 10px;
@@ -141,13 +134,12 @@
 	line-height: 1.4;
 	letter-spacing: 0.5px;
 	text-transform: uppercase;
-	pointer-events: none; /* il clic passa al link della card */
+	pointer-events: none;
 }
 .vv-grid .vv-card:nth-child(4n+2) .vv-badge { background: var(--vv-badge-2); }
 .vv-grid .vv-card:nth-child(4n+3) .vv-badge { background: var(--vv-badge-3); }
 .vv-grid .vv-card:nth-child(4n+4) .vv-badge { background: var(--vv-badge-4); }
 
-/* Soci: foto quadrata, nome turchese (come il vecchio carosello dei fondatori) */
 .vv-card--persona .vv-card__media {
 	aspect-ratio: 1;
 }
@@ -155,7 +147,6 @@
 	font-size: 20px;
 }
 
-/* Rassegna stampa: come l'archivio di Sydney (data sopra, titolo scuro, testata in turchese) */
 .vv-card--stampa .vv-card__media {
 	aspect-ratio: 4 / 3;
 }
@@ -178,8 +169,7 @@
 	font-size: var(--vv-fs-meta);
 }
 
-/* Ritagli solo testo (variante citazione, home): testata e data in alto, poi il titolo fra «» (card.php).
- * Niente foto: la scansione in piccolo non si legge, il ritaglio intero è nella pagina dell'articolo. */
+/* Variante citazione: niente foto, la scansione in piccolo non si legge */
 .vv-card--citazione .vv-card__body {
 	padding: var(--vv-s-3);
 }
@@ -206,9 +196,7 @@
 	color: var(--vv-link) !important;
 }
 
-/* Data a foglietto di calendario sulla foto degli eventi (vv_date_chip() in inc/cards.php):
- * la parte alta grande, sotto il mese o l'anno. Fondo un po' trasparente e sfocato, senza filetto: non
- * ripete la barretta della card e lascia intravedere la foto. */
+/* Foglietto con la data sulla foto (vv_foglietto_data()) */
 .vv-data-chip {
 	position: absolute;
 	top: 12px;
@@ -229,7 +217,7 @@
 	text-align: center;
 	text-transform: uppercase;
 	white-space: nowrap;
-	pointer-events: none; /* il clic passa al link della card */
+	pointer-events: none;
 }
 .vv-data-chip__alto {
 	font-size: 22px;
@@ -242,8 +230,8 @@
 	letter-spacing: 1px;
 }
 
-/* Eventi già finiti: fascetta obliqua "Concluso" sull'angolo in alto a destra, la foto resta a colori
- * (d'estate, senza niente in programma, la home non deve sembrare spenta) */
+/* Fascetta della fase sull'angolo (vv_fase_evento()); la foto dei conclusi resta a colori, perché
+ * d'estate la home non sembri spenta */
 .vv-fascetta {
 	position: absolute;
 	top: 26px;
@@ -261,9 +249,8 @@
 	text-align: center;
 	text-transform: uppercase;
 	transform: rotate(45deg);
-	pointer-events: none; /* il clic passa al link della card */
+	pointer-events: none;
 }
-/* La stessa fascetta per le altre fasi: verde "A breve" prima, arancione "In corso" durante */
 .vv-fascetta--a-breve {
 	background: var(--vv-fascetta-a-breve);
 	color: var(--vv-fascetta-a-breve-testo);
@@ -273,9 +260,7 @@
 	color: var(--vv-fascetta-in-corso-testo);
 }
 
-/* Agenda (layout="agenda"): su telefono righe compatte, miniatura con la data a sinistra e titolo,
- * data e luogo a destra; da 768px la griglia di card, così un lotto da 3 è una riga.
- * Le card oltre il lotto le nasconde vv.js con hidden: il display:flex della card lo annullerebbe. */
+/* Agenda: righe compatte su telefono, griglia da 768px. Il display:flex della card annullerebbe hidden. */
 .vv-grid--agenda > .vv-card[hidden] {
 	display: none;
 }
@@ -287,7 +272,6 @@
 .vv-lotti__altri.vv-button {
 	cursor: pointer;
 }
-/* Trasparente solo a riposo: al passaggio del mouse e col focus resta quello di .vv-button */
 .vv-lotti__altri.vv-button:not(:hover, :focus-visible) {
 	background: transparent;
 	color: var(--vv-testo) !important;
@@ -336,7 +320,7 @@
 	.vv-grid--agenda .vv-data-chip__basso {
 		font-size: 11px;
 	}
-	/* Nella miniatura la fascetta va sull'angolo in basso a destra: in alto c'è la data */
+	/* In alto c'è la data */
 	.vv-grid--agenda .vv-fascetta {
 		top: auto;
 		right: -52px;
@@ -349,7 +333,6 @@
 	}
 }
 
-/* Sostienici: foto in cima (se c'è), il margine interno è del testo, che resta intero */
 .vv-card--cta .vv-card__body {
 	gap: 12px;
 	padding: var(--vv-s-3);
@@ -366,7 +349,6 @@
 	order: 4;
 }
 
-/* Valore copiabile */
 .vv-copy {
 	display: inline-flex;
 	flex-wrap: wrap;
@@ -398,8 +380,7 @@
 	background: var(--vv-fondo-attivo);
 }
 
-/* [vv_dati_fiscali]: etichetta sopra, poi valore e "Copia". I valori sono larghi quanto il più lungo
- * (l'IBAN), così i pulsanti stanno in colonna; con l'etichetta sopra l'IBAN entra in una colonna da 320px. */
+/* [vv_dati_fiscali]: valori larghi quanto il più lungo, così i "Copia" stanno in colonna */
 .vv-dati {
 	display: grid;
 	grid-template-columns: max-content max-content;
@@ -421,12 +402,10 @@
 .vv-dati .vv-copy__btn {
 	margin-left: var(--vv-s-1);
 }
-/* Nel testo di una pagina (es. Fai una donazione) lo stacco dal paragrafo che segue */
 .entry-content .vv-dati {
 	margin: 0 0 1.1em;
 }
 
-/* [vv_cards periodo="futuro"] senza appuntamenti: un riquadro come le card, non una riga persa */
 .vv-empty {
 	margin: 0 0 var(--vv-gap);
 	padding: var(--vv-s-4) var(--vv-s-3);
@@ -438,7 +417,6 @@
 	color: var(--vv-testo-2);
 }
 
-/* Pagina elenco: "In programma" a card grandi, l'archivio per anno a pannelli più piccoli */
 .vv-elenco + .vv-elenco {
 	margin-top: var(--vv-spazio);
 }
@@ -460,8 +438,7 @@
 		grid-template-columns: repeat(2, minmax(0, 1fr));
 	}
 }
-/* Riassunto intero in "Sostienici" e nelle schede delle "Pagine elenco" senza date (Progetti),
- * queste ultime senza data né etichetta di categoria (sono tutte uguali) */
+/* Riassunto intero in Sostienici e nelle schede senza date */
 .vv-card--cta .vv-card__text,
 .vv-elenco--schede .vv-card__text {
 	display: block;
@@ -477,7 +454,6 @@
 	font-size: 17px;
 	line-height: 1.35;
 }
-/* Nell'archivio per anno è tutto passato: bastano foto, titolo e data */
 .vv-elenco--archivio .vv-card .vv-card__text,
 .vv-elenco--archivio .vv-badge,
 .vv-elenco--archivio .vv-data-chip,
@@ -497,7 +473,6 @@
 	}
 }
 
-/* Carosello: scorrimento con le frecce scure ai lati, come il vecchio slider */
 .vv-carousel {
 	position: relative;
 	display: flex;
@@ -529,8 +504,8 @@
 .vv-carousel__nav {
 	display: contents;
 }
-/* Pulsanti del carosello: tondi nella riga sotto le card (la pausa sempre, le frecce su telefono,
- * dove ai lati coprirebbero il bordo delle foto) */
+/* Pulsanti tondi nella riga sotto le card; da 600px le frecce stanno ai lati, dove su telefono
+ * coprirebbero le foto */
 .vv-carousel__btn {
 	display: inline-flex;
 	align-items: center;
@@ -545,7 +520,6 @@
 	line-height: 1;
 	cursor: pointer;
 }
-/* Da 600px le frecce escono dalla riga e stanno ai lati delle card, scure come il vecchio slider */
 @media (min-width: 600px) {
 	.vv-carousel__play {
 		width: 32px;
@@ -566,7 +540,7 @@
 	.vv-carousel__btn[data-dir="-1"] { left: -15px; }
 	.vv-carousel__btn[data-dir="1"] { right: -15px; }
 }
-/* Sydney toglie il fondo ai pulsanti al passaggio del mouse (button:hover): la freccia spariva */
+/* Sydney toglie il fondo ai pulsanti al passaggio del mouse: la freccia sparirebbe */
 .vv-carousel__btn svg {
 	display: block;
 	width: 22px;
@@ -587,12 +561,10 @@
 	opacity: 0.3;
 	cursor: default;
 }
-/* Tutte le card in vista: niente frecce né contatore (display: contents annullerebbe hidden) */
+/* display: contents annullerebbe hidden */
 .vv-carousel__nav[hidden] {
 	display: none;
 }
-/* Riga sotto il carosello, nel flusso della pagina (così non finisce addosso al titolo che segue):
- * frecce (su telefono), pausa e contatore "1–3 di 18" al posto dei pallini */
 .vv-carousel__bar {
 	order: 1;
 	display: flex;
@@ -608,7 +580,6 @@
 	color: var(--vv-testo-2);
 }
 
-/* Soci su mobile: due per riga (una sola colonna di foto enormi era lunghissima) */
 @media (max-width: 599px) {
 	.vv-grid--persona {
 		grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -622,10 +593,8 @@
 	}
 }
 
-/* Icone: solo quelle usate nei widget del footer e negli articoli, al posto di Font Awesome dal CDN.
- * Il markup resta quello di Font Awesome (<i class="fas fa-phone">): l'icona è una maschera SVG
- * colorata con il colore del testo. Un'icona nuova va aggiunta qui sotto.
- * Disegni: Font Awesome Free 6.7.2, https://fontawesome.com, licenza CC BY 4.0. */
+/* Le icone di Font Awesome usate nei contenuti (<i class="fas fa-phone">), come maschere SVG del colore
+ * del testo. Font Awesome Free 6.7.2, https://fontawesome.com, licenza CC BY 4.0. */
 :is(.fa, .fas, .far, .fab) {
 	display: inline-block;
 	width: 1em;

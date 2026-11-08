@@ -1,7 +1,4 @@
-/* VivaVoce, palette "Sabbia": pagina color carta e card bianche con un'ombra leggera (quella della
- * 1.2.0). Si accende in Aspetto → Personalizza → VivaVoce → Palette del sito. Solo nel tema chiaro:
- * il tema scuro resta com'è. Ridefinisce soltanto i token di assets/css/tokens.css.
- * Testo sempre ad almeno 4,5:1 sul suo fondo (fra parentesi). */
+/* Palette "Sabbia", solo nel tema chiaro: pagina color carta e card bianche con un'ombra leggera. */
 
 :root:not([data-vv-tema="scuro"]) {
 	--vv-fondo: #f2efe6;

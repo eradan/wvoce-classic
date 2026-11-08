@@ -1,7 +1,7 @@
 <?php
 /**
- * Date degli eventi: lettura dai campi dell'articolo, etichette, foglietto, fase e ordine in
- * calendario. Niente query né markup: si prova con tests/run.php senza WordPress.
+ * Date degli eventi: campi dell'articolo, etichette, foglietto, fase e ordine in calendario.
+ * Niente query né markup: si prova con tests/run.php senza WordPress.
  *
  * @package VivaVoce
  */
@@ -9,23 +9,20 @@
 defined( 'ABSPATH' ) || exit;
 
 /**
- * Durata massima di un evento "breve" (laboratorio, rassegna di qualche giorno): fino a qui contano
- * i giorni nelle etichette e l'evento in corso resta fra i prossimi; oltre è un corso di stagione.
+ * Fino a un mese un evento è breve (laboratorio, rassegna): contano i giorni e, in corso, resta fra i
+ * prossimi. Oltre è un corso di stagione.
  */
 const VV_EVENTO_BREVE = 31 * DAY_IN_SECONDS;
 
 /**
- * Inizio e fine di un evento come scritti nei campi, ripuliti: una data che non esiste o non è
- * AAAA-MM-GG (salvata prima dei controlli o scritta a mano nel database) conta come assente, e una
- * fine mancante o scritta prima dell'inizio (errore di battitura) diventa l'inizio: un giorno solo.
+ * Una data inesistente o non AAAA-MM-GG conta come assente; una fine mancante o prima dell'inizio
+ * diventa l'inizio.
  *
- * @param string $inizio Campo vv_data.
- * @param string $fine   Campo vv_data_fine.
  * @return string[] array( inizio, fine ), AAAA-MM-GG o ''.
  */
 function vv_date_evento( $inizio, $fine ) {
-	$inizio = vv_sanitize_date( $inizio );
-	$fine   = vv_sanitize_date( $fine );
+	$inizio = vv_pulisci_data( $inizio );
+	$fine   = vv_pulisci_data( $fine );
 	if ( $inizio && ( ! $fine || $fine < $inizio ) ) {
 		$fine = $inizio;
 	}
@@ -33,127 +30,116 @@ function vv_date_evento( $inizio, $fine ) {
 }
 
 /**
- * Date di un articolo-evento come timestamp (inizio/fine) più l'etichetta leggibile.
+ * Senza date dell'evento vale la data di pubblicazione. Un evento dura fino alla fine del suo ultimo giorno.
  *
- * @param WP_Post|int $post Articolo.
- * @return array{start:int,end:int,label:string,has_meta:bool}
+ * @return array{inizio:int,fine:int,etichetta:string,con_date:bool}
  */
-function vv_event_dates( $post ) {
-	$post = get_post( $post );
-	$tz   = wp_timezone();
-	// Date già ripulite: con una data inesistente DateTimeImmutable fermerebbe la pagina con un errore.
-	list( $start, $end ) = vv_date_evento( get_post_meta( $post->ID, 'vv_data', true ), get_post_meta( $post->ID, 'vv_data_fine', true ) );
+function vv_date_articolo( $articolo ) {
+	$articolo = get_post( $articolo );
+	$fuso     = wp_timezone();
 
-	$has_meta = (bool) $start;
-	$start_ts = $start ? ( new DateTimeImmutable( $start, $tz ) )->getTimestamp() : get_post_timestamp( $post );
-	// Un evento resta "in programma" fino alla fine del suo ultimo giorno.
-	$last_day = $end ? $end : $start;
-	$end_ts   = $last_day ? ( new DateTimeImmutable( $last_day . ' 23:59:59', $tz ) )->getTimestamp() : $start_ts;
+	list( $inizio, $fine ) = vv_date_evento( get_post_meta( $articolo->ID, 'vv_data', true ), get_post_meta( $articolo->ID, 'vv_data_fine', true ) );
 
-	$label = $has_meta && $end !== $start ? vv_date_range_label( $start_ts, $end_ts ) : wp_date( 'j F Y', $start_ts );
-
+	if ( ! $inizio ) {
+		$pubblicato = get_post_timestamp( $articolo );
+		return array(
+			'inizio'    => $pubblicato,
+			'fine'      => $pubblicato,
+			'etichetta' => wp_date( 'j F Y', $pubblicato ),
+			'con_date'  => false,
+		);
+	}
+	$dal = ( new DateTimeImmutable( $inizio, $fuso ) )->getTimestamp();
+	$al  = ( new DateTimeImmutable( $fine . ' 23:59:59', $fuso ) )->getTimestamp();
 	return array(
-		'start'    => $start_ts,
-		'end'      => $end_ts,
-		'label'    => $label,
-		'has_meta' => $has_meta,
+		'inizio'    => $dal,
+		'fine'      => $al,
+		'etichetta' => $fine !== $inizio ? vv_etichetta_periodo( $dal, $al ) : wp_date( 'j F Y', $dal ),
+		'con_date'  => true,
 	);
 }
 
 /**
- * Etichetta di un evento su più giorni. Fino a un mese i giorni contano ("3–5 ottobre 2026",
- * "28 settembre – 3 ottobre 2026"); oltre, per i corsi che durano una stagione, bastano i mesi
+ * Fino a un mese i giorni ("3–5 ottobre 2026", "28 settembre – 3 ottobre 2026"), oltre i mesi
  * ("ott–dic 2026", "ott 2026 – mag 2027").
- *
- * @param int $start_ts Inizio.
- * @param int $end_ts   Fine.
  */
-function vv_date_range_label( $start_ts, $end_ts ) {
-	$same_year = wp_date( 'Y', $start_ts ) === wp_date( 'Y', $end_ts );
-	if ( $end_ts - $start_ts <= VV_EVENTO_BREVE ) {
-		if ( $same_year && wp_date( 'n', $start_ts ) === wp_date( 'n', $end_ts ) ) {
-			return wp_date( 'j', $start_ts ) . '–' . wp_date( 'j F Y', $end_ts );
-		}
-		return wp_date( $same_year ? 'j F' : 'j F Y', $start_ts ) . ' – ' . wp_date( 'j F Y', $end_ts );
+function vv_etichetta_periodo( $dal, $al ) {
+	$stesso_anno = wp_date( 'Y', $dal ) === wp_date( 'Y', $al );
+	if ( $al - $dal > VV_EVENTO_BREVE ) {
+		return $stesso_anno
+			? wp_date( 'M', $dal ) . '–' . wp_date( 'M Y', $al )
+			: wp_date( 'M Y', $dal ) . ' – ' . wp_date( 'M Y', $al );
 	}
-	return $same_year
-		? wp_date( 'M', $start_ts ) . '–' . wp_date( 'M Y', $end_ts )
-		: wp_date( 'M Y', $start_ts ) . ' – ' . wp_date( 'M Y', $end_ts );
+	if ( $stesso_anno && wp_date( 'n', $dal ) === wp_date( 'n', $al ) ) {
+		return wp_date( 'j', $dal ) . '–' . wp_date( 'j F Y', $al );
+	}
+	return wp_date( $stesso_anno ? 'j F' : 'j F Y', $dal ) . ' – ' . wp_date( 'j F Y', $al );
 }
 
 /**
- * Data a foglietto di calendario sulla foto della card: due righe brevi. Un giorno "13 / nov",
- * più giorni nello stesso mese "3–5 / ott", a cavallo di due mesi "28 set / 3 ott"; oltre un
- * mese, per i corsi, i mesi e l'anno: "ott–dic / 2026", "ott–giu / 26–27".
+ * Due righe brevi per il foglietto sulla foto: "13 / nov", "3–5 / ott", "28 set / 3 ott", per i corsi
+ * "ott–dic / 2026" o "ott–giu / 26–27".
  *
- * @param array $dates Risultato di vv_event_dates().
+ * @param array $date Risultato di vv_date_articolo().
  * @return array{alto:string,basso:string}|null Null senza le date dell'evento.
  */
-function vv_date_chip( $dates ) {
-	if ( empty( $dates['has_meta'] ) ) {
+function vv_foglietto_data( $date ) {
+	if ( empty( $date['con_date'] ) ) {
 		return null;
 	}
-	$start = $dates['start'];
-	$end   = $dates['end'];
-	if ( wp_date( 'Y-m-d', $start ) === wp_date( 'Y-m-d', $end ) ) {
-		return array( 'alto' => wp_date( 'j', $start ), 'basso' => wp_date( 'M', $start ) );
+	$dal = $date['inizio'];
+	$al  = $date['fine'];
+	if ( wp_date( 'Y-m-d', $dal ) === wp_date( 'Y-m-d', $al ) ) {
+		return array( 'alto' => wp_date( 'j', $dal ), 'basso' => wp_date( 'M', $dal ) );
 	}
-	if ( $end - $start <= VV_EVENTO_BREVE ) {
-		return wp_date( 'Y-n', $start ) === wp_date( 'Y-n', $end )
-			? array( 'alto' => wp_date( 'j', $start ) . '–' . wp_date( 'j', $end ), 'basso' => wp_date( 'M', $start ) )
-			: array( 'alto' => wp_date( 'j M', $start ), 'basso' => wp_date( 'j M', $end ) );
+	if ( $al - $dal > VV_EVENTO_BREVE ) {
+		$anni = wp_date( 'Y', $dal ) === wp_date( 'Y', $al ) ? wp_date( 'Y', $dal ) : wp_date( 'y', $dal ) . '–' . wp_date( 'y', $al );
+		return array( 'alto' => wp_date( 'M', $dal ) . '–' . wp_date( 'M', $al ), 'basso' => $anni );
 	}
-	$anni = wp_date( 'Y', $start ) === wp_date( 'Y', $end ) ? wp_date( 'Y', $start ) : wp_date( 'y', $start ) . '–' . wp_date( 'y', $end );
-	return array( 'alto' => wp_date( 'M', $start ) . '–' . wp_date( 'M', $end ), 'basso' => $anni );
+	if ( wp_date( 'Y-n', $dal ) === wp_date( 'Y-n', $al ) ) {
+		return array( 'alto' => wp_date( 'j', $dal ) . '–' . wp_date( 'j', $al ), 'basso' => wp_date( 'M', $dal ) );
+	}
+	return array( 'alto' => wp_date( 'j M', $dal ), 'basso' => wp_date( 'j M', $al ) );
 }
 
 /**
- * Fase di un evento per la fascetta della card: "a-breve" prima del primo giorno, "in-corso"
- * dall'inizio del primo giorno alla fine dell'ultimo (senza orario, per un evento di un giorno vale
- * tutto il giorno), "concluso" dopo.
- *
- * @param array $dates Risultato di vv_event_dates().
- * @param int   $now   Adesso.
+ * @param array $date Risultato di vv_date_articolo().
  * @return string a-breve | in-corso | concluso.
  */
-function vv_fase_evento( $dates, $now ) {
+function vv_fase_evento( $date, $adesso ) {
 	return match ( true ) {
-		$dates['end'] < $now    => 'concluso',
-		$dates['start'] <= $now => 'in-corso',
-		default                 => 'a-breve',
+		$date['fine'] < $adesso    => 'concluso',
+		$date['inizio'] <= $adesso => 'in-corso',
+		default                    => 'a-breve',
 	};
 }
 
 /**
- * Ordine degli eventi in calendario:
- * 1. gli appuntamenti da non perdere: quelli che devono ancora cominciare e quelli brevi (fino a un
- *    mese) in corso, dal più vicino;
- * 2. corsi e rassegne lunghi già cominciati, dal più recente inizio: restano visibili, ma un evento
- *    di domani non finisce dietro un corso partito una settimana fa;
- * 3. quelli già finiti, dal più recente inizio, come nell'archivio per anno.
- * È l'ordine di tutte le sezioni con gli eventi: home, "Prossimi appuntamenti", Pagine elenco.
+ * L'ordine di tutte le sezioni con gli eventi:
+ * 1. quelli che devono cominciare e quelli brevi in corso, dal più vicino;
+ * 2. i corsi lunghi già cominciati, dal più recente: restano visibili, ma un evento di domani non
+ *    finisce dietro un corso partito una settimana fa;
+ * 3. i conclusi, dal più recente.
  *
- * @param array $eventi array( contenuto, inizio, fine ) con i timestamp di vv_event_dates().
- * @param int   $now    Adesso.
- * @return array Gli stessi elementi, ordinati.
+ * @param array $eventi array( contenuto, inizio, fine ) con i timestamp di vv_date_articolo().
  */
-function vv_ordina_eventi( $eventi, $now ) {
+function vv_ordina_eventi( $eventi, $adesso ) {
 	$prossimi = array();
-	$in_corso = array();
+	$lunghi   = array();
 	$passati  = array();
-	foreach ( $eventi as $e ) {
-		list( , $start, $end ) = $e;
-		if ( $end < $now ) {
-			$passati[] = $e;
-		} elseif ( $start > $now || $end - $start <= VV_EVENTO_BREVE ) {
-			$prossimi[] = $e;
+	foreach ( $eventi as $evento ) {
+		list( , $dal, $al ) = $evento;
+		if ( $al < $adesso ) {
+			$passati[] = $evento;
+		} elseif ( $dal > $adesso || $al - $dal <= VV_EVENTO_BREVE ) {
+			$prossimi[] = $evento;
 		} else {
-			$in_corso[] = $e;
+			$lunghi[] = $evento;
 		}
 	}
 	// Un evento breve già cominciato conta da adesso: davanti a quelli che cominciano dopo.
-	usort( $prossimi, static fn( $a, $b ) => array( max( $a[1], $now ), $a[2] ) <=> array( max( $b[1], $now ), $b[2] ) );
-	usort( $in_corso, static fn( $a, $b ) => $b[1] <=> $a[1] );
+	usort( $prossimi, static fn( $a, $b ) => array( max( $a[1], $adesso ), $a[2] ) <=> array( max( $b[1], $adesso ), $b[2] ) );
+	usort( $lunghi, static fn( $a, $b ) => $b[1] <=> $a[1] );
 	usort( $passati, static fn( $a, $b ) => array( $b[1], $b[2] ) <=> array( $a[1], $a[2] ) );
-	return array_merge( $prossimi, $in_corso, $passati );
+	return array_merge( $prossimi, $lunghi, $passati );
 }

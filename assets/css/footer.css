@@ -1,9 +1,5 @@
-/* VivaVoce: footer.
- * Le colonne dei widget riprendono l'aspetto della vecchia sidebar dei contatti (riquadro grigio,
- * testo piccolo, icona sopra il testo); la fascia turchese del copyright è quella originale. */
+/* Footer: colonne dei widget, fascia del copyright con le faccine, "torna su". */
 
-/* Fondo e testo della fascia (dal vecchio "CSS aggiuntivo" del Customizer di Sydney). Testo inchiostro
- * sulla fascia turchese: il bianco originale era 2,6:1 */
 .site-footer {
 	background-color: var(--vv-fascia-fondo);
 }
@@ -47,7 +43,6 @@ div .sydney-credits {
 .footer-widgets .widget p {
 	margin: 0 0 12px;
 }
-/* Su telefono le colonne vanno una sotto l'altra: un po' d'aria fra una e l'altra */
 @media (max-width: 767px) {
 	.footer-widgets .widget {
 		margin-bottom: var(--vv-s-4);
@@ -63,10 +58,8 @@ div .sydney-credits {
 #sidebar-footer .widget a:hover {
 	color: var(--vv-footer-titoli) !important;
 }
-/* Widget del footer scritti a mano (blocco "side-contacts", con le icone di components.css): icona
- * accanto al testo invece che sopra. Niente gap: nei widget c'è un "&nbsp;" prima del testo, che
- * davanti a un link diventerebbe un elemento a sé e sposterebbe il link di qualche pixel rispetto al
- * testo semplice */
+/* Contatti scritti a mano nei widget, icona accanto al testo. Niente gap: il "&nbsp;" prima di un link
+ * diventerebbe un elemento a sé e sposterebbe il link rispetto al testo semplice. */
 .side-contacts p {
 	display: flex;
 	align-items: center;
@@ -82,14 +75,12 @@ div .sydney-credits {
 	margin-right: 6px;
 	color: var(--vv-footer-titoli);
 }
-/* Loghi di Facebook e Instagram un po' più grandi */
 .side-contacts i:is(.fa-facebook, .fa-facebook-f, .fa-facebook-square, .fa-instagram) {
 	width: 26px;
 	height: 24px;
 }
 
-/* Colonne: tre uguali da 320px, centrate nella pagina come gruppo (il testo resta allineato a
- * sinistra). Sotto i 1200px non ci stanno: due colonne e i dati fiscali su una riga intera. */
+/* Tre colonne da 320px centrate come gruppo; sotto i 1200px due, e la terza su una riga intera */
 @media (min-width: 1200px) {
 	.footer-widgets-grid.footer-layout-3 {
 		grid-template-columns: repeat(3, 320px);
@@ -106,8 +97,8 @@ div .sydney-credits {
 	}
 }
 
-/* Fascia turchese: due faccine del logo ai lati che si guardano, "© anno" e la scritta in mezzo.
- * La faccina è turchese: su un cerchio giallo, come il logo sul giallo dell'header, altrimenti sparisce. */
+/* Due faccine che si guardano ai lati, "© anno" e la scritta in mezzo. La faccina turchese sparirebbe
+ * sulla fascia turchese: sta su un disco. */
 .site-footer .site-info {
 	--vv-disco: 64px;
 	display: flex;
@@ -158,7 +149,6 @@ div .sydney-credits {
 		gap: var(--vv-s-2);
 	}
 }
-/* "© 2026" e la scritta del logo */
 .site-footer .sydney-credits {
 	display: flex;
 	align-items: center;
@@ -169,8 +159,7 @@ div .sydney-credits {
 	width: auto;
 	height: 44px;
 }
-/* Pallina della palette (--vv-pallina) sul pallino giallo della O di VOCE (centro 99,107, raggio 18
- * nella scritta da 236×140; la pallina ha raggio 19,5) */
+/* Pallina della palette sul pallino della O di VOCE (scritta 236×140: centro 99,107, raggio 18) */
 .site-footer .vv-credits__scritta {
 	position: relative;
 	display: block;
@@ -183,13 +172,7 @@ div .sydney-credits {
 	width: 19%;
 	height: 36.91%;
 	background: var(--vv-pallina) center / 100% 100% no-repeat;
-	transform-origin: 50% 6%;
 	pointer-events: none;
-}
-@media (prefers-reduced-motion: no-preference) {
-	.site-footer .vv-credits__scritta::after {
-		animation: var(--vv-pallina-dondolo);
-	}
 }
 @media (max-width: 599px) {
 	.site-footer .vv-credits__logo {
@@ -197,19 +180,16 @@ div .sydney-credits {
 	}
 }
 
-/* In basso a destra, uno sopra l'altro: il badge di reCAPTCHA e il pulsante "torna su". Quando la
- * fascia turchese entra in vista salgono con lei (--vv-sotto, misurato da vv.js) invece di coprire la
- * faccina di destra; col banner dei cookie aperto restano sopra il banner. */
+/* Badge di reCAPTCHA e "torna su" salgono con la fascia (--vv-sotto, da vv.js) e restano sopra il
+ * banner dei cookie, invece di coprirli. */
 .grecaptcha-badge,
 .go-top {
 	--vv-su: max(var(--vv-sotto, 0px), var(--vv-cookie-h, 0px));
 }
 .grecaptcha-badge {
-	/* Google lo mette a bottom: 14px con uno stile inline */
-	bottom: calc(14px + var(--vv-su)) !important;
+	bottom: calc(14px + var(--vv-su)) !important; /* Google lo scrive inline */
 }
-/* Il pulsante: la mano rossa del logo, raddrizzata con le dita in alto, su un disco giallo come le faccine.
- * Compare scivolando su invece che dal fondo: "bottom" segue la fascia a ogni scroll e non va animato. */
+/* La mano del logo su un disco. Compare con translate: "bottom" segue la fascia a ogni scroll e non va animato. */
 .go-top {
 	display: flex;
 	align-items: center;
@@ -230,7 +210,7 @@ div .sydney-credits {
 .go-top.position-right {
 	right: 16px !important;
 }
-/* Col badge: il pulsante sta sopra la parte visibile del badge (70px dal bordo), centrato su di lei */
+/* Sopra il badge (60px) e centrato sulla sua parte visibile */
 body:has(.grecaptcha-badge) .go-top {
 	bottom: calc(14px + 60px + 12px + var(--vv-su)) !important;
 }
@@ -242,8 +222,7 @@ body:has(.grecaptcha-badge) .go-top.position-right {
 }
 .go-top::before {
 	content: "";
-	/* le proporzioni dell'immagine (98 × 144), ritagliata sul disegno: così è centrata nel disco */
-	width: 24.5px;
+	width: 24.5px; /* proporzioni dell'immagine, 98 × 144 */
 	height: 36px;
 	background: url("../img/mano-su.webp") center / contain no-repeat;
 	transition: translate var(--vv-transizione);
@@ -261,16 +240,10 @@ body:has(.grecaptcha-badge) .go-top.position-right {
 	outline-offset: 2px;
 }
 
-/* Le due faccine, la prima volta che si arriva in fondo alla pagina, corrono al centro, si scontrano
- * e rimbalzano al loro posto. Solo CSS:
- * - scroll-state() dice quando la pagina è stata fatta scorrere e non può più scendere, cioè quando la
- *   fascia è in vista. "Fatta scorrere" (scrollable: top) serve perché il browser valuta la query una
- *   prima volta prima di impaginare, quando la pagina sembra non scorrere: senza, l'interruttore
- *   scatterebbe subito. Su una pagina che non scorre affatto le faccine restano ferme;
- * - --vv-scontro fa da interruttore: si accende subito e, grazie al ritardo enorme della transizione
- *   di ritorno, non si spegne più, così l'animazione non riparte risalendo e tornando giù;
- * - la corsa è metà della fascia meno un disco (unità cqw della fascia).
- * Dove scroll-state() non c'è, le faccine restano ferme al loro posto. */
+/* La prima volta che si arriva in fondo le faccine corrono al centro, si scontrano e rimbalzano.
+ * scroll-state() dice quando la pagina non può più scendere; "scrollable: top" evita che scatti alla
+ * prima valutazione, prima dell'impaginazione. --vv-scontro si accende e, con il ritardo enorme della
+ * transizione di ritorno, non si spegne più: l'animazione non riparte risalendo. */
 @property --vv-scontro {
 	syntax: "running | paused";
 	inherits: true;
@@ -304,8 +277,7 @@ html {
 	--vv-verso: -1;
 	animation-name: vv-scontro, vv-salto-dx;
 }
-/* x e y animate a parte (proprietà registrate), così il salto in verticale può essere diverso
- * per le due faccine mentre la corsa orizzontale è la stessa */
+/* x e y registrate a parte: stessa corsa, salti diversi */
 @property --vv-x {
 	syntax: "<length>";
 	inherits: false;
@@ -317,31 +289,26 @@ html {
 	initial-value: 0px;
 }
 @keyframes vv-scontro {
-	/* partono piano e accelerano verso il centro */
 	0% {
 		--vv-x: 0px;
 		scale: 1;
 		animation-timing-function: cubic-bezier(0.55, 0, 1, 0.45);
 	}
-	/* si toccano */
 	38% {
 		--vv-x: calc(var(--vv-verso) * var(--vv-corsa));
 		scale: 1;
 		animation-timing-function: linear;
 	}
-	/* si schiacciano nell'urto (restando a contatto) */
 	42% {
 		--vv-x: calc(var(--vv-verso) * (var(--vv-corsa) + 6px));
 		scale: 0.8 1.12;
 		animation-timing-function: cubic-bezier(0, 0.55, 0.45, 1);
 	}
-	/* rimbalzano indietro, un filo oltre il loro posto */
 	76% {
 		--vv-x: calc(var(--vv-verso) * -10px);
 		scale: 1;
 		animation-timing-function: ease-in-out;
 	}
-	/* e si assestano */
 	88% {
 		--vv-x: calc(var(--vv-verso) * 4px);
 		animation-timing-function: ease-in-out;
@@ -354,8 +321,6 @@ html {
 		scale: 1;
 	}
 }
-/* Dopo l'urto saltano come palle, in modo diverso. La sinistra: un salto grande e lento, poi due
- * rimbalzi. (Salita che rallenta, discesa che accelera: come una palla.) */
 @keyframes vv-salto-sx {
 	0%, 42% { --vv-y: 0px; animation-timing-function: cubic-bezier(0.2, 0.6, 0.4, 1); }
 	60% { --vv-y: -64px; animation-timing-function: cubic-bezier(0.6, 0, 0.8, 0.4); }
@@ -365,7 +330,6 @@ html {
 	94% { --vv-y: -5px; animation-timing-function: cubic-bezier(0.6, 0, 0.8, 0.4); }
 	97%, 100% { --vv-y: 0px; }
 }
-/* La destra: quattro saltelli bassi e rapidi che si smorzano */
 @keyframes vv-salto-dx {
 	0%, 42% { --vv-y: 0px; animation-timing-function: cubic-bezier(0.2, 0.6, 0.4, 1); }
 	48% { --vv-y: -26px; animation-timing-function: cubic-bezier(0.6, 0, 0.8, 0.4); }
@@ -379,7 +343,6 @@ html {
 	91% { --vv-y: -3px; animation-timing-function: cubic-bezier(0.6, 0, 0.8, 0.4); }
 	94%, 100% { --vv-y: 0px; }
 }
-/* Chi ha chiesto meno animazioni: faccine ferme, "torna su" e mano senza scorrimento */
 @media (prefers-reduced-motion: reduce) {
 	.site-footer .site-info::before,
 	.site-footer .site-info::after {

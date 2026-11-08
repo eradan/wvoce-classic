@@ -1,26 +1,23 @@
-/* VivaVoce: impaginazione. Solo ciò che serve alle parti nuove generate dal tema. */
+/* Impaginazione: colonne, larghezze e spazi delle parti generate dal tema. */
 
-/* Colonna dei contenuti larga come quella originale (che aveva la sidebar a destra) */
 body:not(.siteorigin-panels) .content-area.no-sidebar .content-inner,
 body:not(.siteorigin-panels) .content-area.no-sidebar .entry-post,
 .single .content-area.no-sidebar:not(.vv-single) .hentry {
 	max-width: var(--vv-lettura);
 }
-/* Senza sidebar Sydney lascia comunque 30px a destra del contenuto: le griglie non arrivavano al bordo */
+/* Senza sidebar Sydney lascia comunque 30px a destra */
 .content-area.no-sidebar .post-wrap,
 .content-area.col-md-12 .post-wrap {
 	padding-left: 0;
 	padding-right: 0;
 }
-/* La home (modello "Full width") usa tutta la larghezza */
 body.page-template-page_fullwidth .content-area.no-sidebar .content-inner,
 body.vv-has-hero .content-area.no-sidebar .content-inner,
 body.page-template-page_fullwidth .content-area.no-sidebar .entry-content {
 	max-width: none;
 }
 
-/* Griglie di card dentro il testo: tutta la larghezza del contenitore; anche i titoli di sezione e
- * i paragrafi centrati che le accompagnano, altrimenti si centrerebbero sulla colonna del testo */
+/* Griglie nel testo larghe quanto il contenitore, con i titoli e i paragrafi centrati che le accompagnano */
 .entry-content > .vv-grid,
 .entry-content > .vv-elenco,
 .entry-content > .vv-carousel,
@@ -29,7 +26,7 @@ body.page-template-page_fullwidth .content-area.no-sidebar .entry-content {
 	width: var(--vv-contenitore);
 	max-width: none;
 }
-/* Sydney: 83px sopra e 100 sotto a tutte le larghezze, troppo su telefono */
+/* Sydney mette 83px sopra e 100 sotto anche su telefono */
 .page-wrap {
 	padding: var(--vv-s-4) 0 var(--vv-s-5);
 	overflow-x: clip;
@@ -37,8 +34,7 @@ body.page-template-page_fullwidth .content-area.no-sidebar .entry-content {
 .vv-page-extra {
 	margin-top: var(--vv-spazio);
 }
-/* Blocco finale dei modelli Pagina hub e Pagina elenco: link generati dal tema fuori dal contenuto,
- * Sydney li colorerebbe col colore 1 del Customizer (giallo su bianco). */
+/* Fuori dal contenuto Sydney colorerebbe i link di giallo */
 .vv-page-extra a:not(.vv-card__link) {
 	color: var(--vv-link);
 	text-decoration: none;
@@ -47,7 +43,7 @@ body.page-template-page_fullwidth .content-area.no-sidebar .entry-content {
 	color: var(--vv-testo);
 }
 
-/* Breadcrumb: non flottante, altrimenti il titolo le copre e i link non si cliccano */
+/* Flottante, il titolo coprirebbe il percorso e i link non si cliccherebbero */
 .vv-breadcrumbs-wrap.col-md-12 {
 	float: none;
 	clear: both;
@@ -86,7 +82,6 @@ body.page-template-page_fullwidth .content-area.no-sidebar .entry-content {
 	color: var(--vv-testo);
 }
 
-/* Titoli di sezione del tema (elenchi, soci, home): come i titoli dei widget della home originale */
 .vv-section-title,
 .entry-content h2.vv-section-title {
 	position: relative;

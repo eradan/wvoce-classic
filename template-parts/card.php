@@ -1,115 +1,95 @@
 <?php
 /**
- * Card di articoli e pagine (griglie, caroselli, archivi).
+ * Card di un articolo o di una pagina.
  *
- * Argomenti: post (WP_Post), variante (evento|persona|stampa|citazione|pagina), accento (giallo|turchese|rosso),
- * titolo_livello (h2|h3|h4).
- * citazione: ritaglio di giornale solo testo (testata e data, poi il titolo), senza immagine.
+ * Argomenti: post, variante (evento|persona|stampa|citazione|pagina), accento (giallo|turchese|rosso),
+ * titolo_livello (h2|h3|h4). La citazione è un ritaglio di giornale solo testo, senza immagine.
  *
  * @package VivaVoce
  */
 
 defined( 'ABSPATH' ) || exit;
 
-$vv_post     = get_post( $args['post'] ?? null );
-$vv_variante = $args['variante'] ?? 'evento';
-$vv_accento  = $args['accento'] ?? 'giallo';
-$vv_hx       = $args['titolo_livello'] ?? 'h3';
-
-if ( ! $vv_post ) {
+$contenuto = get_post( $args['post'] ?? null );
+if ( ! $contenuto ) {
 	return;
 }
+$variante  = $args['variante'] ?? 'evento';
+$livello   = $args['titolo_livello'] ?? 'h3';
+$ritaglio  = in_array( $variante, array( 'stampa', 'citazione' ), true );
+$citazione = 'citazione' === $variante;
 
-$vv_link     = get_permalink( $vv_post );
-$vv_title    = get_the_title( $vv_post );
-$vv_ritaglio = in_array( $vv_variante, array( 'stampa', 'citazione' ), true );
-if ( has_excerpt( $vv_post ) ) {
-	$vv_excerpt = get_the_excerpt( $vv_post ); // Lettere decorative già sistemate dal filtro.
-} elseif ( post_password_required( $vv_post ) ) {
-	$vv_excerpt = ''; // Il testo protetto non esce nemmeno nel riassunto.
+if ( has_excerpt( $contenuto ) ) {
+	$riassunto = get_the_excerpt( $contenuto );
+} elseif ( post_password_required( $contenuto ) ) {
+	$riassunto = '';
 } else {
-	$vv_parole = match ( true ) {
-		'persona' === $vv_variante => 18,
-		$vv_ritaglio               => 12,
-		default                    => 22,
+	$parole = match ( true ) {
+		'persona' === $variante => 18,
+		$ritaglio               => 12,
+		default                 => 22,
 	};
-	$vv_excerpt = vv_plain_letters( wp_trim_words( wp_strip_all_tags( strip_shortcodes( $vv_post->post_content ) ), $vv_parole, '…' ), false );
+	$riassunto = vv_lettere_semplici( wp_trim_words( wp_strip_all_tags( strip_shortcodes( $contenuto->post_content ) ), $parole, '…' ), false );
 }
-$vv_size = 'persona' === $vv_variante ? 'vv-persona' : 'vv-card';
-$vv_img  = 'citazione' === $vv_variante ? '' : get_the_post_thumbnail( $vv_post, $vv_size, array(
+
+$immagine = $citazione ? '' : get_the_post_thumbnail( $contenuto, 'persona' === $variante ? 'vv-persona' : 'vv-card', array(
 	'class'   => 'vv-card__img',
 	'loading' => 'lazy',
 	'alt'     => '',
-	// Larghezza della card nelle griglie e nei caroselli (components.css): così il browser sceglie la miniatura giusta
-	'sizes'   => '(max-width: 599px) 85vw, (max-width: 991px) 50vw, 380px',
+	'sizes'   => '(max-width: 599px) 85vw, (max-width: 991px) 50vw, 380px', // larghezze della card in components.css
 ) );
 
-// Nei ritagli la data giusta è nella riga della testata: quella dell'articolo spesso non coincide.
-$vv_meta  = array();
-$vv_dates = null;
-if ( 'post' === $vv_post->post_type && 'persona' !== $vv_variante && ! $vv_ritaglio ) {
-	$vv_dates  = vv_event_dates( $vv_post );
-	$vv_meta[] = sprintf( '<time datetime="%s">%s</time>', esc_attr( wp_date( 'Y-m-d', $vv_dates['start'] ) ), esc_html( $vv_dates['label'] ) );
-	$vv_luogo  = get_post_meta( $vv_post->ID, 'vv_luogo', true );
-	if ( $vv_luogo ) {
-		$vv_meta[] = esc_html( $vv_luogo );
+// Nei ritagli la data giusta è nella testata, dentro il riassunto: quella dell'articolo spesso non coincide.
+$date = 'post' === $contenuto->post_type && 'persona' !== $variante && ! $ritaglio ? vv_date_articolo( $contenuto ) : null;
+$riga = array();
+if ( $date ) {
+	$riga[] = sprintf( '<time datetime="%s">%s</time>', esc_attr( wp_date( 'Y-m-d', $date['inizio'] ) ), esc_html( $date['etichetta'] ) );
+	$luogo  = get_post_meta( $contenuto->ID, 'vv_luogo', true );
+	if ( $luogo ) {
+		$riga[] = esc_html( $luogo );
 	}
 }
 
-// Eventi: data a foglietto sulla foto; sull'angolo la fascetta della fase: "A breve" prima del
-// primo giorno, "In corso" fino all'ultimo, "Concluso" dopo (colori in tokens.css).
-$vv_fasi     = array(
+$evento    = 'evento' === $variante;
+$foglietto = $evento && $date ? vv_foglietto_data( $date ) : null;
+$fase      = $evento && $date && $date['con_date'] ? vv_fase_evento( $date, time() ) : '';
+$categorie = $evento ? vv_categorie_articolo( $contenuto->ID ) : array();
+$fasi      = array(
 	'a-breve'  => 'A breve',
 	'in-corso' => 'In corso',
 	'concluso' => 'Concluso',
 );
-$vv_badge    = '';
-$vv_chip     = null;
-$vv_fascetta = '';
-if ( 'evento' === $vv_variante ) {
-	$vv_chip = $vv_dates ? vv_date_chip( $vv_dates ) : null;
-	if ( $vv_dates && $vv_dates['has_meta'] ) {
-		$vv_fascetta = vv_fase_evento( $vv_dates, time() );
-	}
-	$vv_cats = vv_post_categories( $vv_post->ID );
-	if ( $vv_cats ) {
-		$vv_badge = $vv_cats[0]->name;
-	}
-}
 
-$vv_classes = array( 'vv-card', 'vv-card--' . $vv_variante, 'vv-accent--' . $vv_accento );
-if ( ! $vv_img && 'citazione' !== $vv_variante ) {
-	$vv_classes[] = 'vv-card--no-img';
-}
-if ( $vv_fascetta ) {
-	$vv_classes[] = 'vv-card--' . $vv_fascetta;
+$classi = array( 'vv-card', 'vv-card--' . $variante, 'vv-accent--' . ( $args['accento'] ?? 'giallo' ) );
+if ( ! $immagine && ! $citazione ) {
+	$classi[] = 'vv-card--no-img';
 }
 ?>
-<article class="<?php echo esc_attr( implode( ' ', $vv_classes ) ); ?>">
-	<?php if ( 'citazione' !== $vv_variante ) : ?>
+<article class="<?php echo esc_attr( implode( ' ', $classi ) ); ?>">
+	<?php if ( ! $citazione ) : ?>
 		<div class="vv-card__media">
-			<?php echo $vv_img; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
-			<?php if ( $vv_chip ) : ?>
-				<?php // La data intera, per gli screen reader, è nella riga sotto il titolo. ?>
-				<span class="vv-data-chip" aria-hidden="true"><span class="vv-data-chip__alto"><?php echo esc_html( $vv_chip['alto'] ); ?></span><span class="vv-data-chip__basso"><?php echo esc_html( $vv_chip['basso'] ); ?></span></span>
+			<?php echo $immagine; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
+			<?php if ( $foglietto ) : ?>
+				<?php // Per gli screen reader la data intera è nella riga sotto il titolo. ?>
+				<span class="vv-data-chip" aria-hidden="true"><span class="vv-data-chip__alto"><?php echo esc_html( $foglietto['alto'] ); ?></span><span class="vv-data-chip__basso"><?php echo esc_html( $foglietto['basso'] ); ?></span></span>
 			<?php endif; ?>
-			<?php if ( $vv_badge ) : ?>
-				<span class="vv-badge"><?php echo esc_html( $vv_badge ); ?></span>
+			<?php if ( $categorie ) : ?>
+				<span class="vv-badge"><?php echo esc_html( $categorie[0]->name ); ?></span>
 			<?php endif; ?>
-			<?php if ( $vv_fascetta ) : ?>
-				<span class="vv-fascetta vv-fascetta--<?php echo esc_attr( $vv_fascetta ); ?>"><?php echo esc_html( $vv_fasi[ $vv_fascetta ] ); ?></span>
+			<?php if ( $fase ) : ?>
+				<span class="vv-fascetta vv-fascetta--<?php echo esc_attr( $fase ); ?>"><?php echo esc_html( $fasi[ $fase ] ); ?></span>
 			<?php endif; ?>
 		</div>
 	<?php endif; ?>
 	<div class="vv-card__body">
-		<?php if ( $vv_meta ) : ?>
-			<p class="vv-card__meta"><?php echo implode( ' · ', $vv_meta ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?></p>
+		<?php if ( $riga ) : ?>
+			<p class="vv-card__meta"><?php echo implode( ' · ', $riga ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?></p>
 		<?php endif; ?>
-		<<?php echo tag_escape( $vv_hx ); ?> class="vv-card__title">
-			<a href="<?php echo esc_url( $vv_link ); ?>" class="vv-card__link"><?php echo esc_html( sprintf( 'citazione' === $vv_variante ? '«%s»' : '%s', wp_strip_all_tags( $vv_title ) ) ); ?></a>
-		</<?php echo tag_escape( $vv_hx ); ?>>
-		<?php if ( $vv_excerpt ) : ?>
-			<p class="<?php echo $vv_ritaglio ? 'vv-card__source' : 'vv-card__text'; ?>"><?php echo esc_html( $vv_excerpt ); ?></p>
+		<<?php echo tag_escape( $livello ); ?> class="vv-card__title">
+			<a href="<?php echo esc_url( get_permalink( $contenuto ) ); ?>" class="vv-card__link"><?php echo esc_html( sprintf( $citazione ? '«%s»' : '%s', wp_strip_all_tags( get_the_title( $contenuto ) ) ) ); ?></a>
+		</<?php echo tag_escape( $livello ); ?>>
+		<?php if ( $riassunto ) : ?>
+			<p class="<?php echo $ritaglio ? 'vv-card__source' : 'vv-card__text'; ?>"><?php echo esc_html( $riassunto ); ?></p>
 		<?php endif; ?>
 	</div>
 </article>

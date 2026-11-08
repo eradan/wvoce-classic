@@ -2,9 +2,8 @@
 /**
  * Template Name: Pagina hub (card delle sottopagine)
  *
- * Contenuto della pagina come introduzione, poi una card per ogni pagina figlia
- * (immagine in evidenza + estratto, ordine = "Ordine" negli attributi di pagina).
- * Se il testo contiene [vv_sottopagine] le card stanno lì e non vengono ripetute in fondo.
+ * Il testo della pagina, poi una card per ogni pagina figlia nell'ordine degli attributi di pagina;
+ * con [vv_sottopagine] nel testo le card stanno lì.
  *
  * @package VivaVoce
  */
@@ -13,7 +12,7 @@ get_header();
 
 do_action( 'sydney_before_content' );
 
-vv_page_with_extra( 'vv_hub_cards' );
+vv_pagina_con_blocco_finale( 'vv_card_hub' );
 
 do_action( 'sydney_after_content' );
 

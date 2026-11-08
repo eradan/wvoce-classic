@@ -1,7 +1,6 @@
-/* VivaVoce: pagine interne e articoli. Gli elenchi restano elenchi puntati normali. */
+/* Pagine interne e articoli. */
 
-/* Pagine: l'immagine in evidenza fra titolo e testo (il filtro è in inc/setup.php), larga quanto
- * il testo e ritagliata 16:9, a spigoli vivi. Senza immagine in evidenza non compare nulla. */
+/* Immagine in evidenza fra titolo e testo (vv_immagine_in_testa()) */
 .page .content-area .entry-thumb {
 	aspect-ratio: 16 / 9;
 	margin: 0 0 var(--vv-s-4);
@@ -21,7 +20,7 @@
 	}
 }
 
-/* Articoli: la locandina resta intera (spesso contiene testo), ma non più alta dello schermo */
+/* La locandina resta intera, perché spesso contiene testo, ma non più alta dello schermo */
 .single .content-area .entry-thumb {
 	margin: 0 0 var(--vv-s-4);
 }
@@ -34,13 +33,12 @@
 	margin: 0 auto;
 }
 
-/* Gallerie scritte nell'editor classico: i paragrafi vuoti fra le immagini non devono
- * occupare celle della griglia (altrimenti ogni foto finisce da sola). */
+/* Nelle gallerie dell'editor classico i paragrafi vuoti occuperebbero celle della griglia */
 .entry-content .wp-block-gallery > :is(p, br),
 .entry-content .gallery > :is(p, br) {
 	display: none !important;
 }
-/* Gallerie come griglia di miniature quadrate (senza bordi), anche quando il CSS dei blocchi manca */
+/* Anche quando il CSS dei blocchi manca */
 .entry-content .wp-block-gallery,
 .entry-content .gallery {
 	display: grid !important;
@@ -63,7 +61,6 @@
 	object-fit: cover;
 }
 
-/* Modello "Page builder ready" (soci): margine laterale del contenuto */
 .post-template-post_full .content-area {
 	padding-left: 15px;
 	padding-right: 15px;
@@ -75,7 +72,6 @@
 	margin-top: var(--vv-spazio);
 }
 
-/* Articolo: testo + colonna laterale, come l'originale che aveva la sidebar a destra */
 .vv-single {
 	flex: 1 1 100%;
 	width: 100%;
@@ -101,7 +97,6 @@
 	margin-top: var(--vv-spazio);
 }
 
-/* "In breve" e "In questa sezione": come la vecchia sidebar grigia dei contatti */
 .vv-card--info {
 	padding: var(--vv-s-3);
 	background: var(--vv-riquadro);
@@ -109,7 +104,7 @@
 	line-height: 1.5;
 	color: var(--vv-testo-riquadro);
 }
-/* Il margine interno è quello del riquadro: senza, quello del corpo delle card si sommava (44px) */
+/* Il margine interno del corpo delle card si sommerebbe a quello del riquadro */
 .vv-card.vv-card--info .vv-card__body {
 	padding: 0;
 }
@@ -149,9 +144,7 @@
 	text-decoration: underline 2px !important;
 }
 
-/* "In questa sezione" (pagine): la pagina madre, poi le altre pagine del ramo; quella corrente
- * in grassetto con una barretta a sinistra. Link in inchiostro: il turchese scuro sul grigio non
- * arriva a 4,5:1. */
+/* Link in inchiostro: il turchese scuro sul riquadro non arriva a 4,5:1 */
 .vv-section-nav__parent {
 	margin: 0 0 var(--vv-s-1);
 	font-weight: 600;
@@ -190,7 +183,6 @@
 	border-left-color: var(--vv-testo);
 }
 
-/* "Da non perdere": elenco di link con miniatura */
 .vv-aside-list {
 	margin: 0;
 	padding: 0;
@@ -219,13 +211,11 @@
 	height: 60px;
 	object-fit: cover;
 }
-/* Senza immagine: il grigio del riquadro con la barretta gialla delle card */
 .vv-aside-list__vuoto {
 	background: var(--vv-riquadro);
 	border-top: 3px solid var(--vv-accento-1);
 }
 
-/* Articolo precedente / successivo: due link, come la navigazione di Sydney */
 .vv-post-nav {
 	display: grid;
 	grid-template-columns: 1fr 1fr;
@@ -268,19 +258,15 @@
 	}
 }
 
-/* Pagine a sezioni (0.6.6, per es. Partecipa): ogni sezione è un Gruppo con classe "vv-sezione" che
- * comincia con un'immagine allineata a sinistra o a destra, e il testo le scorre attorno.
- * Una pagina che le contiene usa tutta la larghezza del contenitore, come quelle senza colonna laterale.
- * Su telefono l'immagine torna sopra il testo, a tutta larghezza. */
+/* Classe "vv-sezione" data nell'editor a un Gruppo che comincia con un'immagine allineata (es. Partecipa) */
 body:not(.siteorigin-panels) .content-area.no-sidebar .content-inner:has(.vv-sezione) {
 	max-width: none;
 }
 .entry-content .vv-sezione {
-	display: flow-root; /* contiene l'immagine flottante: la sezione dopo comincia sotto */
+	display: flow-root;
 	margin: 0 0 var(--vv-spazio);
 }
-/* Il titolo parte in pari con la foto. ".wp-block-heading" nell':is() serve a battere Sydney
- * (body:not(…):not(…):not(…) .entry-content h2 { margin-top: 1.2em }) */
+/* ".wp-block-heading" nell':is() serve a battere il margine che Sydney dà ai titoli del testo */
 .entry-content .vv-sezione > :first-child,
 .entry-content .vv-sezione > .wp-block-image:first-child + :is(h2, h3, .wp-block-heading) {
 	margin-top: 0;
@@ -304,7 +290,7 @@ body:not(.siteorigin-panels) .content-area.no-sidebar .content-inner:has(.vv-sez
 	width: 100%;
 	height: auto;
 }
-/* Gli elenchi puntati accanto a un'immagine: senza, i pallini finirebbero sotto la foto */
+/* Senza, i pallini degli elenchi finirebbero sotto la foto */
 .entry-content .vv-sezione ul,
 .entry-content .vv-sezione ol {
 	display: flow-root;

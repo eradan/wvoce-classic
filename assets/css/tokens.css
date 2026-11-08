@@ -1,17 +1,8 @@
-/*
- * VivaVoce "classico": aspetto il più vicino possibile al sito originale su Sydney.
- * Colori, font e misure di Sydney. I colori globali di Sydney (--sydney-global-color-*) prendono i
- * ruoli della palette in fondo al file, in ogni tema, perché seguano il tema scuro.
- * La palette ha due livelli (marchio e ruoli, vedi :root qui sotto): le regole degli altri fogli
- * non contengono colori scritti a mano e usano solo i ruoli; anche i colori che Sydney scrive a mano
- * dal suo Customizer (header, sottomenu, menu mobile) sono riportati ai ruoli (header.css, footer.css).
- * Una palette alternativa (assets/css/palette/) cambia l'aspetto del sito ridefinendo questi token (il
- * Natale aggiunge anche la neve e le sue animazioni).
- * La versione "ritaglio di carta" (0.3.x) è nella storia git: commit cc6b27b, cartella assets/css-ritaglio/.
- */
+/* Token del tema: font, colori, misure. Le regole degli altri fogli usano solo i ruoli (secondo blocco),
+ * così il tema scuro e le palette (assets/css/palette/) cambiano l'aspetto ridefinendo solo questi.
+ * Fra parentesi il contrasto del testo sul suo fondo: sempre almeno 4,5:1. */
 
-/* Poppins, il carattere delle locandine, ospitato nel tema (nessuna richiesta a Google).
- * Latin e latin-ext: il secondo si scarica solo se in pagina c'è un carattere che gli serve. */
+/* Poppins ospitato nel tema; latin-ext si scarica solo se in pagina c'è un carattere che gli serve. */
 @font-face {
 	font-family: "Poppins";
 	font-style: italic;
@@ -110,127 +101,104 @@
 }
 
 :root {
-	/* --- Palette, livello 1: marchio. I colori del logo e dell'inchiostro di Sydney; uguali in ogni tema. --- */
+	/* Marchio: i colori del logo e l'inchiostro di Sydney */
 	--vv-giallo: #ffd923;
 	--vv-turchese: #00b2c3;
 	--vv-rosso: #ff0000;
-	--vv-inchiostro: #00102e;      /* testo e titoli di Sydney; resta sul giallo e sul turchese */
-	--vv-bianco: #ffffff;          /* pulsante "fantasma" dell'hero */
-	--vv-perla: #f9fef8;           /* fondo dell'illustrazione originale */
+	--vv-inchiostro: #00102e;
+	--vv-bianco: #ffffff;
+	--vv-perla: #f9fef8;           /* fondo dell'illustrazione dell'hero */
 
-	/* --- Palette, livello 2: ruoli. Le regole usano solo questi; un tema (quello scuro) o una palette alternativa
-	 * ridefiniscono questo blocco (il Natale cambia anche il giallo del marchio, che diventa oro dappertutto).
-	 * Testo sempre ad almeno 4,5:1 sul suo fondo. Il turchese e il giallo pieni restano per fondi e
-	 * filetti: come colore del testo sul bianco non si leggono (2,6:1 e 1,4:1). --- */
-
-	/* Fondi. I grigi virano un poco sull'azzurro (tinta 207-215°, la stessa famiglia dell'inchiostro).
-	 * Le card sono di un grigio deciso perché stacchino dalla pagina bianca. Altre palette, da accendere
-	 * quando servono, sono in assets/css/palette/ (Customizer → VivaVoce → Palette del sito). */
-	--vv-fondo: #ffffff;           /* pagina, valori copiabili */
-	--vv-fondo-card: #e3eaf2;      /* card degli elenchi, "Sostienici", campi dei moduli, immagine in testa alle pagine */
-	--vv-riquadro: #cfd9e5;        /* footer, "In breve", "In questa sezione", card senza foto (la vecchia sidebar dei contatti) */
-	--vv-fondo-hero: var(--vv-perla); /* fondo dell'illustrazione della home */
+	/* Ruoli. Il giallo e il turchese pieni non si leggono come testo sul bianco (1,4:1 e 2,6:1). */
+	--vv-fondo: #ffffff;
+	--vv-fondo-card: #e3eaf2;
+	--vv-riquadro: #cfd9e5;        /* footer, "In breve", "In questa sezione", card senza foto */
+	--vv-fondo-hero: var(--vv-perla);
 	--vv-placeholder: #d6dfe9;     /* dietro le immagini che si caricano */
-	--vv-fondo-attivo: #007a87;    /* mouse su pulsanti e sottomenu, voce corrente del sottomenu */
+	--vv-fondo-attivo: #007a87;    /* mouse su pulsanti e sottomenu */
 	--vv-pulsante: #2c3a4a;        /* pulsanti "Copia" */
 
-	/* Testi */
-	--vv-testo: var(--vv-inchiostro); /* testo e titoli */
-	--vv-testo-2: #59687f;         /* testo secondario sul fondo: 5,7:1, 4,7:1 sulla card */
-	--vv-testo-meta: #55657a;      /* date sul fondo delle card: 4,9:1 */
-	--vv-testo-riquadro: #384a5e;  /* testo secondario sul riquadro: 6,4:1 */
-	--vv-titoli-sezione: #3a4a5c;  /* titoli dei widget della home originale */
-	--vv-link: #00737f;            /* link e titoli delle card: 5,6:1 sul fondo, 4,6:1 sulla card; sul riquadro i link sono in inchiostro */
-	--vv-testo-attivo: #ffffff;    /* sul fondo attivo: 5,1:1 */
-	--vv-testo-pulsante: #ffffff;  /* sul pulsante */
-	--vv-testo-su-giallo: #2c3a4a; /* sul giallo: 8,2:1 */
-	--vv-testo-su-scuro: #ffffff;  /* badge, frecce e card su foto con il velo scuro */
-	--vv-errore: #c40000;          /* messaggi d'errore dei moduli: 6,3:1 */
+	--vv-testo: var(--vv-inchiostro);
+	--vv-testo-2: #59687f;         /* 5,7:1, 4,7:1 sulla card */
+	--vv-testo-meta: #55657a;      /* date sulla card: 4,9:1 */
+	--vv-testo-riquadro: #384a5e;  /* 6,4:1 */
+	--vv-titoli-sezione: #3a4a5c;
+	--vv-link: #00737f;            /* 5,6:1, 4,6:1 sulla card */
+	--vv-testo-attivo: #ffffff;    /* 5,1:1 */
+	--vv-testo-pulsante: #ffffff;
+	--vv-testo-su-giallo: #2c3a4a; /* 8,2:1 */
+	--vv-testo-su-scuro: #ffffff;  /* badge e frecce sul velo scuro */
+	--vv-errore: #c40000;          /* 6,3:1 */
 
-	/* Superfici e accenti del marchio: i colori del logo, ognuno nel suo ruolo, così una palette può
-	 * cambiarne uno senza toccare gli altri */
-	--vv-header-fondo: var(--vv-giallo);       /* testata (fissa e mobile) e campo di ricerca: colore o gradiente */
-	--vv-header-testo: var(--vv-inchiostro);   /* voci e icone della testata */
-	--vv-evidenza: var(--vv-rosso);            /* linea sotto la voce del menu della sezione corrente */
-	--vv-sottomenu-fondo: var(--vv-turchese);  /* sottomenu e pannello del menu mobile */
-	--vv-sottomenu-testo: var(--vv-inchiostro); /* 8,1:1 sul turchese (il bianco sarebbe 2,6:1) */
-	--vv-fascia-fondo: var(--vv-turchese);     /* fascia del copyright in fondo alla pagina */
+	--vv-header-fondo: var(--vv-giallo); /* colore o gradiente */
+	--vv-header-testo: var(--vv-inchiostro);
+	--vv-evidenza: var(--vv-rosso);      /* linea sotto la voce del menu della sezione corrente */
+	--vv-sottomenu-fondo: var(--vv-turchese);
+	--vv-sottomenu-testo: var(--vv-inchiostro); /* 8,1:1 */
+	--vv-fascia-fondo: var(--vv-turchese);
 	--vv-fascia-testo: var(--vv-inchiostro);
-	--vv-primario: var(--vv-giallo);           /* pulsanti: del tema, invio dei moduli, banner dei cookie; */
-	--vv-primario-fondo: var(--vv-primario);   /* il colore per bordi e contorni, il fondo può essere un gradiente */
+	--vv-primario: var(--vv-giallo);           /* bordi e contorni dei pulsanti */
+	--vv-primario-fondo: var(--vv-primario);   /* fondo dei pulsanti: colore o gradiente */
 	--vv-testo-su-primario: var(--vv-testo-su-giallo);
-	--vv-ghost-testo: var(--vv-testo-su-giallo); /* pulsante bianco bordato dell'hero */
-	--vv-accento-1: var(--vv-giallo);          /* filetti delle card a rotazione (vv_accent()), */
-	--vv-accento-2: var(--vv-turchese);        /* sotto i titoli di sezione (il primo), del banner */
-	--vv-accento-3: var(--vv-rosso);           /* dei cookie e dei riquadri vuoti */
-	--vv-disco-fondo: var(--vv-giallo);        /* dischi dietro la faccina e la mano del logo (footer, "torna su") */
-	--vv-fascetta-a-breve: #4cc96b;            /* fascette sulle foto degli eventi; testo: 5,4:1 */
-	--vv-fascetta-in-corso: #ff8f1f;           /* 5,1:1 */
-	--vv-fascetta-concluso: var(--vv-giallo);  /* 8,2:1 */
-	--vv-fascetta-testo: #2c3a4a;
+	--vv-ghost-testo: var(--vv-testo-su-giallo);
+	--vv-accento-1: var(--vv-giallo);
+	--vv-accento-2: var(--vv-turchese);
+	--vv-accento-3: var(--vv-rosso);
+	--vv-disco-fondo: var(--vv-giallo);        /* dietro la faccina del footer e la mano del "torna su" */
+	--vv-fascetta-a-breve: var(--vv-giallo);   /* 13,7:1 */
+	--vv-fascetta-in-corso: var(--vv-rosso);   /* 4,7:1 */
+	--vv-fascetta-concluso: var(--vv-turchese); /* 7,3:1 */
+	--vv-fascetta-testo: var(--vv-inchiostro);
 	--vv-fascetta-a-breve-testo: var(--vv-fascetta-testo);
 	--vv-fascetta-in-corso-testo: var(--vv-fascetta-testo);
 	--vv-fascetta-concluso-testo: var(--vv-fascetta-testo);
-	--vv-fascetta-bordo: transparent;          /* due righe sottili sopra e sotto, come un nastro */
-	--vv-linguetta-spessore: 4px;              /* barretta colorata in cima alle card */
-	--vv-linguetta-righe: transparent;         /* righe oblique sulla barretta, come un bastoncino di zucchero */
-	--vv-filetto-sezione: var(--vv-accento-1); /* trattino sotto i titoli di sezione (colore o motivo) */
+	--vv-fascetta-bordo: transparent;
+	--vv-linguetta-spessore: 4px;              /* barretta in cima alle card */
+	--vv-linguetta-righe: transparent;
+	--vv-filetto-sezione: var(--vv-accento-1); /* sotto i titoli di sezione: colore o motivo */
 	--vv-filetto-sezione-altezza: 3px;
-
-	/* Piè di pagina: colonne dei widget (la fascia del copyright è --vv-fascia-*) */
 	--vv-footer-fondo: var(--vv-riquadro);
 	--vv-footer-testo: var(--vv-testo-riquadro);
-	--vv-footer-titoli: var(--vv-testo);        /* titoli, icone, link al passaggio del mouse */
+	--vv-footer-titoli: var(--vv-testo);
 
-	/* Decorazioni, spente: una palette può accenderle (immagini, di solito SVG in data URI, e
-	 * animazioni definite nel suo file). Pallina: un cerchio di raggio 1 al centro di un riquadro
-	 * 2,3 × 2,65 che parte da (−1,15; −1,5); il tema la posa sul pallino giallo della O di VOCE, nel logo
-	 * e nella scritta del footer. */
+	/* Decorazioni spente, che una palette può accendere. La pallina è un cerchio di raggio 1 in un
+	 * riquadro 2,3 × 2,65 che parte da (−1,15; −1,5): il tema la posa sul pallino della O di VOCE. */
 	--vv-pallina: none;
-	--vv-pallina-dondolo: none;                /* animazione della pallina (perno in cima) */
-	--vv-festone: none;                        /* motivo ripetuto appeso sotto la testata */
-	--vv-festone-luci: none;                   /* secondo strato, dietro, per far brillare il festone */
+	--vv-festone: none;
+	--vv-festone-luci: none;
 	--vv-festone-brilla: none;
 	--vv-festone-altezza: 0px;
 
-	/* Linee, ombre, veli. Ombre e veli sono i tre canali RGB: rgb(var(--vv-ombra) / 0.12). */
 	--vv-bordo: #cfd9e5;
-	--vv-ombra: 0 16 46;
+	--vv-ombra: 0 16 46;           /* canali RGB: rgb(var(--vv-ombra) / 0.12) */
 	--vv-velo: 0 0 0;
-	--vv-ombra-card: none;         /* le card staccano per colore; le palette con card bianche accendono l'ombra */
-
-	/* Badge dei vecchi plugin di elenchi, scuriti perché il testo bianco si legga */
+	--vv-ombra-card: none;
 	--vv-badge-1: #12806b;
 	--vv-badge-2: #1f6fb2;
 	--vv-badge-3: #c8321f;
 	--vv-badge-4: #5e35b1;
 
-	/* Poppins per tutto il sito; i font di sistema solo finché non è caricato */
 	--vv-font: "Poppins", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif;
-
-	/* Caratteri: una scala sola, fluida fra 360px (primo valore) e 1200px (ultimo) */
-	--vv-fs-meta: 14px;                                      /* date, breadcrumb, didascalie */
-	--vv-fs-piccolo: 15px;                                   /* testi secondari, footer */
-	--vv-fs-corpo: clamp(17px, 16.57px + 0.119vw, 18px);     /* testo delle pagine */
-	--vv-fs-card: clamp(19px, 18.14px + 0.238vw, 21px);      /* titoli delle card */
+	/* Scala fluida fra 360px (primo valore) e 1200px (ultimo) */
+	--vv-fs-meta: 14px;
+	--vv-fs-piccolo: 15px;
+	--vv-fs-corpo: clamp(17px, 16.57px + 0.119vw, 18px);
+	--vv-fs-card: clamp(19px, 18.14px + 0.238vw, 21px);
 	--vv-fs-h4: clamp(18px, 17.14px + 0.238vw, 20px);
 	--vv-fs-h3: clamp(20px, 18.29px + 0.476vw, 24px);
 	--vv-fs-h2: clamp(24px, 21.43px + 0.714vw, 30px);
-	--vv-fs-sezione: clamp(24px, 20.57px + 0.952vw, 32px);   /* titoli di sezione in maiuscolo */
-	--vv-fs-titolo: clamp(30px, 24px + 1.667vw, 44px);       /* titolo di pagina e di articolo */
+	--vv-fs-sezione: clamp(24px, 20.57px + 0.952vw, 32px);
+	--vv-fs-titolo: clamp(30px, 24px + 1.667vw, 44px);
 
-	/* Spazi: sempre questi cinque passi */
 	--vv-s-1: 8px;
 	--vv-s-2: 16px;
 	--vv-s-3: 24px;
 	--vv-s-4: 40px;
 	--vv-s-5: clamp(40px, 6vw, 64px);
-
-	/* Misure */
-	--vv-lettura: 830px;          /* larghezza della colonna contenuti originale (col-md-9) */
+	--vv-lettura: 830px;
 	--vv-largo: 1140px;
 	--vv-spazio: var(--vv-s-5);
-	--vv-gap: 30px;               /* fra le card */
+	--vv-gap: 30px;
 	--vv-transizione: 0.3s ease;
 }
 @media (max-width: 599px) {
@@ -239,11 +207,7 @@
 	}
 }
 
-/* --- Tema scuro "Inchiostro": il blu notte del testo diventa il fondo. Ridefinisce solo i ruoli;
- * header giallo, sottomenu e fascia turchesi, pulsanti gialli e badge restano come sono.
- * Lo accende data-vv-tema="scuro" su <html>, messo dallo switcher dell'header prima che la pagina
- * si disegni (vv_tema_script() in functions.php); in "auto" segue l'impostazione del sistema.
- * Testo sempre ad almeno 4,5:1 (fra parentesi). --- */
+/* Tema scuro: il blu notte dell'inchiostro diventa il fondo; testata, sottomenu, pulsanti e badge restano. */
 :root[data-vv-tema="scuro"] {
 	color-scheme: dark;
 
@@ -266,20 +230,19 @@
 	--vv-bordo: #2a406b;
 	--vv-ombra: 0 0 0;
 }
-/* Colori globali di Sydney (pulsanti, link, titoli, testo grigio, footer, citazioni, bordi, fondo pagina)
- * presi dai ruoli, in ogni tema e in ogni palette: html:root vince sul :root del Customizer, che ha ancora i grigi neutri di prima. */
+/* I colori globali di Sydney seguono i ruoli: html:root vince sul :root del suo Customizer. */
 html:root {
-	--sydney-global-color-1: var(--vv-primario);     /* pulsanti e dettagli di Sydney */
+	--sydney-global-color-1: var(--vv-primario);
 	--sydney-global-color-2: var(--vv-accento-3);
-	--sydney-global-color-3: var(--vv-link);         /* link nel testo e testo degli elenchi di ricerca */
+	--sydney-global-color-3: var(--vv-link);
 	--sydney-global-color-4: var(--vv-testo);
 	--sydney-global-color-5: var(--vv-testo-2);
-	--sydney-global-color-6: var(--vv-fascia-fondo); /* fondo del footer di Sydney */
+	--sydney-global-color-6: var(--vv-fascia-fondo);
 	--sydney-global-color-7: var(--vv-fondo-card);
 	--sydney-global-color-8: var(--vv-bordo);
 	--sydney-global-color-9: var(--vv-fondo);
 }
-/* Larghezza utile del .container di Sydney (Bootstrap 3), per allineare le griglie a header e footer */
+/* Larghezza utile del .container di Sydney, per allineare le griglie a header e footer */
 :root { --vv-contenitore: calc(100vw - 30px); }
 @media (min-width: 768px) { :root { --vv-contenitore: 720px; } }
 @media (min-width: 992px) { :root { --vv-contenitore: 940px; } }

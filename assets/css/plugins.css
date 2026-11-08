@@ -1,31 +1,24 @@
-/* VivaVoce: plugin con il loro aspetto originale, tranne Forminator e l'avviso sui
- * cookie, che prendono i colori e i pulsanti del tema (in fondo al file).
- * Correzione di leggibilità mantenuta: testo scuro sui pulsanti gialli di invio (moduli, commenti,
- * ricerca); nell'originale era bianco su giallo, quasi illeggibile. */
+/* Plugin e pulsanti di Sydney con i colori del tema: invio dei moduli, Forminator, avviso sui cookie,
+ * wvoce-iscrizioni. I plugin scrivono i colori inline o con selettori con un id: da qui gli !important. */
 
 input[type="submit"],
 button[type="submit"],
 .wpcf7 input[type="submit"] {
-	background: var(--vv-primario-fondo); /* Sydney dà solo il colore: qui anche l'eventuale gradiente */
+	background: var(--vv-primario-fondo); /* Sydney dà solo il colore, non il gradiente */
 	color: var(--vv-testo-su-primario) !important;
 	font-weight: 700;
 }
-/* Al passaggio del mouse Sydney cambia solo il colore di fondo: via il gradiente, perché si veda */
+/* Sydney al passaggio del mouse cambia solo il colore: il gradiente lo coprirebbe */
 :is(input[type="submit"], button[type="submit"]):is(:hover, :focus-visible) {
 	background-image: none;
 }
 
-/* Mentre il banner dei cookie è aperto (altezza misurata da vv.js) la fine della pagina resta visibile */
+/* La fine della pagina resta visibile sopra il banner dei cookie (altezza da vv.js) */
 body.vv-cookie-open {
 	padding-bottom: var(--vv-cookie-h, 0px);
 }
 
-/* --- Forminator (moduli di iscrizione): colori, caratteri e pulsanti del tema, nel tema chiaro e
- * in quello scuro. Forminator scrive i colori del suo stile "default" modulo per modulo
- * (wp-content/uploads/forminator/…/style-N.css) con selettori che contengono un id: qui serve
- * !important. Prima: etichette 12px grigie (4,5:1), testo nero anche sul blu del tema scuro,
- * pulsante di invio #333 su blu (2,7:1). --- */
-/* Titoli dei blocchi "Sezione" (es. "Dati di Residenza" in Diventa socio): #333 fisso nel plugin */
+/* Forminator: scrive i colori modulo per modulo (uploads/forminator/…/style-N.css) */
 .forminator-ui.forminator-custom-form :is(.forminator-title, .forminator-subtitle) {
 	color: var(--vv-testo) !important;
 }
@@ -40,7 +33,7 @@ body.vv-cookie-open {
 	line-height: 1.45 !important;
 	color: var(--vv-testo-2) !important;
 }
-/* Campi: il fondo delle card, bordo grigio (4,2:1), testo d'esempio più scuro (5,5:1; prima 3:1) */
+/* Bordo 4,2:1, testo d'esempio 5,5:1 */
 .forminator-ui.forminator-custom-form :is(.forminator-input, .forminator-textarea, .select2-selection) {
 	background-color: var(--vv-fondo-card) !important;
 	border-color: var(--vv-testo-2) !important;
@@ -57,7 +50,7 @@ body.vv-cookie-open {
 	color: var(--vv-testo-meta) !important;
 	opacity: 1;
 }
-/* Scelte, caselle e consensi. Il testo dei consensi sta in un <p> che il plugin colora a parte (#000) */
+/* Il testo dei consensi sta in un <p> che il plugin colora a parte */
 .forminator-ui.forminator-custom-form :is(.forminator-radio, .forminator-checkbox, .forminator-consent, .forminator-radio-label, .forminator-checkbox-label, .forminator-checkbox__label, .forminator-consent__label) {
 	font-size: var(--vv-fs-piccolo) !important;
 	line-height: 1.5 !important;
@@ -66,8 +59,7 @@ body.vv-cookie-open {
 .forminator-ui.forminator-custom-form :is(.forminator-checkbox__label, .forminator-consent__label) p {
 	color: inherit !important;
 }
-/* Altri testi neri o grigio scuro fissi nel plugin: prefissi e suffissi dei campi, prefisso
- * telefonico, scelta delle tendine, campi bloccati, nome e peso dei file caricati */
+/* Altri testi che il plugin fissa in nero o grigio scuro */
 .forminator-ui.forminator-custom-form :is(.forminator-input input, .forminator-prefix, .forminator-suffix, .iti__selected-dial-code, .select2-selection__rendered, .forminator-uploaded-file--title) {
 	color: var(--vv-testo) !important;
 }
@@ -92,7 +84,6 @@ body.vv-cookie-open {
 	color: var(--vv-link) !important;
 	text-decoration: underline;
 }
-/* Invio: il pulsante giallo del sito (.vv-button); "Scegli il file": come i pulsanti "Copia" */
 .forminator-ui.forminator-custom-form .forminator-button-submit {
 	padding: 12px 30px !important;
 	background: var(--vv-primario-fondo) !important;
@@ -115,14 +106,12 @@ body.vv-cookie-open {
 	text-transform: uppercase;
 }
 .forminator-ui.forminator-custom-form :is(.forminator-button-submit, .forminator-button-upload):is(:hover, :focus-visible) {
-	background: var(--vv-fondo-attivo) !important; /* "background" intero: il fondo del pulsante può essere un gradiente */
+	background: var(--vv-fondo-attivo) !important; /* intero: il fondo può essere un gradiente */
 	box-shadow: inset 0 0 0 2px var(--vv-primario) !important;
 	color: var(--vv-testo-attivo) !important;
 }
 
-/* --- Avviso sui cookie (GDPR Cookie Consent): fascia in fondo con i pulsanti del sito. I testi si
- * scrivono nelle impostazioni del plugin; il plugin mette i suoi colori in linea, quindi !important.
- * "Rifiuta" è grande quanto "Accetta" (lo chiede il Garante privacy), "Preferenze" è un link. --- */
+/* Avviso sui cookie (GDPR Cookie Consent): "Rifiuta" grande quanto "Accetta", lo chiede il Garante privacy */
 #cookie-law-info-bar {
 	padding: var(--vv-s-2) !important;
 	background: var(--vv-fondo) !important;
@@ -202,11 +191,8 @@ body.vv-cookie-open {
 	outline: 3px solid var(--vv-link);
 	outline-offset: 2px;
 }
-/* Linguetta per riaprire le preferenze dopo aver scelto: attaccata al bordo sinistro, con la scritta
- * in verticale, come il badge di reCAPTCHA su quello destro. Sale con la fascia turchese (--vv-sotto,
- * vedi footer.css) invece di coprire la faccina di sinistra. Il plugin scrive posizione e larghezza
- * nello stile inline (left: 16px; bottom: 0): servono gli !important. La scritta è girata di 180°
- * per leggersi dal basso in alto, quindi gli angoli arrotondati a destra qui sono quelli "a sinistra". */
+/* Linguetta per riaprire le preferenze, in verticale sul bordo sinistro; sale con la fascia del footer.
+ * La scritta è girata di 180°: gli angoli "a destra" qui sono quelli a sinistra. */
 #cookie-law-info-again {
 	left: 0 !important;
 	right: auto !important;
@@ -228,7 +214,6 @@ body.vv-cookie-open {
 #cookie-law-info-again:hover {
 	box-shadow: 0 0 12px rgb(var(--vv-ombra) / 0.45) !important;
 }
-/* Finestra delle preferenze */
 .cli-modal .cli-modal-content {
 	border-radius: 0 !important;
 	background: var(--vv-fondo) !important;
@@ -265,8 +250,7 @@ body.vv-cookie-open {
 	color: var(--vv-testo-attivo) !important;
 }
 
-/* Plugin wvoce-iscrizioni (avvisi sopra i moduli, errore del codice fiscale, "Recupera i tuoi dati"):
- * i suoi colori presi dai token del tema, chiaro e scuro */
+/* wvoce-iscrizioni: i suoi colori dai token del tema */
 :root {
 	--wvi-accento: var(--vv-link);
 	--wvi-fondo: var(--vv-fondo-card);

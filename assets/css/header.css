@@ -1,17 +1,9 @@
-/* VivaVoce: testata (0.6.5). Struttura di Sydney (layout 2, sempre in alto su desktop), colori del
- * Customizer (giallo); il tema la rende più bassa e più ordinata:
- * - 88px in cima alla pagina, 64px dopo aver fatto scorrere (classe vv-scrolled di vv.js);
- * - voci in maiuscoletto, linea rossa sotto quella della sezione corrente (vv-current, inc/breadcrumbs.php);
- * - sottomenu turchesi come nel Customizer, con più aria e il carattere normale;
- * - testata mobile (fino a 1024px) alta 64px.
- * "body" e "#masthead" servono a superare il CSS inline del Customizer. */
+/* Testata: struttura di Sydney, più bassa e ordinata; colori dai ruoli invece che dal Customizer di
+ * Sydney, così li cambiano tema scuro e palette. "body" e "#masthead" superano il CSS inline del Customizer. */
 
-/* Colori della testata dai ruoli della palette, non da quelli scritti a mano nel Customizer di
- * Sydney (giallo, sottomenu turchesi, menu mobile turchese con testo #333): così li cambiano il tema
- * scuro e le palette alternative. Il colore dell'header "sticky", vuoto nel Customizer, Sydney lo farebbe blu scuro. */
 body .main-header,
 body .header-search-form {
-	background: var(--vv-header-fondo) !important; /* un colore o un gradiente */
+	background: var(--vv-header-fondo) !important;
 }
 body .sydney-offcanvas-menu {
 	background-color: var(--vv-sottomenu-fondo);
@@ -25,9 +17,8 @@ body .sydney-offcanvas-menu svg {
 	fill: var(--vv-sottomenu-testo);
 }
 
-/* --- Decorazioni delle palette (token --vv-pallina, --vv-festone*: spenti se la palette non li
- * accende). La pallina copre il pallino giallo della O di VOCE nel logo (600×230: centro 440,158,
- * raggio 21; la pallina ha raggio 22,5 perché il giallo non si veda sul bordo). --- */
+/* Pallina della palette sul pallino della O di VOCE (logo 600×230: centro 440,158, raggio 21; la pallina
+ * ha raggio 22,5 perché il giallo non si veda sul bordo). */
 body .site-branding > a {
 	position: relative;
 	display: inline-block;
@@ -42,7 +33,6 @@ body .site-branding > a::after {
 	width: 8.625%;
 	height: 25.92%;
 	background: var(--vv-pallina) center / 100% 100% no-repeat;
-	transform-origin: 50% 6%;
 	pointer-events: none;
 }
 /* Festone appeso sotto la testata, con un secondo strato dietro che brilla */
@@ -68,15 +58,12 @@ body .main-header::after {
 	background-image: var(--vv-festone);
 }
 @media (prefers-reduced-motion: no-preference) {
-	body .site-branding > a::after {
-		animation: var(--vv-pallina-dondolo);
-	}
 	body .main-header::before {
 		animation: var(--vv-festone-brilla);
 	}
 }
 
-/* --- Altezza (desktop) --- */
+/* Desktop: 88px, 64px dopo aver fatto scorrere */
 body #masthead .site-header-inner {
 	padding-top: 12px;
 	padding-bottom: 12px;
@@ -90,7 +77,7 @@ body #masthead .site-logo {
 body #masthead {
 	transition: box-shadow 0.2s ease, margin-bottom 0.2s ease;
 }
-/* Dopo lo scorrimento: 64px. Il margine sotto compensa i 24px persi, così il contenuto non salta. */
+/* Il margine compensa i 24px persi, così il contenuto non salta */
 body.vv-scrolled #masthead {
 	margin-bottom: 24px;
 	box-shadow: 0 2px 10px rgb(var(--vv-ombra) / 0.12);
@@ -103,7 +90,6 @@ body.vv-scrolled #masthead .site-logo {
 	height: 44px;
 }
 
-/* --- Voci principali: maiuscoletto, linea rossa sotto (mouse, focus, sezione corrente) --- */
 body .main-header #mainnav .menu > li {
 	padding: 0 14px;
 }
@@ -126,8 +112,7 @@ body .main-header #mainnav .menu > li.vv-current > a {
 	text-decoration: underline 2px var(--vv-evidenza) !important;
 	text-underline-offset: 7px;
 }
-/* Freccine: piccole e sempre del colore del testo (Sydney al passaggio del mouse le colorava
- * con il colore 1 del Customizer, il giallo del fondo, e sparivano) */
+/* Sydney al passaggio del mouse colora le freccine di giallo: sul fondo giallo sparivano */
 body .main-header #mainnav .menu > li > .dropdown-symbol {
 	margin-left: 6px;
 	top: -1px;
@@ -145,10 +130,7 @@ body .main-header .header-search svg {
 	fill: var(--vv-header-testo) !important;
 }
 
-/* --- Sottomenu: turchese (--vv-sottomenu-fondo), con testo inchiostro (il bianco sul turchese è 2,6:1);
- * al passaggio del mouse turchese scuro con testo bianco (5,1:1). Più aria, carattere normale
- * (il maiuscoletto resta al primo livello) e un'ombra leggera; drop-shadow segue solo le voci,
- * non i 10px trasparenti sopra l'elenco (il "ponte" per il mouse). --- */
+/* Sottomenu: drop-shadow segue solo le voci, non i 10px trasparenti sopra l'elenco (il "ponte" per il mouse) */
 body .main-header #mainnav ul ul {
 	width: max-content;
 	min-width: 220px;
@@ -193,9 +175,7 @@ body .main-header #mainnav ul ul li.vv-current > a {
 	color: var(--vv-testo-attivo) !important;
 }
 
-/* --- Switcher del tema (creato da vv.js accanto alla lente, in entrambe le testate):
- * icona del tema in uso, un clic passa al successivo (chiaro → scuro → auto). "body" e
- * ".main-header" superano lo stile dei pulsanti di Sydney (giallo, maiuscolo, 12px 34px). --- */
+/* Switcher del tema (vv.js): "body .main-header" supera lo stile dei pulsanti di Sydney */
 body .main-header .vv-tema {
 	display: inline-flex;
 	align-items: center;
@@ -232,7 +212,7 @@ body .main-header .vv-tema svg {
 	stroke-linejoin: round;
 }
 
-/* --- Testata mobile (fino a 1024px): 64px, scorre via con la pagina --- */
+/* Testata mobile, fino a 1024px */
 body #masthead-mobile {
 	padding-top: 8px;
 	padding-bottom: 8px;
@@ -241,12 +221,11 @@ body #masthead-mobile .site-logo {
 	width: auto;
 	height: 48px;
 }
-/* Nel pannello del menu mobile niente secondo logo (dal vecchio "CSS aggiuntivo" del Customizer) */
+/* Niente secondo logo nel pannello del menu mobile */
 .mobile-header-item .site-branding {
 	display: none;
 }
 
-/* Pannello del menu mobile: le voci principali in maiuscoletto come su desktop, i sottomenu no */
 body .sydney-offcanvas-menu #mainnav > div > ul > li > a {
 	font-size: 15px;
 	font-weight: 600;

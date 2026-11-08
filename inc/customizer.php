@@ -1,28 +1,22 @@
 <?php
 /**
- * Pannello "VivaVoce" nel Customizer (hero della home, palette del sito, dati dell'associazione) e le
- * funzioni che leggono quei valori: vv_mod(), le pagine "Diventa socio" e "Fai una donazione", il dominio.
+ * Pannello "VivaVoce" del Customizer e le funzioni che ne leggono i valori.
  *
  * @package VivaVoce
  */
 
 defined( 'ABSPATH' ) || exit;
 
-/**
- * Valori predefiniti delle impostazioni del child.
- */
-function vv_defaults() {
-	static $defaults = null;
-	if ( null !== $defaults ) {
-		return $defaults;
-	}
-	$defaults = array(
+function vv_predefiniti() {
+	static $predefiniti = null;
+
+	$predefiniti ??= array(
 		'vv_hero_enable'    => true,
 		'vv_hero_title'     => 'Lettura ad alta voce, teatro e creatività',
 		'vv_hero_cta1_text' => 'Prossimi appuntamenti',
 		'vv_hero_cta1_url'  => '#appuntamenti',
 		'vv_hero_cta2_text' => 'Diventa socio',
-		'vv_hero_cta2_url'  => '', // Vuoto: la pagina "Diventa socio" dei Dati dell'associazione.
+		'vv_hero_cta2_url'  => '', // vuoto: la pagina "Diventa socio"
 		'vv_hero_image'     => '',
 		'vv_cf'             => '93096450502',
 		'vv_piva'           => '02441190507',
@@ -38,12 +32,11 @@ function vv_defaults() {
 		'vv_img_5x1000'     => 0,
 		'vv_palette'        => '',
 	);
-	return $defaults;
+	return $predefiniti;
 }
 
 /**
- * Palette del sito da accendere quando servono, una per file in assets/css/palette/ (chiave = nome
- * del file). Per aggiungerne una basta il file e una riga qui.
+ * Una per file in assets/css/palette/, con il nome del file come chiave.
  */
 function vv_palette_disponibili() {
 	return array(
@@ -55,29 +48,21 @@ function vv_palette_disponibili() {
 
 /**
  * Solo le palette conosciute: il valore finisce nel percorso del foglio di stile.
- *
- * @param string $value Valore scelto.
  */
-function vv_sanitize_palette( $value ) {
-	return is_string( $value ) && array_key_exists( $value, vv_palette_disponibili() ) ? $value : '';
+function vv_pulisci_palette( $valore ) {
+	return is_string( $valore ) && array_key_exists( $valore, vv_palette_disponibili() ) ? $valore : '';
+}
+
+function vv_mod( $chiave ) {
+	return get_theme_mod( $chiave, vv_predefiniti()[ $chiave ] ?? '' );
 }
 
 /**
- * Legge un'impostazione del child con il suo valore predefinito.
- *
- * @param string $key Nome dell'impostazione.
- */
-function vv_mod( $key ) {
-	$defaults = vv_defaults();
-	return get_theme_mod( $key, $defaults[ $key ] ?? '' );
-}
-
-/**
- * Pagina "Diventa socio" o "Fai una donazione" scelta nei Dati dell'associazione. Fino alla 1.4 era un
- * indirizzo scritto a mano (vv_url_socio, vv_url_donazione): finché non se ne sceglie una vale quello.
+ * Fino alla 1.4 la pagina era un indirizzo scritto a mano (vv_url_socio, vv_url_donazione): finché non
+ * se ne sceglie una vale quello.
  *
  * @param string $quale socio | donazione.
- * @return int ID della pagina, 0 se non c'è.
+ * @return int 0 se non c'è.
  */
 function vv_pagina_id( $quale ) {
 	$id = absint( get_theme_mod( 'vv_pagina_' . $quale, 0 ) );
@@ -92,8 +77,6 @@ function vv_pagina_id( $quale ) {
 }
 
 /**
- * Indirizzo della pagina "Diventa socio" o "Fai una donazione", '' se non c'è.
- *
  * @param string $quale socio | donazione.
  */
 function vv_pagina_url( $quale ) {
@@ -102,17 +85,14 @@ function vv_pagina_url( $quale ) {
 }
 
 /**
- * Dominio del sito senza "www." (wvoce.it).
+ * Senza "www.": wvoce.it.
  */
 function vv_dominio() {
 	return preg_replace( '/^www\./', '', (string) wp_parse_url( home_url( '/' ), PHP_URL_HOST ) );
 }
 
-/**
- * @param WP_Customize_Manager $wp_customize Customizer.
- */
-function vv_customize_register( $wp_customize ) {
-	$defaults = vv_defaults();
+function vv_registra_customizer( WP_Customize_Manager $wp_customize ) {
+	$predefiniti = vv_predefiniti();
 
 	$wp_customize->add_panel( 'vv_panel', array(
 		'title'    => 'VivaVoce',
@@ -126,7 +106,7 @@ function vv_customize_register( $wp_customize ) {
 	$wp_customize->add_section( 'vv_palette', array(
 		'title'       => 'Palette del sito',
 		'panel'       => 'vv_panel',
-		'description' => 'Colori per un periodo (Natale) o una palette alternativa, per tutti i visitatori. Il tema scuro resta scuro: il Natale vi porta solo gli accenti e la neve, Sabbia non lo tocca. Con "Pianifica" (accanto a "Pubblica") si può programmare quando accenderla e quando tornare alla predefinita.',
+		'description' => 'Colori per un periodo o una palette alternativa, per tutti i visitatori. Natale: sito scuro con oro, verde, rosso e neve; chi vuole lo spegne dal pulsante del tema in testata e torna al chiaro o allo scuro di sempre. Sabbia vale solo nel tema chiaro. Con "Pianifica" (accanto a "Pubblica") si programma quando accenderla e quando tornare alla predefinita.',
 	) );
 	$wp_customize->add_section( 'vv_dati', array(
 		'title'       => 'Dati dell\'associazione',
@@ -155,14 +135,14 @@ function vv_customize_register( $wp_customize ) {
 	);
 	$sanificazioni = array(
 		'text'  => 'sanitize_text_field',
-		'link'  => 'vv_sanitize_link',
+		'link'  => 'vv_pulisci_link',
 		'url'   => 'esc_url_raw',
 		'email' => 'sanitize_email',
 	);
 
 	$wp_customize->add_setting( 'vv_palette', array(
-		'default'           => $defaults['vv_palette'],
-		'sanitize_callback' => 'vv_sanitize_palette',
+		'default'           => $predefiniti['vv_palette'],
+		'sanitize_callback' => 'vv_pulisci_palette',
 	) );
 	$wp_customize->add_control( 'vv_palette', array(
 		'section' => 'vv_palette',
@@ -172,7 +152,7 @@ function vv_customize_register( $wp_customize ) {
 	) );
 
 	$wp_customize->add_setting( 'vv_hero_enable', array(
-		'default'           => $defaults['vv_hero_enable'],
+		'default'           => $predefiniti['vv_hero_enable'],
 		'sanitize_callback' => 'wp_validate_boolean',
 	) );
 	$wp_customize->add_control( 'vv_hero_enable', array(
@@ -183,7 +163,7 @@ function vv_customize_register( $wp_customize ) {
 
 	foreach ( $text_fields as $id => list( $section, $label, $type, $description ) ) {
 		$wp_customize->add_setting( $id, array(
-			'default'           => $defaults[ $id ],
+			'default'           => $predefiniti[ $id ],
 			'sanitize_callback' => $sanificazioni[ $type ],
 		) );
 		$wp_customize->add_control( $id, array(
@@ -232,17 +212,15 @@ function vv_customize_register( $wp_customize ) {
 		'mime_type'   => 'image',
 	) ) );
 }
-add_action( 'customize_register', 'vv_customize_register' );
+add_action( 'customize_register', 'vv_registra_customizer' );
 
 /**
- * Link: URL completi oppure ancore nella pagina (#appuntamenti).
- *
- * @param string $value Valore inserito.
+ * Un indirizzo completo o un'ancora della pagina (#appuntamenti).
  */
-function vv_sanitize_link( $value ) {
-	$value = trim( (string) $value );
-	if ( str_starts_with( $value, '#' ) ) {
-		return '#' . sanitize_html_class( substr( $value, 1 ) );
+function vv_pulisci_link( $valore ) {
+	$valore = trim( (string) $valore );
+	if ( str_starts_with( $valore, '#' ) ) {
+		return '#' . sanitize_html_class( substr( $valore, 1 ) );
 	}
-	return esc_url_raw( $value );
+	return esc_url_raw( $valore );
 }

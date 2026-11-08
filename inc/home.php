@@ -1,90 +1,70 @@
 <?php
 /**
- * Home: hero VivaVoce al posto dello slider di Sydney.
+ * Hero della home al posto dello slider di Sydney.
  *
  * @package VivaVoce
  */
 
 defined( 'ABSPATH' ) || exit;
 
-/**
- * L'hero VivaVoce è in uso nella richiesta corrente?
- */
-function vv_hero_active() {
+function vv_hero_attivo() {
 	return is_front_page() && vv_mod( 'vv_hero_enable' );
 }
 
 /**
- * Immagine dell'hero: quella scelta nel pannello VivaVoce oppure la prima slide di Sydney.
+ * Quella del pannello VivaVoce o la prima slide di Sydney.
  */
-function vv_hero_image_url() {
+function vv_immagine_hero() {
 	$url = vv_mod( 'vv_hero_image' );
 	return $url ? $url : (string) get_theme_mod( 'slider_image_1', '' );
 }
 
 /**
- * L'immagine dell'hero nella libreria dei media (0 se è altrove), cercata una volta per pagina:
- * servono sia l'hero sia l'anteprima social della home.
+ * Cercata una volta per pagina: la vogliono l'hero e l'anteprima social. 0 se non è nella libreria.
  */
-function vv_hero_media_id() {
+function vv_id_immagine_hero() {
 	static $id = null;
 	if ( null === $id ) {
-		$url = vv_hero_image_url();
+		$url = vv_immagine_hero();
 		$id  = $url ? attachment_url_to_postid( $url ) : 0;
 	}
 	return $id;
 }
 
 /**
- * L'hero usa l'illustrazione originale (la faccia che parla)? Allora la mostra a livelli separati
- * (assets/img/hero/) per animare testa, mano e trattini. Con un'altra immagine resta l'immagine sola.
+ * Solo l'illustrazione originale ha i livelli separati in assets/img/hero/.
  */
 function vv_hero_animata() {
-	return str_contains( basename( (string) wp_parse_url( vv_hero_image_url(), PHP_URL_PATH ) ), 'vivavoce-logo-pearl' );
+	return str_contains( basename( (string) wp_parse_url( vv_immagine_hero(), PHP_URL_PATH ) ), 'vivavoce-logo-pearl' );
 }
 
-/**
- * Spegne lo slider di Sydney nella home.
- *
- * @param string $value Tipo di header della home.
- */
-function vv_front_header_type( $value ) {
-	return vv_hero_active() ? 'nothing' : $value;
+function vv_niente_slider_home( $tipo ) {
+	return vv_hero_attivo() ? 'nothing' : $tipo;
 }
-add_filter( 'theme_mod_front_header_type', 'vv_front_header_type' );
+add_filter( 'theme_mod_front_header_type', 'vv_niente_slider_home' );
 
-/**
- * @param string[] $classes Classi del body.
- */
-function vv_hero_body_class( $classes ) {
-	if ( vv_hero_active() ) {
-		$classes[] = 'vv-has-hero';
+function vv_classe_hero( $classi ) {
+	if ( vv_hero_attivo() ) {
+		$classi[] = 'vv-has-hero';
 	}
-	return $classes;
+	return $classi;
 }
-add_filter( 'body_class', 'vv_hero_body_class' );
+add_filter( 'body_class', 'vv_classe_hero' );
 
-/**
- * Stampa l'hero.
- */
-function vv_render_hero() {
-	if ( vv_hero_active() ) {
+function vv_stampa_hero() {
+	if ( vv_hero_attivo() ) {
 		get_template_part( 'template-parts/home-hero' );
 	}
 }
-add_action( 'sydney_after_hero', 'vv_render_hero' );
+add_action( 'sydney_after_hero', 'vv_stampa_hero' );
 
 /**
- * Con l'hero il titolo della pagina home ("Benvenuto") non si stampa: l'h1 è quello dell'hero, e una
- * pagina deve averne uno solo. the_title() con un titolo vuoto non stampa neanche i tag.
- *
- * @param string $title Titolo.
- * @param int    $id    ID del contenuto.
+ * L'h1 della home è quello dell'hero; con un titolo vuoto the_title() non stampa neanche i tag.
  */
-function vv_home_senza_titolo( $title, $id = 0 ) {
-	if ( in_the_loop() && is_main_query() && (int) get_option( 'page_on_front' ) === (int) $id && vv_hero_active() ) {
+function vv_home_senza_titolo( $titolo, $id = 0 ) {
+	if ( in_the_loop() && is_main_query() && (int) get_option( 'page_on_front' ) === (int) $id && vv_hero_attivo() ) {
 		return '';
 	}
-	return $title;
+	return $titolo;
 }
 add_filter( 'the_title', 'vv_home_senza_titolo', 10, 2 );

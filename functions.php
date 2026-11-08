@@ -29,21 +29,17 @@ require VV_DIR . '/inc/single.php';
 require VV_DIR . '/inc/page.php';
 require VV_DIR . '/inc/redirects.php';
 
-/**
- * Fogli di stile e script del tema.
- */
-function vv_enqueue_assets() {
-	$dep = 'sydney-style-min';
-	foreach ( array( 'tokens', 'base', 'layout', 'header', 'footer', 'components', 'home', 'pages', 'plugins', 'scuro' ) as $name ) {
-		$rel = "/assets/css/{$name}.css";
-		wp_enqueue_style( "vv-{$name}", VV_URI . $rel, array( $dep ), (string) filemtime( VV_DIR . $rel ) );
-		$dep = "vv-{$name}";
+function vv_carica_stili_e_script() {
+	$dipende_da = 'sydney-style-min';
+	foreach ( array( 'tokens', 'base', 'layout', 'header', 'footer', 'components', 'home', 'pages', 'plugins', 'scuro' ) as $nome ) {
+		$file = "/assets/css/{$nome}.css";
+		wp_enqueue_style( "vv-{$nome}", VV_URI . $file, array( $dipende_da ), (string) filemtime( VV_DIR . $file ) );
+		$dipende_da = "vv-{$nome}";
 	}
-	// Palette del sito (Customizer → VivaVoce → Palette del sito): dopo tutto il resto, perché ridefinisce i token (e il Natale aggiunge la neve).
-	$palette = vv_sanitize_palette( vv_mod( 'vv_palette' ) ); // una palette tolta dall'elenco non carica niente
+	$palette = vv_pulisci_palette( vv_mod( 'vv_palette' ) );
 	if ( $palette ) {
-		$rel = "/assets/css/palette/{$palette}.css";
-		wp_enqueue_style( 'vv-palette', VV_URI . $rel, array( $dep ), (string) filemtime( VV_DIR . $rel ) );
+		$file = "/assets/css/palette/{$palette}.css";
+		wp_enqueue_style( 'vv-palette', VV_URI . $file, array( $dipende_da ), (string) filemtime( VV_DIR . $file ) );
 	}
 
 	wp_enqueue_script( 'vv-main', VV_URI . '/assets/js/vv.js', array(), (string) filemtime( VV_DIR . '/assets/js/vv.js' ), array(
@@ -51,56 +47,66 @@ function vv_enqueue_assets() {
 		'strategy'  => 'defer',
 	) );
 }
-add_action( 'wp_enqueue_scripts', 'vv_enqueue_assets', 20 );
+add_action( 'wp_enqueue_scripts', 'vv_carica_stili_e_script', 20 );
 
 /**
- * Preload di Poppins normale e grassetto (latin): il testo compare subito nel carattere giusto,
- * senza il passaggio dal font di sistema. Gli altri pesi arrivano con il CSS.
+ * Poppins normale e grassetto subito, senza il passaggio dal font di sistema.
  */
-function vv_preload_fonts() {
+function vv_precarica_font() {
 	foreach ( array( 'poppins-400-latin', 'poppins-700-latin' ) as $font ) {
 		printf( '<link rel="preload" href="%s" as="font" type="font/woff2" crossorigin>' . "\n", esc_url( VV_URI . "/assets/fonts/{$font}.woff2" ) );
 	}
 }
-add_action( 'wp_head', 'vv_preload_fonts', 1 );
+add_action( 'wp_head', 'vv_precarica_font', 1 );
 
 /**
- * Tema chiaro o scuro, prima che la pagina si disegni (niente lampo bianco): la scelta del visitatore
- * ("chiaro", "scuro" o "auto", salvata dallo switcher di vv.js) diventa data-vv-tema su <html>, che
- * accende la palette scura di tokens.css. "auto" segue il sistema, anche se cambia a pagina aperta.
- * Chi non ha mai scelto vede il tema predefinito. vvTema() la usa anche lo switcher.
+ * Tema scelto dal visitatore, applicato prima che la pagina si disegni (niente lampo bianco).
+ * Con la palette Natale le scelte sono natale (scuro con neve), chiaro e scuro, salvate a parte:
+ * finito il Natale torna la scelta di sempre.
  */
 function vv_tema_script() {
-	$predefinito = 'chiaro'; // Uno fra chiaro, scuro e auto.
+	$natale = 'natale' === vv_pulisci_palette( vv_mod( 'vv_palette' ) );
+	$temi   = $natale
+		? array(
+			'scelte' => array( 'natale', 'chiaro', 'scuro' ),
+			'chiave' => 'vv-tema-natale',
+		)
+		: array(
+			'scelte' => array( 'chiaro', 'scuro', 'auto' ),
+			'chiave' => 'vv-tema',
+		);
 	?>
 <script>
-(function (d) {
-	var m = window.matchMedia ? window.matchMedia('(prefers-color-scheme: dark)') : null;
-	window.vvTema = function (scelta) {
-		if (scelta !== 'chiaro' && scelta !== 'scuro' && scelta !== 'auto') {
-			scelta = '<?php echo esc_js( $predefinito ); ?>';
+(function (d, temi) {
+	var buio = matchMedia('(prefers-color-scheme: dark)');
+	var applica = function (scelta) {
+		if (temi.scelte.indexOf(scelta) < 0) {
+			scelta = temi.scelte[0];
 		}
 		d.setAttribute('data-vv-scelta', scelta);
-		d.setAttribute('data-vv-tema', scelta === 'scuro' || (scelta === 'auto' && m && m.matches) ? 'scuro' : 'chiaro');
+		d.setAttribute('data-vv-tema', scelta === 'chiaro' || (scelta === 'auto' && !buio.matches) ? 'chiaro' : 'scuro');
+		d.toggleAttribute('data-vv-natale', scelta === 'natale');
 		return scelta;
 	};
+	window.vvTema = {
+		scelte: temi.scelte,
+		scegli: function (scelta) {
+			scelta = applica(scelta);
+			try { localStorage.setItem(temi.chiave, scelta); } catch (e) {}
+		}
+	};
 	var salvata = null;
-	try { salvata = localStorage.getItem('vv-tema'); } catch (e) {}
-	window.vvTema(salvata);
-	if (m && m.addEventListener) {
-		m.addEventListener('change', function () { window.vvTema(d.getAttribute('data-vv-scelta')); });
-	}
-})(document.documentElement);
+	try { salvata = localStorage.getItem(temi.chiave); } catch (e) {}
+	applica(salvata);
+	buio.addEventListener('change', function () { applica(d.getAttribute('data-vv-scelta')); });
+})(document.documentElement, <?php echo wp_json_encode( $temi ); ?>);
 </script>
 	<?php
 }
 add_action( 'wp_head', 'vv_tema_script', 0 );
 
-/**
- * Stili nell'editor a blocchi, così gli articoli si scrivono con l'aspetto finale.
- */
-function vv_editor_styles() {
+function vv_stili_editor() {
 	add_theme_support( 'editor-styles' );
 	add_editor_style( array( 'assets/css/tokens.css', 'assets/css/base.css', 'assets/css/components.css' ) );
 }
-add_action( 'after_setup_theme', 'vv_editor_styles', 20 );
+add_action( 'after_setup_theme', 'vv_stili_editor', 20 );

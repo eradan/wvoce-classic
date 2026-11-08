@@ -2,6 +2,16 @@
 
 Storia del tema VivaVoce Classic, dalla versione più recente. La guida d'uso è nel README.
 
+## Versione 1.6.0: Natale scuro a scelta, fascette con i colori del logo, codice più leggibile
+
+- **Natale sempre scuro, e si può spegnere.** Con la palette Natale il sito è scuro con oro, verde, rosso e neve. Il pulsante del tema in testata ha l'icona di una pallina e passa a chiaro, scuro e di nuovo Natale: chi lo spegne vede il sito di sempre. Il Natale è la scelta predefinita per tutti finché la palette è accesa; alla fine torna la preferenza che ognuno aveva prima.
+- **La pallina nella O di VOCE** (logo e scritta del footer) **non dondola più**: resta ferma, mentre la neve scende.
+- **Lucine del festone** un po' più grandi.
+- **Fascette degli eventi** nella palette standard con i colori del logo: "A breve" gialla, "In corso" rossa, "Concluso" azzurra, sempre con il testo scuro ben leggibile.
+- **Codice:** nomi tutti in italiano, commenti ridotti a quelli che spiegano un perché, funzioni lunghe divise in parti piccole (shortcode delle card, Pagine elenco, percorso in alto, salvataggio dei campi, carosello). Il comportamento del sito non cambia.
+
+Da fare: nessun passo manuale.
+
 ## Versione 1.5.0: Customizer più chiaro, codice più semplice, PHP 8.3
 
 **Richiede PHP 8.3** (quello dell'immagine WordPress del sito): il codice usa le sue funzioni ed è più lineare.

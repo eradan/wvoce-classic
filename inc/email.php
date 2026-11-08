@@ -1,16 +1,9 @@
 <?php
 /**
- * Email con il marchio VivaVoce: ogni email che passa da wp_mail() (tema, Forminator, Contact Form 7,
- * WordPress) va in un unico modello HTML, con il logo sul giallo dell'header e un piè di pagina con i
- * dati dell'associazione, e porta anche la versione in solo testo.
- *
- * Contro lo spam conta soprattutto l'autenticazione del dominio (SPF, DKIM, DMARC, nel DNS e in WP Mail
- * SMTP); qui le parti che dipendono dal messaggio: due versioni, HTML e testo (multipart/alternative),
- * HTML ben formato con lingua, charset e titolo, testo vero e non solo immagini, link al sito con il
- * suo dominio, Message-ID con il dominio del sito invece del nome del container. Niente testo nascosto
- * (la riga d'anteprima invisibile): SpamAssassin lo conta come trucco da spam (FONT_INVIS_MSGID).
- *
- * Un'email che è già un documento HTML completo (con <html>) resta com'è: l'ha impaginata qualcun altro.
+ * Ogni email di wp_mail() (tema, plugin, WordPress) in un modello HTML con il marchio, più la versione in
+ * solo testo. Contro lo spam conta soprattutto l'autenticazione del dominio (SPF, DKIM, DMARC); qui le
+ * parti che dipendono dal messaggio: due versioni, HTML ben formato, testo vero, link con il dominio del
+ * sito, niente testo nascosto (SpamAssassin: FONT_INVIS_MSGID). Un documento HTML completo resta com'è.
  *
  * @package VivaVoce
  */
@@ -18,9 +11,7 @@
 defined( 'ABSPATH' ) || exit;
 
 /**
- * Versione in solo testo dell'email in preparazione, per phpmailer_init.
- *
- * @param string|null $testo Testo da tenere (null: solo lettura).
+ * Versione in solo testo dell'email in preparazione, passata a phpmailer_init. Senza argomento la legge.
  */
 function vv_email_testo( $testo = null ) {
 	static $tenuto = '';
@@ -31,24 +22,20 @@ function vv_email_testo( $testo = null ) {
 }
 
 /**
- * Intestazioni di wp_mail() riga per riga (arrivano come elenco o come testo).
+ * Le intestazioni di wp_mail() arrivano come elenco o come testo.
  *
- * @param string|string[] $headers Intestazioni.
  * @return string[]
  */
-function vv_email_righe( $headers ) {
-	return is_array( $headers ) ? $headers : explode( "\n", str_replace( "\r\n", "\n", (string) $headers ) );
+function vv_email_righe( $intestazioni ) {
+	return is_array( $intestazioni ) ? $intestazioni : explode( "\n", str_replace( "\r\n", "\n", (string) $intestazioni ) );
 }
 
 /**
- * Il messaggio è HTML? Lo dicono le intestazioni o, per i plugin che lo dichiarano così, il filtro
- * wp_mail_content_type. Un testo semplice che contiene tag resta testo: potrebbero averli scritti i
- * visitatori in un modulo, e non devono diventare link veri nel modello con il marchio.
- *
- * @param string|string[] $headers Intestazioni di wp_mail().
+ * HTML solo se dichiarato, nelle intestazioni o con il filtro wp_mail_content_type: i tag in un testo
+ * semplice possono averli scritti i visitatori in un modulo, e non devono diventare link veri.
  */
-function vv_email_intestazioni_html( $headers ) {
-	foreach ( vv_email_righe( $headers ) as $riga ) {
+function vv_email_intestazioni_html( $intestazioni ) {
+	foreach ( vv_email_righe( $intestazioni ) as $riga ) {
 		if ( preg_match( '#^\s*content-type:\s*text/html#i', (string) $riga ) ) {
 			return true;
 		}
@@ -57,17 +44,12 @@ function vv_email_intestazioni_html( $headers ) {
 }
 
 /**
- * Intestazioni senza Content-Type, con quello HTML in UTF-8.
- *
- * @param string|string[] $headers Intestazioni di wp_mail().
- * @return string[]
+ * @return string[] Le stesse intestazioni, con un solo Content-Type: HTML in UTF-8.
  */
-function vv_email_intestazioni( $headers ) {
+function vv_email_intestazioni( $intestazioni ) {
 	$righe = array_filter(
-		array_map( 'trim', vv_email_righe( $headers ) ),
-		static function ( $riga ) {
-			return '' !== $riga && ! preg_match( '#^content-type:#i', $riga );
-		}
+		array_map( 'trim', vv_email_righe( $intestazioni ) ),
+		static fn( $riga ) => '' !== $riga && ! preg_match( '#^content-type:#i', $riga )
 	);
 
 	$righe[] = 'Content-Type: text/html; charset=UTF-8';
@@ -75,16 +57,15 @@ function vv_email_intestazioni( $headers ) {
 }
 
 /**
- * Testo semplice da un frammento HTML: i link diventano "testo (indirizzo)", i blocchi vanno a capo.
- *
- * @param string $html Frammento HTML.
+ * I link diventano "testo (indirizzo)", i blocchi vanno a capo.
  */
 function vv_email_da_html( $html ) {
 	$html  = preg_replace_callback(
 		'#<a\s[^>]*href=["\']([^"\']+)["\'][^>]*>(.*?)</a>#is',
-		static function ( $m ) {
-			$testo = trim( wp_strip_all_tags( $m[2] ) );
-			return $testo && $testo !== $m[1] ? "{$testo} ({$m[1]})" : $m[1];
+		static function ( $link ) {
+			list( , $indirizzo, $testo ) = $link;
+			$testo                       = trim( wp_strip_all_tags( $testo ) );
+			return $testo && $testo !== $indirizzo ? "{$testo} ({$indirizzo})" : $indirizzo;
 		},
 		(string) $html
 	);
@@ -94,8 +75,6 @@ function vv_email_da_html( $html ) {
 }
 
 /**
- * Piè di pagina: dati dell'associazione dal Customizer, link al sito e all'informativa.
- *
  * @return array{html:string,testo:string}
  */
 function vv_email_piede() {
@@ -125,13 +104,8 @@ function vv_email_piede() {
 }
 
 /**
- * Documento HTML dell'email: header giallo con il logo, corpo bianco, piè di pagina grigio.
- * Tabelle e stili in linea, come vogliono i programmi di posta, che non leggono le variabili CSS:
- * i colori sono quelli del tema chiaro di assets/css/tokens.css (giallo, inchiostro, link, riquadro).
- *
- * @param string $oggetto Oggetto, anche come <title>.
- * @param string $corpo   Corpo, frammento HTML.
- * @param string $piede   Piè di pagina, HTML di vv_email_piede().
+ * Tabelle e stili in linea, come vogliono i programmi di posta, che non leggono le variabili CSS: i
+ * colori sono quelli del tema chiaro di tokens.css.
  */
 function vv_email_documento( $oggetto, $corpo, $piede ) {
 	$nome = get_bloginfo( 'name' );
@@ -167,28 +141,25 @@ function vv_email_documento( $oggetto, $corpo, $piede ) {
 }
 
 /**
- * Avvolge ogni email nel modello e tiene da parte la versione in solo testo.
- *
  * @param array $atts Argomenti di wp_mail(): to, subject, message, headers, attachments.
  */
 function vv_email_avvolgi( $atts ) {
-	$messaggio = (string) ( $atts['message'] ?? '' );
-	$headers   = $atts['headers'] ?? '';
+	$messaggio    = (string) ( $atts['message'] ?? '' );
+	$intestazioni = $atts['headers'] ?? '';
 	vv_email_testo( '' );
 	if ( '' === trim( $messaggio ) || str_contains( strtolower( $messaggio ), '<html' ) ) {
 		return $atts;
 	}
 
-	if ( vv_email_intestazioni_html( $headers ) ) {
+	if ( vv_email_intestazioni_html( $intestazioni ) ) {
 		$corpo = $messaggio;
 		$testo = vv_email_da_html( $messaggio );
 	} else {
 		$testo = trim( $messaggio );
 		$corpo = make_clickable( wpautop( esc_html( $testo ) ) );
 		$corpo = preg_replace( '#<a href=#', '<a style="color:#007a87;" href=', $corpo );
-		// Un paragrafo che è solo un indirizzo diventa un pulsante: più chiaro da toccare, e il testo del
-		// link non è un indirizzo diverso da quello vero se il servizio d'invio riscrive i link per
-		// contare i clic (SpamAssassin: HTTPS_HTTP_MISMATCH). Nella versione in solo testo resta l'indirizzo.
+		// Un paragrafo che è solo un indirizzo diventa un pulsante: se il servizio d'invio riscrive i link
+		// per contare i clic, il testo non mostra un indirizzo diverso (SpamAssassin: HTTPS_HTTP_MISMATCH).
 		$corpo = preg_replace(
 			'#<p>\s*<a [^>]*href="([^"]+)"[^>]*>[^<]+</a>\s*</p>#',
 			'<p style="margin:22px 0;"><a href="$1" style="display:inline-block;padding:12px 22px;background-color:#ffd923;color:#00102e;font-weight:bold;text-decoration:none;border-radius:2px;">Apri il link</a></p>',
@@ -199,19 +170,15 @@ function vv_email_avvolgi( $atts ) {
 
 	$piede           = vv_email_piede();
 	$atts['message'] = vv_email_documento( (string) ( $atts['subject'] ?? '' ), $corpo, $piede['html'] );
-	$atts['headers'] = vv_email_intestazioni( $headers );
+	$atts['headers'] = vv_email_intestazioni( $intestazioni );
 	vv_email_testo( $testo . "\n\n" . $piede['testo'] );
 	return $atts;
 }
 add_filter( 'wp_mail', 'vv_email_avvolgi', 20 );
 
 /**
- * Versione in solo testo e nome dell'host del sito (usato nel Message-ID e, con SMTP, nel saluto
- * HELO) invece di quello del container. PHPMailer è lo stesso oggetto per
- * tutte le email della richiesta: si riscrive sempre, anche vuoto, per non lasciare il testo di
- * un'email alla successiva.
- *
- * @param PHPMailer\PHPMailer\PHPMailer $mailer PHPMailer di WordPress.
+ * Versione in solo testo e host del sito (Message-ID e saluto HELO) invece del nome del container.
+ * PHPMailer è lo stesso oggetto per tutte le email della richiesta: il testo si azzera ogni volta.
  */
 function vv_email_phpmailer( $mailer ) {
 	$mailer->AltBody = vv_email_testo(); // phpcs:ignore WordPress.NamingConventions.ValidVariableName.UsedPropertyNotSnakeCase -- proprietà di PHPMailer.

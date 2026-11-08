@@ -102,17 +102,17 @@ function uguale( $nome, $atteso, $ottenuto ) {
 }
 
 // Date degli eventi e slug
-uguale( 'Data valida', '2026-10-06', vv_sanitize_date( ' 2026-10-06 ' ) );
-uguale( 'Data in altro formato', '', vv_sanitize_date( '06/10/2026' ) );
-uguale( 'Data inesistente: mese 13', '', vv_sanitize_date( '2026-13-01' ) );
-uguale( 'Data inesistente: 30 febbraio', '', vv_sanitize_date( '2026-02-30' ) );
+uguale( 'Data valida', '2026-10-06', vv_pulisci_data( ' 2026-10-06 ' ) );
+uguale( 'Data in altro formato', '', vv_pulisci_data( '06/10/2026' ) );
+uguale( 'Data inesistente: mese 13', '', vv_pulisci_data( '2026-13-01' ) );
+uguale( 'Data inesistente: 30 febbraio', '', vv_pulisci_data( '2026-02-30' ) );
 uguale( 'Date evento: fine prima dell\'inizio diventa l\'inizio', array( '2026-10-14', '2026-10-14' ), vv_date_evento( '2026-10-14', '2026-10-01' ) );
 uguale( 'Date evento: senza fine, un giorno', array( '2026-10-14', '2026-10-14' ), vv_date_evento( '2026-10-14', '' ) );
 uguale( 'Date evento: inizio inesistente, niente date', array( '', '2026-10-20' ), vv_date_evento( '2026-02-30', '2026-10-20' ) );
-uguale( 'Slug', 'eventi,corsi-e-laboratori', vv_sanitize_slugs( 'Eventi, Corsi e laboratori,,' ) );
+uguale( 'Slug', 'eventi,corsi-e-laboratori', vv_pulisci_slug( 'Eventi, Corsi e laboratori,,' ) );
 
 // Etichette degli eventi su più giorni: i giorni fino a un mese, poi i mesi
-$vv_giorni = static fn( $da, $a ) => vv_date_range_label( strtotime( $da ), strtotime( $a . ' 23:59:59' ) );
+$vv_giorni = static fn( $da, $a ) => vv_etichetta_periodo( strtotime( $da ), strtotime( $a . ' 23:59:59' ) );
 uguale( 'Evento di tre giorni', '3–5 ottobre 2026', $vv_giorni( '2026-10-03', '2026-10-05' ) );
 uguale( 'Evento a cavallo di due mesi', '28 settembre – 3 ottobre 2026', $vv_giorni( '2026-09-28', '2026-10-03' ) );
 uguale( 'Evento a cavallo dell\'anno', '30 dicembre 2026 – 2 gennaio 2027', $vv_giorni( '2026-12-30', '2027-01-02' ) );
@@ -121,24 +121,24 @@ uguale( 'Corso di una stagione', 'ott–dic 2026', $vv_giorni( '2026-10-01', '20
 uguale( 'Corso su due anni', 'ott 2026 – mag 2027', $vv_giorni( '2026-10-01', '2027-05-31' ) );
 
 // Data a foglietto sulle card degli eventi
-$vv_chip = static fn( $da, $a ) => vv_date_chip( array( 'start' => strtotime( $da ), 'end' => strtotime( $a . ' 23:59:59' ), 'has_meta' => true ) );
+$vv_chip = static fn( $da, $a ) => vv_foglietto_data( array( 'inizio' => strtotime( $da ), 'fine' => strtotime( $a . ' 23:59:59' ), 'con_date' => true ) );
 uguale( 'Foglietto: un giorno', array( 'alto' => '13', 'basso' => 'nov' ), $vv_chip( '2026-11-13', '2026-11-13' ) );
 uguale( 'Foglietto: più giorni nel mese', array( 'alto' => '3–5', 'basso' => 'ott' ), $vv_chip( '2026-10-03', '2026-10-05' ) );
 uguale( 'Foglietto: due mesi', array( 'alto' => '28 set', 'basso' => '3 ott' ), $vv_chip( '2026-09-28', '2026-10-03' ) );
 uguale( 'Foglietto: corso di una stagione', array( 'alto' => 'ott–dic', 'basso' => '2026' ), $vv_chip( '2026-10-01', '2026-12-15' ) );
 uguale( 'Foglietto: corso su due anni', array( 'alto' => 'ott–giu', 'basso' => '26–27' ), $vv_chip( '2026-10-01', '2027-06-30' ) );
-uguale( 'Foglietto: senza date dell\'evento', null, vv_date_chip( array( 'start' => 0, 'end' => 0, 'has_meta' => false ) ) );
+uguale( 'Foglietto: senza date dell\'evento', null, vv_foglietto_data( array( 'inizio' => 0, 'fine' => 0, 'con_date' => false ) ) );
 
 // meta_query: le condizioni si sommano, nessuna va persa
 $date = array( array( 'key' => 'vv_data', 'value' => '2026-10-06', 'compare' => '>=' ) );
-uguale( 'meta_query su argomenti vuoti', array( 'meta_query' => $date ), vv_add_meta_query( array(), $date ) );
+uguale( 'meta_query su argomenti vuoti', array( 'meta_query' => $date ), vv_aggiungi_meta_query( array(), $date ) );
 uguale(
 	'meta_query in AND con quella che c\'era',
 	array(
 		'post__not_in' => array( 3 ),
-		'meta_query'   => array( 'relation' => 'AND', vv_featured_clause(), $date ),
+		'meta_query'   => array( 'relation' => 'AND', vv_condizione_in_evidenza(), $date ),
 	),
-	vv_add_meta_query( array( 'post__not_in' => array( 3 ), 'meta_query' => vv_featured_clause() ), $date )
+	vv_aggiungi_meta_query( array( 'post__not_in' => array( 3 ), 'meta_query' => vv_condizione_in_evidenza() ), $date )
 );
 
 // Ordine degli eventi: il caso della home del 10 ottobre 2026
@@ -180,17 +180,17 @@ uguale(
 );
 
 // Fascetta della card: a breve, in corso dal primo all'ultimo giorno, poi conclusa
-$vv_fase = static fn( $da, $a ) => vv_fase_evento( array( 'start' => strtotime( $da ), 'end' => strtotime( $a . ' 23:59:59' ) ), $vv_oggi );
+$vv_fase = static fn( $da, $a ) => vv_fase_evento( array( 'inizio' => strtotime( $da ), 'fine' => strtotime( $a . ' 23:59:59' ) ), $vv_oggi );
 uguale( 'Fascetta: evento di domani è a breve', 'a-breve', $vv_fase( '2026-10-11', '2026-10-11' ) );
 uguale( 'Fascetta: corso cominciato è in corso', 'in-corso', $vv_fase( '2026-10-01', '2027-06-30' ) );
 uguale( 'Fascetta: evento di oggi è in corso', 'in-corso', $vv_fase( '2026-10-10', '2026-10-10' ) );
 uguale( 'Fascetta: evento finito ieri è concluso', 'concluso', $vv_fase( '2026-10-09', '2026-10-09' ) );
 
 // Palette del sito: solo quelle dell'elenco, ognuna col suo foglio di stile
-uguale( 'Palette conosciuta', 'natale', vv_sanitize_palette( 'natale' ) );
-uguale( 'Palette predefinita', '', vv_sanitize_palette( '' ) );
-uguale( 'Palette sconosciuta o percorso: niente', '', vv_sanitize_palette( '../tokens' ) );
-uguale( 'Palette non testuale: niente', '', vv_sanitize_palette( array( 'natale' ) ) );
+uguale( 'Palette conosciuta', 'natale', vv_pulisci_palette( 'natale' ) );
+uguale( 'Palette predefinita', '', vv_pulisci_palette( '' ) );
+uguale( 'Palette sconosciuta o percorso: niente', '', vv_pulisci_palette( '../tokens' ) );
+uguale( 'Palette non testuale: niente', '', vv_pulisci_palette( array( 'natale' ) ) );
 uguale(
 	'Ogni palette ha il suo file in assets/css/palette/',
 	array(),
@@ -203,13 +203,13 @@ uguale( 'Emoji dal proxy di Gmail diventa testo', 'Teatro 🎭', vv_emoji_estern
 $vv_grande = '<img src="https://scontent.xx.fbcdn.net/v/foto.jpg" alt="Foto" width="800" height="600">';
 uguale( 'Foto esterna grande intatta', $vv_grande, vv_emoji_esterne( $vv_grande ) );
 uguale( 'Contenuto senza immagini esterne invariato', '<p>Ciao <img src="/a.png" alt="a"></p>', vv_emoji_esterne( '<p>Ciao <img src="/a.png" alt="a"></p>' ) );
-uguale( 'Galleria: link alla pagina dell\'allegato diventa link al file', 'file', vv_gallery_link_file( array( 'link' => '' ) )['link'] );
-uguale( 'Righe di trattini: paragrafo di trattini diventa il divisore', '<p>a</p><hr class="vv-rule">', vv_underscore_rules( '<p>a</p><p><strong>__________</strong></p>' ) );
-uguale( 'Righe di trattini: anche spezzate da spazi', '<hr class="vv-rule">', vv_underscore_rules( '<p>____ ____</p>' ) );
+uguale( 'Galleria: link alla pagina dell\'allegato diventa link al file', 'file', vv_gallerie_al_file( array( 'link' => '' ) )['link'] );
+uguale( 'Righe di trattini: paragrafo di trattini diventa il divisore', '<p>a</p><hr class="vv-rule">', vv_righe_di_trattini( '<p>a</p><p><strong>__________</strong></p>' ) );
+uguale( 'Righe di trattini: anche spezzate da spazi', '<hr class="vv-rule">', vv_righe_di_trattini( '<p>____ ____</p>' ) );
 $vv_spazi = "<p>___</p><p>\u{00A0}\u{00A0}\u{00A0}\u{00A0}\u{00A0}\u{00A0}\u{00A0}\u{00A0}</p><p><img src=\"/a.png\">         </p>";
-uguale( 'Righe di trattini: spazi e immagini non diventano divisori', $vv_spazi, vv_underscore_rules( $vv_spazi ) );
-uguale( 'Righe di trattini: UTF-8 non valido lascia il contenuto', "<p>________\xC3</p>", vv_underscore_rules( "<p>________\xC3</p>" ) );
-uguale( 'Galleria senza link resta senza', 'none', vv_gallery_link_file( array( 'link' => 'none' ) )['link'] );
+uguale( 'Righe di trattini: spazi e immagini non diventano divisori', $vv_spazi, vv_righe_di_trattini( $vv_spazi ) );
+uguale( 'Righe di trattini: UTF-8 non valido lascia il contenuto', "<p>________\xC3</p>", vv_righe_di_trattini( "<p>________\xC3</p>" ) );
+uguale( 'Galleria senza link resta senza', 'none', vv_gallerie_al_file( array( 'link' => 'none' ) )['link'] );
 
 // Descrizione per motori di ricerca e social
 uguale( 'Descrizione corta ripulita', 'Laboratorio di lettura & teatro.', vv_condivisione_taglia( "<p>Laboratorio  di lettura &amp; teatro.</p>\n[vv_cards]" ) );
@@ -264,9 +264,9 @@ $vv_doc = array( 'subject' => 'X', 'message' => '<html><body>già impaginata</bo
 uguale( 'Email già impaginata: invariata, senza testo alternativo', array( $vv_doc, '' ), array( vv_email_avvolgi( $vv_doc ), vv_email_testo() ) );
 
 // Lettere decorative incollate dai social
-uguale( 'Lettere decorative', '<strong class="vv-plain">Voce</strong> e testo', vv_plain_letters( '𝕍𝕠𝕔𝕖 e testo' ) );
-uguale( 'Lettere decorative senza grassetto', 'Bold', vv_plain_letters( '𝐁𝐨𝐥𝐝', false ) );
-uguale( 'Testo normale invariato', 'Ciao', vv_plain_letters( 'Ciao' ) );
+uguale( 'Lettere decorative', '<strong class="vv-plain">Voce</strong> e testo', vv_lettere_semplici( '𝕍𝕠𝕔𝕖 e testo' ) );
+uguale( 'Lettere decorative senza grassetto', 'Bold', vv_lettere_semplici( '𝐁𝐨𝐥𝐝', false ) );
+uguale( 'Testo normale invariato', 'Ciao', vv_lettere_semplici( 'Ciao' ) );
 uguale( 'Testo semplice: tag, entità e lettere decorative', 'Voce – l’altra', vv_testo_semplice( '<b>𝕍𝕠𝕔𝕖</b> &#8211; l&#8217;altra' ) );
 
 echo $vv_falliti ? "\n{$vv_falliti} su {$vv_totale} controlli falliti.\n" : "{$vv_totale} controlli superati.\n";

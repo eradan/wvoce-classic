@@ -19,7 +19,7 @@ get_header(); ?>
 		<?php
 		while ( have_posts() ) :
 			the_post();
-			echo vv_breadcrumbs(); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+			echo vv_percorso_html(); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
 			the_title( '<header class="entry-header vv-builder-header"><h1 class="title-post entry-title">', '</h1></header>' );
 			the_content();
 		endwhile;

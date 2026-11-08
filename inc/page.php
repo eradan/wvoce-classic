@@ -1,103 +1,78 @@
 <?php
 /**
- * Pagine con il modello predefinito: testo + colonna laterale, come gli articoli.
- * Nella colonna "In questa sezione" (le pagine dello stesso ramo) e "Da non perdere" (inc/layout.php).
- * Home, Pagina hub e Pagina elenco hanno modelli propri e restano a tutta larghezza.
+ * Pagine con il modello predefinito: testo e colonna laterale con "In questa sezione" e "Da non
+ * perdere". Le pagine legali e quelle con le griglie del tema restano a tutta larghezza.
  *
  * @package VivaVoce
  */
 
 defined( 'ABSPATH' ) || exit;
 
-/**
- * Sostituisce il contenuto della pagina di Sydney quando c'è la colonna laterale.
- */
-function vv_swap_page_template() {
-	if ( is_page() && vv_page_has_aside( get_queried_object_id() ) ) {
+function vv_sostituisci_modello_pagina() {
+	if ( is_page() && vv_pagina_con_colonna( get_queried_object_id() ) ) {
 		remove_action( 'sydney_page_content', 'sydney_single_page_template' );
-		add_action( 'sydney_page_content', 'vv_page_template' );
+		add_action( 'sydney_page_content', 'vv_modello_pagina' );
 	}
 }
-add_action( 'wp', 'vv_swap_page_template' );
+add_action( 'wp', 'vv_sostituisci_modello_pagina' );
 
 /**
- * La colonna resta fuori dalle pagine legali (privacy, cookie) e da quelle con le griglie di card del
- * tema, che sono larghe quanto la pagina e ci finirebbero sotto.
- *
- * @param int $page_id Pagina.
+ * Le griglie di card del tema sono larghe quanto la pagina e finirebbero sotto la colonna.
  */
-function vv_page_has_aside( $page_id ) {
-	$page = get_post( $page_id );
-	return $page
-		&& (int) get_option( 'wp_page_for_privacy_policy' ) !== $page->ID
-		&& ! preg_match( '/privacy|cookie/', $page->post_name )
-		&& ! preg_match( '/\[(vv_cards|vv_elenco|vv_sottopagine|vv_sostienici)\b/', $page->post_content );
+function vv_pagina_con_colonna( $pagina_id ) {
+	$pagina = get_post( $pagina_id );
+	return $pagina
+		&& (int) get_option( 'wp_page_for_privacy_policy' ) !== $pagina->ID
+		&& ! preg_match( '/privacy|cookie/', $pagina->post_name )
+		&& ! preg_match( '/\[(vv_cards|vv_elenco|vv_sottopagine|vv_sostienici)\b/', $pagina->post_content );
 }
 
-/**
- * Due colonne: la pagina di Sydney (titolo, immagine, testo) e la colonna laterale.
- */
-function vv_page_template() {
-	vv_two_column_template(
+function vv_modello_pagina() {
+	vv_due_colonne(
 		'vv-single vv-page',
 		'page',
 		'Altre pagine e appuntamenti',
-		static fn( $page_id ) => vv_page_section_nav( $page_id ) . vv_aside_more()
+		static fn( $pagina_id ) => vv_in_questa_sezione( $pagina_id ) . vv_da_non_perdere()
 	);
 }
 
 /**
- * "In questa sezione": la pagina madre come titolo, sotto le sue sottopagine con quella corrente
- * evidenziata e, se ne ha, le sottopagine di quella corrente. Una pagina di primo livello
- * mostra le proprie sottopagine; senza né madre né figlie il riquadro non c'è.
- *
- * @param int $page_id Pagina corrente.
- * @return string HTML.
+ * La pagina madre come titolo e le pagine del ramo, con sotto la corrente le sue figlie. Una pagina di
+ * primo livello mostra solo le proprie figlie.
  */
-function vv_page_section_nav( $page_id ) {
-	$page      = get_post( $page_id );
-	$parent_id = (int) $page->post_parent;
-	$children  = vv_page_children( $page_id );
-	$siblings  = $parent_id ? vv_page_children( $parent_id ) : array();
-
-	// La pagina corrente compare sempre, anche se nascosta dalle card della madre.
-	if ( $parent_id && ! in_array( $page_id, wp_list_pluck( $siblings, 'ID' ), true ) ) {
-		$siblings[] = $page;
+function vv_in_questa_sezione( $pagina_id ) {
+	$pagina   = get_post( $pagina_id );
+	$madre_id = (int) $pagina->post_parent;
+	$figlie   = vv_pagine_figlie( $pagina_id );
+	$sorelle  = $madre_id ? vv_pagine_figlie( $madre_id ) : array();
+	// La corrente compare anche se è nascosta fra le card della madre.
+	if ( $madre_id && ! in_array( $pagina_id, wp_list_pluck( $sorelle, 'ID' ), true ) ) {
+		$sorelle[] = $pagina;
 	}
-	if ( ! $parent_id ) {
-		$siblings = array( $page );
-	}
-	if ( count( $siblings ) < 2 && ! $children ) {
+	if ( count( $sorelle ) < 2 && ! $figlie ) {
 		return '';
 	}
 
-	$titolo = static fn( $p ) => esc_html( wp_strip_all_tags( get_the_title( $p ) ) );
-	$link   = static function ( $p, $current = false ) use ( $titolo ) {
-		return '<a href="' . esc_url( get_permalink( $p ) ) . '"' . ( $current ? ' aria-current="page"' : '' ) . '>' . $titolo( $p ) . '</a>';
-	};
-	$figlie = '';
-	foreach ( $children as $child ) {
-		$figlie .= '<li>' . $link( $child ) . '</li>';
-	}
-	// Una madre non pubblicata (privata, bozza) resta come titolo: il link darebbe 404 ai visitatori.
-	$madre = $parent_id && 'publish' === get_post_status( $parent_id ) ? $link( $parent_id ) : $titolo( $parent_id ? $parent_id : $page );
+	$titolo      = static fn( $p ) => esc_html( wp_strip_all_tags( get_the_title( $p ) ) );
+	$link        = static fn( $p, $corrente = false ) => '<a href="' . esc_url( get_permalink( $p ) ) . '"' . ( $corrente ? ' aria-current="page"' : '' ) . '>' . $titolo( $p ) . '</a>';
+	$voci_figlie = implode( '', array_map( static fn( $p ) => '<li>' . $link( $p ) . '</li>', $figlie ) );
 
-	$html  = '<nav class="vv-card vv-card--info vv-accent--turchese vv-section-nav" aria-label="In questa sezione"><div class="vv-card__body">';
-	$html .= '<h2 class="vv-info__title">In questa sezione</h2>';
-	$html .= '<p class="vv-section-nav__parent">' . $madre . '</p>';
-	$html .= '<ul class="vv-section-nav__list">';
-	foreach ( $siblings as $sibling ) {
-		$current = $sibling->ID === $page_id;
-		// Una pagina di primo livello non ripete sé stessa: si vedono solo le sue sottopagine.
-		if ( $current && ! $parent_id ) {
-			$html .= $figlie;
-			continue;
+	if ( $madre_id ) {
+		// Una madre privata o in bozza resta senza link: darebbe 404 ai visitatori.
+		$intestazione = 'publish' === get_post_status( $madre_id ) ? $link( $madre_id ) : $titolo( $madre_id );
+		$voci         = '';
+		foreach ( $sorelle as $sorella ) {
+			$corrente = $sorella->ID === $pagina_id;
+			$voci    .= '<li' . ( $corrente ? ' class="is-current"' : '' ) . '>' . $link( $sorella, $corrente )
+				. ( $corrente && $voci_figlie ? '<ul>' . $voci_figlie . '</ul>' : '' ) . '</li>';
 		}
-		$html .= '<li' . ( $current ? ' class="is-current"' : '' ) . '>' . $link( $sibling, $current );
-		if ( $current && $figlie ) {
-			$html .= '<ul>' . $figlie . '</ul>';
-		}
-		$html .= '</li>';
+	} else {
+		$intestazione = $titolo( $pagina );
+		$voci         = $voci_figlie;
 	}
-	return $html . '</ul></div></nav>';
+
+	return '<nav class="vv-card vv-card--info vv-accent--turchese vv-section-nav" aria-label="In questa sezione"><div class="vv-card__body">'
+		. '<h2 class="vv-info__title">In questa sezione</h2>'
+		. '<p class="vv-section-nav__parent">' . $intestazione . '</p>'
+		. '<ul class="vv-section-nav__list">' . $voci . '</ul></div></nav>';
 }

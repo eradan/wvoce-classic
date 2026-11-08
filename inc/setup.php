@@ -1,29 +1,22 @@
 <?php
 /**
- * Impostazioni e filtri su Sydney e WordPress: dimensioni delle immagini e miniature WebP, header e
- * footer di Sydney (builder spento, credits, niente barra laterale), immagine in testa, testi tradotti
- * o corretti, Contact Form 7 solo dove serve.
+ * Impostazioni di Sydney e WordPress: immagini, header e footer classici, immagine in testa,
+ * traduzioni mancanti, Contact Form 7 solo dove serve.
  *
  * @package VivaVoce
  */
 
 defined( 'ABSPATH' ) || exit;
 
-/**
- * Estratto anche per le pagine (usato dalle card della Pagina hub).
- */
-function vv_setup() {
-	add_post_type_support( 'page', 'excerpt' );
+function vv_impostazioni() {
+	add_post_type_support( 'page', 'excerpt' ); // il riassunto è il testo della card della pagina
 	add_image_size( 'vv-card', 720, 480, true );
 	add_image_size( 'vv-persona', 400, 400, true );
 }
-add_action( 'after_setup_theme', 'vv_setup', 20 );
+add_action( 'after_setup_theme', 'vv_impostazioni', 20 );
 
 /**
- * Miniature in WebP: più leggere a parità di qualità. L'originale caricato resta JPEG o PNG, scaricabile
- * così com'è dalla libreria dei media. Vale per le immagini nuove e per quelle rigenerate.
- *
- * @param array $formati Formato di uscita per tipo MIME.
+ * Miniature più leggere; l'originale caricato resta com'è nella libreria dei media.
  */
 function vv_miniature_webp( $formati ) {
 	$formati['image/jpeg'] = 'image/webp';
@@ -33,156 +26,123 @@ function vv_miniature_webp( $formati ) {
 add_filter( 'image_editor_output_format', 'vv_miniature_webp' );
 
 /*
- * Header e footer "classici" di Sydney. Passando da un tema che non ha "sydney" nel nome Sydney accende
- * da solo il costruttore header/footer, con un markup che il CSS del child non conosce e un footer senza
- * aree widget: qui resta spento, senza toccare l'opzione salvata. Per usarlo davvero:
- * define( 'VV_SYDNEY_BUILDER', true ); in wp-config.php.
+ * Sydney accende da solo il costruttore header/footer quando arriva da un tema che non ha "sydney" nel
+ * nome: markup che il CSS del child non conosce e footer senza widget. Resta spento senza toccare
+ * l'opzione salvata; per usarlo, define( 'VV_SYDNEY_BUILDER', true ); in wp-config.php.
  */
 if ( ! defined( 'VV_SYDNEY_BUILDER' ) || ! VV_SYDNEY_BUILDER ) {
 	add_filter(
 		'option_sydney-modules',
-		static function ( $modules ) {
-			$modules               = (array) $modules;
-			$modules['hf-builder'] = false;
-			return $modules;
+		static function ( $moduli ) {
+			$moduli               = (array) $moduli;
+			$moduli['hf-builder'] = false;
+			return $moduli;
 		}
 	);
 }
 
-// Niente sidebar: i contatti vivono nel footer.
 add_filter( 'sydney_show_sidebar', '__return_false' );
 
 /**
- * Colonna dei contenuti a tutta larghezza (la larghezza di lettura la dà il CSS).
- *
- * @param string $classes Classi della content-area.
+ * A tutta larghezza: la larghezza di lettura la dà il CSS.
  */
-function vv_content_area_class( $classes ) { // phpcs:ignore Generic.CodeAnalysis.UnusedFunctionParameter.Found -- firma del filtro.
+function vv_classe_contenuti() {
 	return is_singular() ? 'no-sidebar' : 'col-md-12';
 }
-add_filter( 'sydney_content_area_class', 'vv_content_area_class', 20 );
+add_filter( 'sydney_content_area_class', 'vv_classe_contenuti', 20 );
 
 /**
- * Immagine in evidenza in testa alle pagine (titolo, immagine, testo), come l'opzione
- * "Enable featured images on all pages" di Sydney. Non nella home, che ha l'hero.
- *
- * @param mixed $value Valore salvato nel Customizer.
+ * Immagine in evidenza fra titolo e testo delle pagine. Non nelle Pagine elenco, dove spingerebbe le
+ * card sotto la piega (l'immagine serve alla loro card nella pagina madre), né in home.
  */
-function vv_page_featured_image( $value ) {
+function vv_immagine_in_testa( $valore ) {
 	if ( is_front_page() ) {
-		return $value;
+		return $valore;
 	}
-	// Nelle "Pagine elenco" l'immagine serve alla card dell'hub: in testa spingerebbe le card sotto la piega.
 	return is_page_template( 'page-templates/page-elenco.php' ) ? 0 : 1;
 }
-add_filter( 'theme_mod_enable_page_feat_images', 'vv_page_featured_image' );
+add_filter( 'theme_mod_enable_page_feat_images', 'vv_immagine_in_testa' );
 
 /**
- * "Senza immagine in testa" (riquadro VivaVoce di articoli e pagine): nella pagina del contenuto
- * Sydney non trova l'immagine in evidenza e non la stampa sopra il testo. Altrove (card, "Da non
- * perdere", anteprime dei social) l'immagine resta.
- *
- * @param bool             $has  Il contenuto ha un'immagine in evidenza.
- * @param int|WP_Post|null $post Articolo o pagina.
- * @return bool
+ * Casella "Senza immagine in testa": nella pagina del contenuto Sydney non trova l'immagine in evidenza;
+ * card, "Da non perdere" e anteprime social la usano ancora.
  */
-function vv_senza_immagine_in_testa( $has, $post = null ) {
-	if ( ! $has || is_admin() || ! is_singular( array( 'post', 'page' ) ) || ! in_the_loop() || ! is_main_query() ) {
-		return $has;
+function vv_senza_immagine_in_testa( $ha_immagine, $contenuto = null ) {
+	if ( ! $ha_immagine || is_admin() || ! is_singular( array( 'post', 'page' ) ) || ! in_the_loop() || ! is_main_query() ) {
+		return $ha_immagine;
 	}
-	$post = get_post( $post );
-	return ! ( $post && get_queried_object_id() === $post->ID && get_post_meta( $post->ID, 'vv_senza_immagine', true ) );
+	$contenuto = get_post( $contenuto );
+	return ! ( $contenuto && get_queried_object_id() === $contenuto->ID && get_post_meta( $contenuto->ID, 'vv_senza_immagine', true ) );
 }
 add_filter( 'has_post_thumbnail', 'vv_senza_immagine_in_testa', 10, 2 );
 
 /**
- * Stessa regola per chi stampa l'immagine senza chiedere prima has_post_thumbnail().
- *
- * @param string $html    Immagine.
- * @param int    $post_id Articolo o pagina.
+ * Per chi stampa l'immagine senza chiedere prima has_post_thumbnail().
  */
-function vv_senza_immagine_in_testa_html( $html, $post_id ) {
-	return vv_senza_immagine_in_testa( true, $post_id ) ? $html : '';
+function vv_senza_immagine_in_testa_html( $html, $contenuto_id ) {
+	return vv_senza_immagine_in_testa( true, $contenuto_id ) ? $html : '';
 }
 add_filter( 'post_thumbnail_html', 'vv_senza_immagine_in_testa_html', 10, 2 );
 
 /**
- * Fascia sotto il footer: "© anno" e la scritta VIVA VOCE del logo, al posto del testo del Customizer
- * (Footer → Credits, che su Sydney finiva con "Proudly powered by Sydney"). Sydney sostituisce
- * {copyright} e {year}; le faccine ai lati sono nel CSS (footer.css).
+ * Al posto dei credits del Customizer, che finivano con "Proudly powered by Sydney". Sydney sostituisce
+ * {copyright} e {year}.
  */
-function vv_footer_credits() {
+function vv_crediti_footer() {
 	return sprintf(
 		'<span class="vv-credits__anno">{copyright} {year}</span> <span class="vv-credits__scritta"><img class="vv-credits__logo" src="%s" width="236" height="140" alt="VivaVoce"></span>',
 		esc_url( VV_URI . '/assets/img/viva-voce-scritta.png' )
 	);
 }
-add_filter( 'theme_mod_footer_credits', 'vv_footer_credits' );
+add_filter( 'theme_mod_footer_credits', 'vv_crediti_footer' );
 
-// Niente icone social nella fascia sotto il footer (i social sono già nelle colonne del footer).
-add_filter( 'theme_mod_social_profiles_footer', '__return_empty_string' );
+add_filter( 'theme_mod_social_profiles_footer', '__return_empty_string' ); // i social sono già nei widget del footer
 
 /**
- * Titolo degli archivi senza il prefisso "Categoria:" / "Tag:".
- *
- * @param string $title  Titolo completo.
- * @param string $plain  Titolo senza prefisso.
+ * Senza il prefisso "Categoria:" / "Tag:".
  */
-function vv_archive_title( $title, $plain = '' ) {
-	return $plain ? $plain : $title;
+function vv_titolo_archivio( $titolo, $senza_prefisso = '' ) {
+	return $senza_prefisso ? $senza_prefisso : $titolo;
 }
-add_filter( 'get_the_archive_title', 'vv_archive_title', 10, 2 );
+add_filter( 'get_the_archive_title', 'vv_titolo_archivio', 10, 2 );
 
 /**
- * Traduzioni mancanti in Sydney e in Forminator, che sul sito non ha la traduzione italiana:
- * pulsante e testo del campo "carica un file", messaggi d'errore predefiniti.
- *
- * @param string $translation Testo tradotto.
- * @param string $text        Testo originale.
- * @param string $domain      Dominio del testo.
+ * Sydney e Forminator, che sul sito non ha la traduzione italiana.
  */
-function vv_plugin_strings( $translation, $text, $domain ) {
-	static $domains = array( 'sydney', 'forminator' );
-	if ( ! in_array( $domain, $domains, true ) ) {
-		return $translation;
-	}
-	static $map = array(
-		'Read More'                                => 'Leggi',
-		'Read more'                                => 'Leggi',
-		'By'                                       => 'di',
-		// Forminator
-		'Choose File'                              => 'Scegli il file',
-		'Choose file'                              => 'Scegli il file',
-		'No file chosen'                           => 'Nessun file scelto',
-		'This field is required.'                  => 'Questo campo è obbligatorio.',
-		'This field is required. Please check it.' => 'Per continuare spunta questa casella.',
+function vv_traduzioni_mancanti( $traduzione, $testo, $dominio ) {
+	static $traduzioni = array(
+		'sydney'     => array(
+			'Read More' => 'Leggi',
+			'Read more' => 'Leggi',
+			'By'        => 'di',
+		),
+		'forminator' => array(
+			'Choose File'                              => 'Scegli il file',
+			'Choose file'                              => 'Scegli il file',
+			'No file chosen'                           => 'Nessun file scelto',
+			'This field is required.'                  => 'Questo campo è obbligatorio.',
+			'This field is required. Please check it.' => 'Per continuare spunta questa casella.',
+		),
 	);
-	return $map[ $text ] ?? $translation;
+	return $traduzioni[ $dominio ][ $testo ] ?? $traduzione;
 }
-add_filter( 'gettext', 'vv_plugin_strings', 10, 3 );
+add_filter( 'gettext', 'vv_traduzioni_mancanti', 10, 3 );
 
-/**
- * Estratti chiusi da "…" invece di "[…]".
- */
-function vv_excerpt_more() {
+function vv_fine_riassunto() {
 	return '…';
 }
-add_filter( 'excerpt_more', 'vv_excerpt_more', 20 );
+add_filter( 'excerpt_more', 'vv_fine_riassunto', 20 );
 
 /**
- * Contact Form 7 e reCAPTCHA solo nelle pagine con un modulo (shortcode o blocco, oggi Contatti):
- * nelle altre sono peso inutile e una richiesta ai server di Google prima del consenso.
+ * Nelle pagine senza un modulo sono peso inutile e una richiesta a Google prima del consenso.
  */
 function vv_cf7_solo_dove_serve() {
-	if ( ! defined( 'WPCF7_VERSION' ) ) {
-		return;
-	}
 	$con_modulo = is_singular() && str_contains( get_queried_object()->post_content, 'contact-form-7' );
-	if ( $con_modulo ) {
+	if ( ! defined( 'WPCF7_VERSION' ) || $con_modulo ) {
 		return;
 	}
-	foreach ( array( 'contact-form-7', 'swv', 'wpcf7-recaptcha', 'google-recaptcha' ) as $handle ) {
-		wp_dequeue_script( $handle );
+	foreach ( array( 'contact-form-7', 'swv', 'wpcf7-recaptcha', 'google-recaptcha' ) as $script ) {
+		wp_dequeue_script( $script );
 	}
 	wp_dequeue_style( 'contact-form-7' );
 }

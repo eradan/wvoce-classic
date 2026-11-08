@@ -1,12 +1,8 @@
 <?php
 /**
- * Breadcrumb ("Home › Chi siamo › Statuto e organigramma") su tutte le pagine tranne la home.
- *
- * Il percorso segue il menu principale, così rispecchia la struttura che vede chi naviga
- * (per esempio Dicono di noi sta sotto Chi siamo). Se una voce non è nel menu si usano
- * le pagine madri; per gli articoli la pagina collegata alla loro categoria o a una sua madre
- * (campo "Categorie collegate" nel riquadro VivaVoce della pagina), poi la voce di menu della
- * categoria (Progetti → archivio), oppure la categoria stessa.
+ * Percorso in alto ("Home › Chi siamo › Statuto") e voce di menu della sezione corrente. Segue il menu
+ * principale, così rispecchia la struttura che vede chi naviga; fuori dal menu le pagine madri, per gli
+ * articoli la pagina collegata alla loro categoria ("Categorie collegate").
  *
  * @package VivaVoce
  */
@@ -14,286 +10,248 @@
 defined( 'ABSPATH' ) || exit;
 
 /**
- * Voci del menu principale, indicizzate per ID.
- *
- * @return array<int,WP_Post>
+ * @return array<int,WP_Post> Le voci del menu principale per ID.
  */
-function vv_primary_menu_items() {
-	static $items = null;
-	if ( null !== $items ) {
-		return $items;
+function vv_voci_menu() {
+	static $voci = null;
+	if ( null !== $voci ) {
+		return $voci;
 	}
-	$items     = array();
-	$locations = get_nav_menu_locations();
-	if ( empty( $locations['primary'] ) ) {
-		return $items;
+	$voci  = array();
+	$menu  = get_nav_menu_locations()['primary'] ?? 0;
+	$tutte = $menu ? (array) wp_get_nav_menu_items( $menu ) : array();
+	foreach ( $tutte as $voce ) {
+		$voci[ (int) $voce->ID ] = $voce;
 	}
-	foreach ( (array) wp_get_nav_menu_items( $locations['primary'] ) as $item ) {
-		$items[ (int) $item->ID ] = $item;
-	}
-	return $items;
+	return $voci;
 }
 
 /**
- * Percorso nel menu fino a un oggetto (pagina o categoria), voce compresa.
- *
- * @param string $type      post_type | taxonomy.
- * @param string $kind      page | category.
- * @param int    $object_id ID dell'oggetto.
- * @return array<int,array{0:string,1:string}>|null Coppie [titolo, url] o null se non è nel menu.
+ * @param string $tipo    post_type | taxonomy.
+ * @param string $oggetto page | category.
+ * @return array<int,array{0:string,1:string}>|null Coppie [titolo, indirizzo], null se non è nel menu.
  */
-function vv_menu_trail( $type, $kind, $object_id ) {
-	$items = vv_primary_menu_items();
-	foreach ( $items as $item ) {
-		if ( $item->type === $type && $item->object === $kind && (int) $item->object_id === (int) $object_id ) {
-			$trail = array();
-			for ( $cur = $item; $cur; $cur = $items[ (int) $cur->menu_item_parent ] ?? null ) {
-				array_unshift( $trail, array( $cur->title, $cur->url ) );
-				if ( count( $trail ) > 6 ) {
-					break; // Menu malformato: niente cicli infiniti.
-				}
-			}
-			return $trail;
+function vv_percorso_menu( $tipo, $oggetto, $oggetto_id ) {
+	$voci = vv_voci_menu();
+	foreach ( $voci as $voce ) {
+		if ( $voce->type !== $tipo || $voce->object !== $oggetto || (int) $voce->object_id !== (int) $oggetto_id ) {
+			continue;
 		}
+		$percorso = array();
+		for ( $corrente = $voce; $corrente; $corrente = $voci[ (int) $corrente->menu_item_parent ] ?? null ) {
+			array_unshift( $percorso, array( $corrente->title, $corrente->url ) );
+			if ( count( $percorso ) > 6 ) {
+				break; // un menu con un ciclo non blocca la pagina
+			}
+		}
+		return $percorso;
 	}
 	return null;
 }
 
 /**
- * Percorso di una pagina: dal menu, altrimenti pagine madri.
- *
- * @param int $page_id Pagina.
  * @return array<int,array{0:string,1:string}>
  */
-function vv_page_trail( $page_id ) {
-	$trail = vv_menu_trail( 'post_type', 'page', $page_id );
-	if ( null !== $trail ) {
-		return $trail;
+function vv_percorso_pagina( $pagina_id ) {
+	$percorso = vv_percorso_menu( 'post_type', 'page', $pagina_id );
+	if ( null !== $percorso ) {
+		return $percorso;
 	}
-	$trail = array();
-	foreach ( array_reverse( get_post_ancestors( $page_id ) ) as $ancestor ) {
-		// Una madre non pubblicata resta nel percorso senza link: darebbe 404 ai visitatori.
-		$trail[] = array( get_the_title( $ancestor ), 'publish' === get_post_status( $ancestor ) ? get_permalink( $ancestor ) : '' );
+	$percorso = array();
+	foreach ( array_reverse( get_post_ancestors( $pagina_id ) ) as $madre ) {
+		// Una madre non pubblicata resta senza link: darebbe 404 ai visitatori.
+		$percorso[] = array( get_the_title( $madre ), 'publish' === get_post_status( $madre ) ? get_permalink( $madre ) : '' );
 	}
-	$trail[] = array( get_the_title( $page_id ), get_permalink( $page_id ) );
-	return $trail;
+	$percorso[] = array( get_the_title( $pagina_id ), get_permalink( $pagina_id ) );
+	return $percorso;
 }
 
 /**
- * Pagina collegata a una categoria (campo vv_categoria della pagina).
- *
- * @param string $slug Slug della categoria.
- * @return int ID della pagina o 0.
+ * Dal campo "Categorie collegate" delle pagine; 0 se nessuna.
  */
-function vv_page_for_category( $slug ) {
-	static $map = null;
-	if ( null === $map ) {
-		$map   = array();
-		$pages = get_posts( array(
+function vv_pagina_della_categoria( $slug ) {
+	static $pagine = null;
+	if ( null === $pagine ) {
+		$pagine    = array();
+		$collegate = get_posts( array(
 			'post_type'      => 'page',
 			'post_status'    => 'publish',
 			'posts_per_page' => -1,
 			'meta_key'       => 'vv_categoria', // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_key
 			'no_found_rows'  => true,
 		) );
-		// Pagine intere, non solo gli ID: così i campi arrivano con la stessa query.
-		foreach ( $pages as $page ) {
-			foreach ( explode( ',', (string) get_post_meta( $page->ID, 'vv_categoria', true ) ) as $cat ) {
-				if ( $cat && ! isset( $map[ $cat ] ) ) {
-					$map[ $cat ] = $page->ID;
+		foreach ( $collegate as $pagina ) {
+			foreach ( explode( ',', (string) get_post_meta( $pagina->ID, 'vv_categoria', true ) ) as $categoria ) {
+				if ( $categoria && ! isset( $pagine[ $categoria ] ) ) {
+					$pagine[ $categoria ] = $pagina->ID;
 				}
 			}
 		}
 	}
-	return $map[ $slug ] ?? 0;
+	return $pagine[ $slug ] ?? 0;
 }
 
 /**
- * Pagina collegata a una categoria o, se non ce n'è, alla prima categoria madre che ne ha una:
- * "Spettacoli e incontri" e "Partecipazioni" stanno nella pagina di "Eventi".
- *
- * @param WP_Term $term Categoria.
- * @return int ID della pagina o 0.
+ * Anche di una categoria madre: "Spettacoli e incontri" sta nella pagina di "Eventi". 0 se nessuna.
  */
-function vv_page_for_term( $term ) {
-	foreach ( array_merge( array( $term->term_id ), get_ancestors( $term->term_id, 'category', 'taxonomy' ) ) as $id ) {
-		$cat  = get_term( $id, 'category' );
-		$page = $cat && ! is_wp_error( $cat ) ? vv_page_for_category( $cat->slug ) : 0;
-		if ( $page ) {
-			return $page;
+function vv_pagina_del_termine( WP_Term $categoria ) {
+	foreach ( array_merge( array( $categoria->term_id ), get_ancestors( $categoria->term_id, 'category', 'taxonomy' ) ) as $id ) {
+		$termine = get_term( $id, 'category' );
+		$pagina  = $termine && ! is_wp_error( $termine ) ? vv_pagina_della_categoria( $termine->slug ) : 0;
+		if ( $pagina ) {
+			return $pagina;
 		}
 	}
 	return 0;
 }
 
 /**
- * Percorso di una categoria: dal menu, altrimenti pagina collegata (sua o di una madre, seguita
- * allora dalla categoria stessa), altrimenti la sola categoria.
+ * Dal menu; altrimenti la pagina collegata (seguita dalla categoria, se la pagina è di una madre);
+ * altrimenti la categoria sola.
  *
- * @param WP_Term $term Categoria.
  * @return array<int,array{0:string,1:string}>
  */
-function vv_category_trail( $term ) {
-	$trail = vv_menu_trail( 'taxonomy', 'category', $term->term_id );
-	if ( null !== $trail ) {
-		return $trail;
+function vv_percorso_categoria( WP_Term $categoria ) {
+	$percorso = vv_percorso_menu( 'taxonomy', 'category', $categoria->term_id );
+	if ( null !== $percorso ) {
+		return $percorso;
 	}
-	$page = vv_page_for_term( $term );
-	if ( $page ) {
-		$trail = vv_page_trail( $page );
-		if ( vv_page_for_category( $term->slug ) !== $page ) {
-			$trail[] = array( $term->name, get_category_link( $term ) );
+	$voce   = array( $categoria->name, get_category_link( $categoria ) );
+	$pagina = vv_pagina_del_termine( $categoria );
+	if ( ! $pagina ) {
+		return array( $voce );
+	}
+	$percorso = vv_percorso_pagina( $pagina );
+	if ( vv_pagina_della_categoria( $categoria->slug ) !== $pagina ) {
+		$percorso[] = $voce;
+	}
+	return $percorso;
+}
+
+/**
+ * Prima una categoria con pagina collegata (Soci → Chi siamo), poi una presente nel menu, poi la prima.
+ *
+ * @return array<int,array{0:string,1:string}>
+ */
+function vv_percorso_articolo( WP_Post $articolo ) {
+	$categorie = vv_categorie_articolo( $articolo->ID );
+	$sezione   = array();
+	foreach ( $categorie as $categoria ) {
+		$pagina = vv_pagina_del_termine( $categoria );
+		if ( $pagina ) {
+			$sezione = vv_percorso_pagina( $pagina );
+			break;
 		}
-		return $trail;
 	}
-	return array( array( $term->name, get_category_link( $term ) ) );
-}
-
-/**
- * Voci del breadcrumb per la richiesta corrente, dalla home all'ultima (senza link). Calcolate una
- * volta: servono al breadcrumb e alla voce di menu della sezione corrente.
- *
- * @return array<int,array{0:string,1:string}>
- */
-function vv_breadcrumb_items() {
-	static $items = null;
-	if ( null === $items ) {
-		$items = vv_breadcrumb_items_build();
-	}
-	return $items;
-}
-
-/**
- * @return array<int,array{0:string,1:string}>
- */
-function vv_breadcrumb_items_build() {
-	$items = array( array( 'Home', home_url( '/' ) ) );
-
-	if ( is_front_page() ) {
-		return array();
-	} elseif ( is_page() ) {
-		$items = array_merge( $items, vv_page_trail( get_queried_object_id() ) );
-	} elseif ( is_singular( 'post' ) ) {
-		$post    = get_queried_object();
-		$section = array();
-		$cats    = vv_post_categories( $post->ID );
-		// Prima una categoria con pagina collegata (Soci → Chi siamo), poi una presente nel menu, poi la prima.
-		foreach ( $cats as $cat ) {
-			$page = vv_page_for_term( $cat );
-			if ( $page ) {
-				$section = vv_page_trail( $page );
+	if ( ! $sezione ) {
+		foreach ( $categorie as $categoria ) {
+			$sezione = (array) vv_percorso_menu( 'taxonomy', 'category', $categoria->term_id );
+			if ( $sezione ) {
 				break;
 			}
 		}
-		if ( ! $section ) {
-			foreach ( $cats as $cat ) {
-				$trail = vv_menu_trail( 'taxonomy', 'category', $cat->term_id );
-				if ( $trail ) {
-					$section = $trail;
-					break;
-				}
-			}
-		}
-		if ( ! $section && $cats ) {
-			$first   = reset( $cats );
-			$section = array( array( $first->name, get_category_link( $first ) ) );
-		}
-		$items   = array_merge( $items, $section );
-		$items[] = array( get_the_title( $post ), get_permalink( $post ) );
-	} elseif ( is_category() ) {
-		$items = array_merge( $items, vv_category_trail( get_queried_object() ) );
-	} elseif ( is_search() ) {
-		$items[] = array( sprintf( 'Risultati per “%s”', get_search_query() ), '' );
-	} elseif ( is_404() ) {
-		$items[] = array( 'Pagina non trovata', '' );
-	} elseif ( is_archive() ) {
-		$items[] = array( wp_strip_all_tags( get_the_archive_title() ), '' );
-	} else {
+	}
+	if ( ! $sezione && $categorie ) {
+		$sezione = array( array( $categorie[0]->name, get_category_link( $categorie[0] ) ) );
+	}
+	$sezione[] = array( get_the_title( $articolo ), get_permalink( $articolo ) );
+	return $sezione;
+}
+
+/**
+ * Calcolate una volta: servono al percorso e alla voce di menu della sezione corrente.
+ *
+ * @return array<int,array{0:string,1:string}> Dalla home all'ultima voce.
+ */
+function vv_voci_percorso() {
+	static $voci = null;
+
+	$voci ??= vv_costruisci_percorso();
+	return $voci;
+}
+
+/**
+ * @return array<int,array{0:string,1:string}>
+ */
+function vv_costruisci_percorso() {
+	$dopo_home = match ( true ) {
+		is_front_page()       => array(),
+		is_page()             => vv_percorso_pagina( get_queried_object_id() ),
+		is_singular( 'post' ) => vv_percorso_articolo( get_queried_object() ),
+		is_category()         => vv_percorso_categoria( get_queried_object() ),
+		is_search()           => array( array( sprintf( 'Risultati per “%s”', get_search_query() ), '' ) ),
+		is_404()              => array( array( 'Pagina non trovata', '' ) ),
+		is_archive()          => array( array( get_the_archive_title(), '' ) ),
+		default               => array(),
+	};
+	if ( ! $dopo_home ) {
 		return array();
 	}
-
-	// Niente doppioni consecutivi (es. voce di menu e pagina con lo stesso titolo).
-	$clean = array();
-	foreach ( $items as $item ) {
-		$item[0] = vv_testo_semplice( $item[0] );
-		if ( ! $clean || end( $clean )[1] !== $item[1] || '' === $item[1] ) {
-			$clean[] = $item;
+	// Niente doppioni consecutivi, come la voce di menu e la pagina con lo stesso indirizzo.
+	$voci = array();
+	foreach ( array_merge( array( array( 'Home', home_url( '/' ) ) ), $dopo_home ) as list( $titolo, $indirizzo ) ) {
+		if ( ! $voci || end( $voci )[1] !== $indirizzo || '' === $indirizzo ) {
+			$voci[] = array( vv_testo_semplice( $titolo ), $indirizzo );
 		}
 	}
-	return $clean;
+	return $voci;
 }
 
 /**
- * Voce del menu della sezione corrente: classe vv-current sulle voci il cui indirizzo è nel percorso
- * della pagina (un corso accende "Cosa facciamo" e "Corsi e laboratori", un ritaglio "Chi siamo").
- * WordPress segna da solo solo la pagina stessa e le sue madri, non la sezione di un articolo.
- *
- * @param string[] $classes Classi della voce.
- * @param WP_Post  $item    Voce di menu.
- * @return string[]
+ * WordPress segna da solo la pagina e le sue madri, non la sezione di un articolo: qui si accendono
+ * tutte le voci del percorso (un corso accende "Cosa facciamo" e "Corsi e laboratori").
  */
-function vv_menu_current_section( $classes, $item ) {
-	static $urls = null;
-	if ( null === $urls ) {
-		$urls = array();
-		foreach ( array_slice( vv_breadcrumb_items(), 1 ) as $crumb ) { // senza "Home"
-			if ( $crumb[1] ) {
-				$urls[] = untrailingslashit( $crumb[1] );
-			}
-		}
+function vv_sezione_corrente_menu( $classi, $voce ) {
+	static $indirizzi = null;
+
+	$indirizzi ??= array_map( 'untrailingslashit', array_filter( array_column( array_slice( vv_voci_percorso(), 1 ), 1 ) ) );
+	if ( ! empty( $voce->url ) && in_array( untrailingslashit( $voce->url ), $indirizzi, true ) ) {
+		$classi[] = 'vv-current';
 	}
-	if ( $urls && ! empty( $item->url ) && in_array( untrailingslashit( $item->url ), $urls, true ) ) {
-		$classes[] = 'vv-current';
-	}
-	return $classes;
+	return $classi;
 }
-add_filter( 'nav_menu_css_class', 'vv_menu_current_section', 10, 2 );
+add_filter( 'nav_menu_css_class', 'vv_sezione_corrente_menu', 10, 2 );
 
 /**
- * HTML del breadcrumb, con i dati strutturati BreadcrumbList per i motori di ricerca se non li scrive
- * già un plugin SEO.
+ * Con i dati strutturati BreadcrumbList, se non li scrive già un plugin SEO.
  */
-function vv_breadcrumbs() {
-	$items = vv_breadcrumb_items();
-	if ( count( $items ) < 2 ) {
+function vv_percorso_html() {
+	$voci = vv_voci_percorso();
+	if ( count( $voci ) < 2 ) {
 		return '';
 	}
-	$last = count( $items ) - 1;
-	$html = '<nav class="vv-breadcrumbs" aria-label="Percorso"><ol>';
-	$ld   = array();
-	foreach ( $items as $i => list( $title, $url ) ) {
-		if ( $i === $last || ! $url ) {
-			// Una voce senza link in mezzo (madre non pubblicata, archivio) non è la pagina corrente.
-			$html .= '<li><span' . ( $i === $last ? ' aria-current="page"' : '' ) . '>' . esc_html( $title ) . '</span></li>';
+	$ultima = count( $voci ) - 1;
+	$html   = '<nav class="vv-breadcrumbs" aria-label="Percorso"><ol>';
+	$schema = array();
+	foreach ( $voci as $i => list( $titolo, $indirizzo ) ) {
+		if ( $i === $ultima || ! $indirizzo ) {
+			// Una voce senza link in mezzo (madre non pubblicata) non è la pagina corrente.
+			$html .= '<li><span' . ( $i === $ultima ? ' aria-current="page"' : '' ) . '>' . esc_html( $titolo ) . '</span></li>';
 		} else {
-			$html .= '<li><a href="' . esc_url( $url ) . '">' . esc_html( $title ) . '</a></li>';
+			$html .= '<li><a href="' . esc_url( $indirizzo ) . '">' . esc_html( $titolo ) . '</a></li>';
 		}
-		$ld[] = array_filter( array(
+		$schema[] = array_filter( array(
 			'@type'    => 'ListItem',
 			'position' => $i + 1,
-			'name'     => $title,
-			'item'     => $url ? $url : null,
+			'name'     => $titolo,
+			'item'     => $indirizzo,
 		) );
 	}
 	$html .= '</ol></nav>';
-	// Con un plugin SEO il BreadcrumbList lo scrive il plugin, come gli altri dati strutturati.
 	if ( vv_condivisione_plugin_seo() ) {
 		return $html;
 	}
 	return $html . '<script type="application/ld+json">' . wp_json_encode( array(
 		'@context'        => 'https://schema.org',
 		'@type'           => 'BreadcrumbList',
-		'itemListElement' => $ld,
+		'itemListElement' => $schema,
 	), JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_HEX_TAG | JSON_HEX_AMP ) . '</script>';
 }
 
-/**
- * Stampa il breadcrumb prima del contenuto (pagine, articoli, archivi, ricerca, 404).
- */
-function vv_print_breadcrumbs() {
-	$html = vv_breadcrumbs();
+function vv_stampa_percorso() {
+	$html = vv_percorso_html();
 	if ( $html ) {
 		echo '<div class="vv-breadcrumbs-wrap col-md-12">' . $html . '</div>'; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
 	}
 }
-add_action( 'sydney_before_content', 'vv_print_breadcrumbs', 5 );
+add_action( 'sydney_before_content', 'vv_stampa_percorso', 5 );

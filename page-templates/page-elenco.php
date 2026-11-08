@@ -2,8 +2,7 @@
 /**
  * Template Name: Pagina elenco (in programma + archivio)
  *
- * Contenuto della pagina come introduzione, poi gli articoli delle categorie indicate
- * nel campo "Categorie collegate" del riquadro "VivaVoce": prima quelli in programma, poi l'archivio per anno.
+ * Il testo della pagina, poi gli articoli delle "Categorie collegate": in programma e archivio per anno.
  *
  * @package VivaVoce
  */
@@ -12,11 +11,7 @@ get_header();
 
 do_action( 'sydney_before_content' );
 
-vv_page_with_extra(
-	static function ( $page_id ) {
-		return vv_render_elenco( (string) get_post_meta( $page_id, 'vv_categoria', true ) );
-	}
-);
+vv_pagina_con_blocco_finale( static fn( $pagina_id ) => vv_elenco_html( (string) get_post_meta( $pagina_id, 'vv_categoria', true ) ) );
 
 do_action( 'sydney_after_content' );
 

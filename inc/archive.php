@@ -1,29 +1,22 @@
 <?php
 /**
- * Archivi (categorie, tag, blog) con le card del child al posto dei layout di Sydney.
+ * Archivi (categorie, tag, blog) a griglia di card.
  *
  * @package VivaVoce
  */
 
 defined( 'ABSPATH' ) || exit;
 
-/**
- * Sostituisce il contenuto degli archivi di Sydney.
- */
-function vv_swap_archive_template() {
+function vv_sostituisci_modello_archivio() {
 	remove_action( 'sydney_archive_content', 'sydney_archive_template' );
-	add_action( 'sydney_archive_content', 'vv_archive_template' );
+	add_action( 'sydney_archive_content', 'vv_modello_archivio' );
 }
-add_action( 'wp', 'vv_swap_archive_template' );
+add_action( 'wp', 'vv_sostituisci_modello_archivio' );
 
 /**
- * 12 articoli per pagina negli archivi a card, invece dei 10 di Impostazioni → Lettura: la griglia
- * ha 1, 2 o 3 colonne secondo lo schermo e con 12 le righe sono sempre piene (con 10, a 3 colonne,
- * l'ultima riga aveva una card sola).
- *
- * @param WP_Query $query Query in corso.
+ * 12 invece dei 10 di Impostazioni → Lettura: a 1, 2 o 3 colonne le righe restano piene.
  */
-function vv_archive_posts_per_page( $query ) {
+function vv_articoli_per_pagina( WP_Query $query ) {
 	if ( is_admin() || ! $query->is_main_query() ) {
 		return;
 	}
@@ -31,12 +24,9 @@ function vv_archive_posts_per_page( $query ) {
 		$query->set( 'posts_per_page', 12 );
 	}
 }
-add_action( 'pre_get_posts', 'vv_archive_posts_per_page' );
+add_action( 'pre_get_posts', 'vv_articoli_per_pagina' );
 
-/**
- * Archivio a griglia di card; la Rassegna stampa usa la variante "stampa".
- */
-function vv_archive_template() {
+function vv_modello_archivio() {
 	global $wp_query;
 	$variante = is_category( 'rassegna-stampa' ) ? 'stampa' : 'evento';
 	?>
@@ -51,7 +41,7 @@ function vv_archive_template() {
 						?>
 					</header>
 				<?php endif; ?>
-				<?php echo vv_render_cards( $wp_query->posts, $variante, array( 'titolo_livello' => 'h2' ) ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
+				<?php echo vv_griglia_card( $wp_query->posts, $variante, array( 'titolo_livello' => 'h2' ) ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped ?>
 				<?php
 				the_posts_pagination( array(
 					'mid_size'           => 1,
