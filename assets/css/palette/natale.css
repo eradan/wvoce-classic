@@ -92,6 +92,32 @@
 	--vv-neve: rgb(255 255 255 / 0.9);
 }
 
+/* Hero: la testa con il cappello e senza i capelli rossi al posto di quella normale, con lo stesso perno
+ * sul collo. Il cappello esce a sinistra e in alto: l'illustrazione si rimpicciolisce quanto basta perché
+ * ci stia, ferma sul fondo, dove ci sono i pulsanti. */
+.vv-hero__testa-natale {
+	display: none;
+}
+[data-vv-natale] .vv-hero__testa {
+	display: none;
+}
+[data-vv-natale] .vv-hero__testa-natale {
+	display: block;
+	left: -8.632%;
+	top: -9.845%;
+	width: 71.579%;
+	transform-origin: 60.46% 91.73%;
+}
+[data-vv-natale] .vv-hero__tela {
+	scale: 0.89;
+	transform-origin: 70% 80%;
+}
+@media (prefers-reduced-motion: no-preference) {
+	[data-vv-natale] .vv-hero__testa-natale {
+		animation: vv-parla 6s ease-in-out 0.6s;
+	}
+}
+
 @keyframes vv-festone-brilla {
 	0%, 100% { opacity: 0.2; }
 	50%      { opacity: 1; }

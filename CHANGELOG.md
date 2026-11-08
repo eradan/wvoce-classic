@@ -2,6 +2,12 @@
 
 Storia del tema VivaVoce Classic, dalla versione più recente. La guida d'uso è nel README.
 
+## Versione 1.7.1: il cappello di Natale
+
+Con il tema natalizio la faccia dell'illustrazione in home porta un cappello da Babbo Natale al posto dei capelli rossi, e si muove con la testa quando parla. Spegnendo il Natale dallo switcher torna la faccia di sempre.
+
+Da fare: nessun passo manuale.
+
 ## Versione 1.7.0: via "In evidenza" e le funzioni mai usate
 
 Il tema perde le funzioni che nessuna pagina usava; il sito resta com'è.

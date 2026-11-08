@@ -21,6 +21,9 @@ $pezzi = array(
 	'trattino-3' => array( 218, 120 ),
 	'testa'      => array( 1034, 1203 ),
 );
+if ( 'natale' === vv_pulisci_palette( vv_mod( 'vv_palette' ) ) ) {
+	$pezzi['testa-natale'] = array( 1360, 1455 ); // con il cappello, al posto della testa (natale.css)
+}
 ?>
 <section class="vv-hero" aria-labelledby="vv-hero-title">
 	<div class="vv-hero__inner">
@@ -38,7 +41,7 @@ $pezzi = array(
 			<div class="vv-hero__art vv-hero__art--animata" aria-hidden="true">
 				<div class="vv-hero__tela">
 					<?php foreach ( $pezzi as $nome => list( $larghezza, $altezza ) ) : ?>
-						<img class="vv-hero__pezzo vv-hero__<?php echo esc_attr( $nome ); ?>" src="<?php echo esc_url( VV_URI . '/assets/img/hero/' . $nome . '.webp' ); ?>" width="<?php echo (int) $larghezza; ?>" height="<?php echo (int) $altezza; ?>" alt=""<?php echo in_array( $nome, array( 'testa', 'mano' ), true ) ? ' fetchpriority="high"' : ''; ?> decoding="async">
+						<img class="vv-hero__pezzo vv-hero__<?php echo esc_attr( $nome ); ?>" src="<?php echo esc_url( VV_URI . '/assets/img/hero/' . $nome . '.webp' ); ?>" width="<?php echo (int) $larghezza; ?>" height="<?php echo (int) $altezza; ?>" alt=""<?php echo 'mano' === $nome || str_starts_with( $nome, 'testa' ) ? ' fetchpriority="high"' : ''; ?> decoding="async">
 					<?php endforeach; ?>
 				</div>
 			</div>
